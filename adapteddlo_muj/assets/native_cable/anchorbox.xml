@@ -1,0 +1,11 @@
+<mujoco model="anchor-box">
+  <worldbody>
+    <body name="eef_body" pos="-1.2 0.0 0.38" quat="1.0 0.0 0.0 0.0">
+      <geom name="eef_geom" type="box" mass="1" size="0.0300 0.0300 0.0600" contype="0" conaffinity="0" rgba=".8 .2 .1 0.3" friction="1 0.005 0.0001"/>
+    </body>  </worldbody>
+  <equality>
+     <weld body1='B_last' body2='eef_body' solref='0.004 1' relpose='0.04 0 0 0 0 -1 0'/>
+  </equality>
+  <contact>
+  </contact>
+</mujoco>

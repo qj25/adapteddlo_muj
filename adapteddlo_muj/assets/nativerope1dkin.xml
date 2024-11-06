@@ -1,0 +1,18 @@
+<mujoco model="stiff-rope">
+  <extension>
+    <plugin plugin="mujoco.elasticity.cable"/>
+  </extension>
+  <worldbody>
+    <body name="stiffrope" pos="4.645 0.0 0.5" quat="0.0 0.0 1.0 0.0">
+      <freejoint name="freejoint_A"/>
+      <composite type="cable" curve="s" count="81 1 1" size="9.29" offset="0 0 0" initial="none">
+        <plugin plugin="mujoco.elasticity.cable">
+          <config key="twist" value="1285870.0810189354"/>
+          <config key="bend" value="4384018.400432112"/>
+        </plugin>
+        <joint kind="main" damping="0.5"/>
+        <geom type="capsule" size="0.025" rgba="0.1 0.05333333333333334 0.6733333333333333 1" condim="1" conaffinity="0" contype="0"/>
+      </composite>
+    </body>
+  </worldbody>
+</mujoco>
