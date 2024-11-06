@@ -1,18 +1,15 @@
 <mujoco model="anchor-box">
   <worldbody>
-    <body name="eef_body" pos="-4.645 0.0 0.5" quat="1.0 0.0 0.0 0.0">
+    <body name="eef_body" pos="-3.204424506661589 0.0 0.5" quat="1.0 0.0 0.0 0.0">
       <geom name="eef_geom" type="box" mass="1" size="0.05 0.05 0.1" contype="0" conaffinity="0" rgba=".8 .2 .1 0.0" friction="1 0.005 0.0001"/>
-    </body>    <body name="eef_body2" pos="4.645 0.0 0.5" quat="1.0 0.0 0.0 0.0">
-      <geom name="eef_geom2" type="box" mass="1" size="0.05 0.05 0.1" contype="0" conaffinity="0" rgba=".8 .2 .1 0.0" friction="1 0.005 0.0001"/>
     </body>  </worldbody>
   <equality>
      <weld body1='B_last' body2='eef_body' solref='0.001 1'/>
-     <weld body1='B_first' body2='eef_body2' solref='0.001 1'/>
   </equality>
   <contact>
     <exclude body1="B_first" body2="B_last"/>
     <exclude body1="B_1" body2="B_last"/>
-    <exclude body1="B_first" body2="B_38"/>
+    <exclude body1="B_first" body2="B_49"/>
     <exclude body1="B_first" body2="B_1"/>
     <exclude body1="B_1" body2="B_2"/>
     <exclude body1="B_2" body2="B_3"/>
@@ -51,9 +48,20 @@
     <exclude body1="B_35" body2="B_36"/>
     <exclude body1="B_36" body2="B_37"/>
     <exclude body1="B_37" body2="B_38"/>
-    <exclude body1="B_38" body2="B_last"/>
+    <exclude body1="B_38" body2="B_39"/>
+    <exclude body1="B_39" body2="B_40"/>
+    <exclude body1="B_40" body2="B_41"/>
+    <exclude body1="B_41" body2="B_42"/>
+    <exclude body1="B_42" body2="B_43"/>
+    <exclude body1="B_43" body2="B_44"/>
+    <exclude body1="B_44" body2="B_45"/>
+    <exclude body1="B_45" body2="B_46"/>
+    <exclude body1="B_46" body2="B_47"/>
+    <exclude body1="B_47" body2="B_48"/>
+    <exclude body1="B_48" body2="B_49"/>
+    <exclude body1="B_49" body2="B_last"/>
     <exclude body1="eef_body" body2="B_first"/>
     <exclude body1="eef_body" body2="B_last"/>
-    <exclude body1="eef_body" body2="B_38"/>
+    <exclude body1="eef_body" body2="B_49"/>
   </contact>
 </mujoco>

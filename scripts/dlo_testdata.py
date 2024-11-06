@@ -16,7 +16,7 @@ lopbal_type_id = 2
 lopbal_type_list = ['native','xfrc','bal']
 lopbal_type = lopbal_type_list[lopbal_type_id]
 
-test_type_g = 'lhb'
+test_type_g = 'mbi'
 new_start_g = True
 lfp_g = False
 do_render_g = True
@@ -186,7 +186,6 @@ def mbi_indivtest(
             beta_bar=beta_val,
             # r_mass=r_mass,
             new_start=new_start,
-            stifftorqtype=lopbal_type
         )
     if not env.circle_oop:
         theta_crit = 0.
