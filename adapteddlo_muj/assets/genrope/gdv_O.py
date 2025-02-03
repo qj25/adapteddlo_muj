@@ -19,6 +19,7 @@ class GenKin_O:
         attach_bodyname="eef_body",
         vis_subcyl=True,
         obj_path=None,
+        rgba_vals=None
     ):
         """
         connected by kinematic chain
@@ -58,12 +59,14 @@ class GenKin_O:
             self.subcyl_alpha = 0.3
         else:
             self.subcyl_alpha = 0.0
-        rgb_vals = np.array([30,16,202])/300
-        self.rgba_linkgeom = f'{rgb_vals[0]} {rgb_vals[1]} {rgb_vals[2]} 1'
+        if rgba_vals is None:
+            rgba_vals = np.concatenate((np.array([30,16,202])/300,[1.0]))
+        self.rgba_linkgeom = f'{rgba_vals[0]} {rgba_vals[1]} {rgba_vals[2]} {rgba_vals[3]}'
 
         self._init_variables()
         self._write_mainbody()
         self._write_anchorbox()
+        self._write_weldweight()
 
     def _init_variables(self):
         self.max_pieces = self.r_len / self.r_thickness
@@ -98,11 +101,15 @@ class GenKin_O:
         if self.obj_path is None:
             self.obj_path = os.path.join(
                 os.path.dirname(os.path.dirname(__file__)),
-                "dlorope1dkin.xml"
+                "derrope1dkin.xml"
             )
         self.obj_path2 = os.path.join(
             os.path.dirname(self.obj_path),
             "anchorbox.xml"
+        )
+        self.obj_path3 = os.path.join(
+            os.path.dirname(self.obj_path),
+            "weldweight.xml"
         )
         
         # write to file
@@ -171,8 +178,9 @@ class GenKin_O:
                     self.curr_tab += 1
                     f.write(
                         (self.curr_tab)*self.t
-                        + '<site name="S_{}" pos="0 0 0"/>\n'.format(
+                        + '<site name="S_{}" pos="0 0 0" size="{}"/>\n'.format(
                             self.str_names[i_section],
+                            self.r_thickness*0.45,
                         )
                     )
                 else:
@@ -215,16 +223,17 @@ class GenKin_O:
                             self.rope_type,
                             self.cap_size[0],
                             self.cap_size[1],
-                            self.mass_link,
                             self.rgba_linkgeom,
+                            self.mass_link,
                             self.con_data[0],
                             self.con_data[1],
                         )
                     )
                 f.write(
                     (self.curr_tab)*self.t
-                    + '<site name="S_{}" pos="0 0 0"/>\n'.format(
+                    + '<site name="S_{}" pos="0 0 0" size="{}" rgba="0 0 0 0"/>\n'.format(
                         i_section,
+                        self.r_thickness*0.45,
                     )
                 )
 
@@ -268,11 +277,25 @@ class GenKin_O:
                     )
             f.write(
                 (self.curr_tab)*self.t
-                + '<site name="S_{}" pos="{} 0 0"/>\n'.format(
+                + '<site name="S_{}" pos="{} 0 0" size="{}"/>\n'.format(
                     'last',
                     self.displace_link,
+                    self.r_thickness*0.45,
                 )
             )
+            # ## ADDITIONAL MASS -- to strengthen weld constraint: more mass, stronger weld
+            # f.write(
+            #     self.curr_tab*self.t
+            #     + '<geom name="Ganchor" pos="{} 0 0" type="{}" size="{:1.4f}" rgba="{}" mass="{}" conaffinity="0" contype="0" condim="1"/>\n'.format(
+            #         self.displace_link,
+            #         'sphere',
+            #         self.cap_size[0]*1.0,
+            #         self.rgba_linkgeom,
+            #         100.0 if self.mass_link is None else self.mass_link*100.0,
+            #         # self.con_data[0],
+            #         # self.con_data[1],
+            #     )
+            # )
             f.write(
                 self.curr_tab*self.t
                 + '<body name="B_last2" pos="{} 0 0">\n'.format(
@@ -327,6 +350,38 @@ class GenKin_O:
             # f.write(t + '</contact>\n')
             f.write('</mujoco>\n')
 
+    def _write_weldweight(self):
+        ## ADDITIONAL MASS -- to strengthen weld constraint: more mass, stronger weld
+        ww_massmulti = 40.
+        mass_density = 1000.
+        if self.mass_link is None:
+            mass_ww = ww_massmulti * mass_density * self.r_len * (self.r_thickness/2)**2 * np.pi
+        else:
+            mass_ww = ww_massmulti * self.r_mass
+        with open(self.obj_path3, "w+") as f:
+            f.write("<worldbody>\n")
+            f.write(
+                '   <body pos="0. 0. 0.">\n'
+            )
+            f.write(
+                # self.curr_tab*self.t
+                # + '<geom name="Ganchor" pos="{} 0 0" type="{}" size="{:1.4f}" rgba="{}" mass="{}" conaffinity="0" contype="0" condim="1"/>\n'.format(
+                '       <geom pos="{} 0 0" type="{}" size="{:1.4f}" rgba="{}" mass="{}" conaffinity="0" contype="0" condim="1"/>\n'.format(
+                    self.displace_link,
+                    'sphere',
+                    self.cap_size[0]*1.0,
+                    self.rgba_linkgeom,
+                    mass_ww
+                    # 1.0,
+                    # self.con_data[0],
+                    # self.con_data[1],
+                )
+            )
+            f.write(
+                '   </body>\n'
+            )
+            f.write("</worldbody>\n")
+
     def _write_equality(self, f):
         f.write(self.t + '<equality>\n')
         # f.write(
@@ -359,6 +414,10 @@ class GenKin_O:
         self.curr_tab += 1
         f.write(
             self.curr_tab*self.t
+            + '<exclude body1="B_first" body2="B_1"/>\n'
+        )
+        f.write(
+            self.curr_tab*self.t
             + '<exclude body1="B_first" body2="B_last"/>\n'
         )
         f.write(
@@ -371,16 +430,16 @@ class GenKin_O:
                 self.r_pieces-2
             )
         )
-        for i_section in range(1,self.r_pieces):
-            i1 = self.str_names[i_section-1]
-            i2 = self.str_names[i_section]
-            f.write(
-                self.curr_tab*self.t
-                + '<exclude body1="B_{}" body2="B_{}"/>\n'.format(
-                    i1,
-                    i2
-                )
-            )
+        # for i_section in range(1,self.r_pieces):
+        #     i1 = self.str_names[i_section-1]
+        #     i2 = self.str_names[i_section]
+        #     f.write(
+        #         self.curr_tab*self.t
+        #         + '<exclude body1="B_{}" body2="B_{}"/>\n'.format(
+        #             i1,
+        #             i2
+        #         )
+        #     )
         f.write(
             self.curr_tab*self.t
             + '<exclude body1="eef_body" body2="B_first"/>\n'.format(
