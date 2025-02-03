@@ -1,6 +1,8 @@
 import os
 import numpy as np
 import adapteddlo_muj.utils.transform_utils as T
+from adapteddlo_muj.utils.xml_utils import XMLWrapper
+import mujoco
 
 class GenKin_N_weld2:
     def __init__(
@@ -62,7 +64,15 @@ class GenKin_N_weld2:
         self._init_variables()
         with open(self.obj_path, "w+") as f:
             self._write_init(f)
+        self._unpackcompositexml()
         self._write_anchorbox()
+        self._write_weldweight()
+
+    def _unpackcompositexml(self):
+        self.xml = XMLWrapper(self.obj_path)
+        xml_string = self.xml.get_xml_string()
+        model = mujoco.MjModel.from_xml_string(xml_string)
+        mujoco.mj_saveLastXML(self.obj_path,model)
 
     def _write_init(self, f):
         f.write('<mujoco model="stiff-rope">\n')
@@ -177,11 +187,15 @@ class GenKin_N_weld2:
         if self.obj_path is None:
             self.obj_path = os.path.join(
                 os.path.dirname(os.path.dirname(__file__)),
-                "dlorope1dkin_native.xml"
+                "derrope1dkin_native.xml"
             )
         self.obj_path2 = os.path.join(
             os.path.dirname(self.obj_path),
             "anchorbox.xml"
+        )
+        self.obj_path3 = os.path.join(
+            os.path.dirname(self.obj_path),
+            "weldweight.xml"
         )
         
         # write to file
@@ -245,6 +259,39 @@ class GenKin_N_weld2:
             # curr_tab -= 1
             # f.write(t + '</contact>\n')
             f.write('</mujoco>\n')
+
+    def _write_weldweight(self):
+        ## ADDITIONAL MASS -- to strengthen weld constraint: more mass, stronger weld
+        self.displace_link = self.r_len / self.r_pieces
+        ww_massmulti = 40.
+        mass_density = 1000.0
+        if self.mass_link is None:
+            mass_ww = ww_massmulti * mass_density * self.r_len * (self.r_thickness/2)**2 * np.pi
+        else:
+            mass_ww = ww_massmulti * self.r_mass
+        with open(self.obj_path3, "w+") as f:
+            f.write("<worldbody>\n")
+            f.write(
+                '   <body pos="0. 0. 0.">\n'
+            )
+            f.write(
+                # self.curr_tab*self.t
+                # + '<geom name="Ganchor" pos="{} 0 0" type="{}" size="{:1.4f}" rgba="{}" mass="{}" conaffinity="0" contype="0" condim="1"/>\n'.format(
+                '       <geom pos="{} 0 0" type="{}" size="{:1.4f}" rgba="{}" mass="{}" conaffinity="0" contype="0" condim="1"/>\n'.format(
+                    self.displace_link,
+                    'sphere',
+                    self.r_thickness/2*1.0,
+                    self.rgba_linkgeom,
+                    mass_ww
+                    # 1.0,
+                    # self.con_data[0],
+                    # self.con_data[1],
+                )
+            )
+            f.write(
+                '   </body>\n'
+            )
+            f.write("</worldbody>\n")
 
     def _write_equality(self, f):
         f.write(self.t + '<equality>\n')

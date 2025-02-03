@@ -1,6 +1,8 @@
 import os
 import numpy as np
 import adapteddlo_muj.utils.transform_utils as T
+from adapteddlo_muj.utils.xml_utils import XMLWrapper
+import mujoco
 
 class GenKin_N:
     def __init__(
@@ -18,6 +20,7 @@ class GenKin_N:
         attach_sitename="eef_body",
         vis_subcyl=True,
         obj_path=None,
+        rgba_vals=None
     ):
         """
         connected by kinematic chain
@@ -52,10 +55,26 @@ class GenKin_N:
         self.vis_subcyl = vis_subcyl
         self.obj_path = obj_path
 
+        if self.vis_subcyl:
+            self.subcyl_alpha = 0.3
+        else:
+            self.subcyl_alpha = 0.0
+        if rgba_vals is None:
+            rgba_vals = np.concatenate((np.array([30,16,202])/300,[1.0]))
+        self.rgba_linkgeom = f'{rgba_vals[0]} {rgba_vals[1]} {rgba_vals[2]} {rgba_vals[3]}'
+
         self._init_variables()
         with open(self.obj_path, "w+") as f:
             self._write_init(f)
+        self._unpackcompositexml()
         self._write_anchorbox()
+        self._write_weldweight()
+
+    def _unpackcompositexml(self):
+        self.xml = XMLWrapper(self.obj_path)
+        xml_string = self.xml.get_xml_string()
+        model = mujoco.MjModel.from_xml_string(xml_string)
+        mujoco.mj_saveLastXML(self.obj_path,model)
 
     def _write_init(self, f):
         f.write('<mujoco model="stiff-rope">\n')
@@ -101,7 +120,7 @@ class GenKin_N:
         f.write(self.curr_tab*self.t + '<config key="bend" value="{}"/>\n'.format(
             self.stiff_vals[1]
         ))
-        f.write(self.curr_tab*self.t + '<config key="vmax" value="0.05"/>\n')
+        # f.write(self.curr_tab*self.t + '<config key="vmax" value="0.05"/>\n')
         self.curr_tab -= 1
         f.write(self.curr_tab*self.t + '</plugin>\n')
         # joint
@@ -110,16 +129,18 @@ class GenKin_N:
         ))
         # geom 
         if self.mass_link is None:
-            f.write(self.curr_tab*self.t + '<geom type="{}" size="{}" rgba=".8 .2 .1 1" condim="1" conaffinity="{}" contype="{}"/>\n'.format(
+            f.write(self.curr_tab*self.t + '<geom type="{}" size="{}" rgba="{}" condim="1" conaffinity="{}" contype="{}"/>\n'.format(
                 self.rope_type,
                 self.cap_size,
+                self.rgba_linkgeom,
                 self.con_data[0],
                 self.con_data[1],
             ))
         else:
-            f.write(self.curr_tab*self.t + '<geom type="{}" size="{}" rgba=".8 .2 .1 1" condim="1" conaffinity="{}" contype="{}" mass="{}"/>\n'.format(
+            f.write(self.curr_tab*self.t + '<geom type="{}" size="{}" rgba="{}" condim="1" conaffinity="{}" contype="{}" mass="{}"/>\n'.format(
                 self.rope_type,
                 self.cap_size,
+                self.rgba_linkgeom,
                 self.con_data[0],
                 self.con_data[1],
                 self.mass_link
@@ -167,11 +188,15 @@ class GenKin_N:
         if self.obj_path is None:
             self.obj_path = os.path.join(
                 os.path.dirname(os.path.dirname(__file__)),
-                "dlorope1dkin_native.xml"
+                "nativerope1dkin.xml.xml"
             )
         self.obj_path2 = os.path.join(
             os.path.dirname(self.obj_path),
             "anchorbox.xml"
+        )
+        self.obj_path3 = os.path.join(
+            os.path.dirname(self.obj_path),
+            "weldweight.xml"
         )
         
         # write to file
@@ -194,10 +219,11 @@ class GenKin_N:
                 self.init_pos[1]-self.grow_dirn[1]*self.r_len,
                 self.init_pos[2]-self.grow_dirn[2]*self.r_len
             ))
-            f.write((self.curr_tab+1)*self.t + '<geom name="eef_geom" type="box" mass="1" size="{} {} {}" contype="0" conaffinity="0" rgba=".8 .2 .1 0.3" friction="1 0.005 0.0001"/>\n'.format(
+            f.write((self.curr_tab+1)*self.t + '<geom name="eef_geom" type="box" mass="1" size="{} {} {}" contype="0" conaffinity="0" rgba=".8 .2 .1 {}" friction="1 0.005 0.0001"/>\n'.format(
                 self.r_thickness,
                 self.r_thickness,
                 self.r_thickness*2.0,
+                self.subcyl_alpha
             ))
             f.write(self.curr_tab*self.t + '</body>')
             self.curr_tab -= 1
@@ -218,6 +244,39 @@ class GenKin_N:
             # f.write(t + '</contact>\n')
             f.write('</mujoco>\n')
 
+    def _write_weldweight(self):
+        ## ADDITIONAL MASS -- to strengthen weld constraint: more mass, stronger weld
+        self.displace_link = self.r_len / self.r_pieces
+        ww_massmulti = 40.
+        mass_density = 1000.0
+        if self.mass_link is None:
+            mass_ww = ww_massmulti * mass_density * self.r_len * (self.r_thickness/2)**2 * np.pi
+        else:
+            mass_ww = ww_massmulti * self.r_mass
+        with open(self.obj_path3, "w+") as f:
+            f.write("<worldbody>\n")
+            f.write(
+                '   <body pos="0. 0. 0.">\n'
+            )
+            f.write(
+                # self.curr_tab*self.t
+                # + '<geom name="Ganchor" pos="{} 0 0" type="{}" size="{:1.4f}" rgba="{}" mass="{}" conaffinity="0" contype="0" condim="1"/>\n'.format(
+                '       <geom pos="{} 0 0" type="{}" size="{:1.4f}" rgba="{}" mass="{}" conaffinity="0" contype="0" condim="1"/>\n'.format(
+                    self.displace_link,
+                    'sphere',
+                    self.r_thickness/2*1.0,
+                    self.rgba_linkgeom,
+                    mass_ww
+                    # 1.0,
+                    # self.con_data[0],
+                    # self.con_data[1],
+                )
+            )
+            f.write(
+                '   </body>\n'
+            )
+            f.write("</worldbody>\n")
+
     def _write_equality(self, f):
         f.write(self.t + '<equality>\n')
         f.write(
@@ -237,6 +296,10 @@ class GenKin_N:
     def _write_exclusion(self, f):
         f.write(self.curr_tab*self.t + '<contact>\n')
         self.curr_tab += 1
+        f.write(
+            self.curr_tab*self.t
+            + '<exclude body1="B_first" body2="B_1"/>\n'
+        )
         f.write(
             self.curr_tab*self.t
             + '<exclude body1="B_first" body2="B_last"/>\n'

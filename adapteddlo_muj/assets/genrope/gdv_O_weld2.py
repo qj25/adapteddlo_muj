@@ -64,6 +64,7 @@ class GenKin_O_weld2:
         self._init_variables()
         self._write_mainbody()
         self._write_anchorbox()
+        self._write_weldweight()
 
     def _init_variables(self):
         self.max_pieces = self.r_len / self.r_thickness
@@ -98,11 +99,15 @@ class GenKin_O_weld2:
         if self.obj_path is None:
             self.obj_path = os.path.join(
                 os.path.dirname(os.path.dirname(__file__)),
-                "dlorope1dkin.xml"
+                "derrope1dkin.xml"
             )
         self.obj_path2 = os.path.join(
             os.path.dirname(self.obj_path),
             "anchorbox.xml"
+        )
+        self.obj_path3 = os.path.join(
+            os.path.dirname(self.obj_path),
+            "weldweight.xml"
         )
         
         # write to file
@@ -172,8 +177,9 @@ class GenKin_O_weld2:
                     self.curr_tab += 1
                     f.write(
                         (self.curr_tab)*self.t
-                        + '<site name="S_{}" pos="0 0 0"/>\n'.format(
+                        + '<site name="S_{}" pos="0 0 0" size="{}"/>\n'.format(
                             self.str_names[i_section],
+                            self.r_thickness*0.45,
                         )
                     )
                 else:
@@ -217,16 +223,17 @@ class GenKin_O_weld2:
                             self.rope_type,
                             self.cap_size[0],
                             self.cap_size[1],
-                            self.mass_link,
                             self.rgba_linkgeom,
+                            self.mass_link,
                             self.con_data[0],
                             self.con_data[1],
                         )
                     )
                 f.write(
                     (self.curr_tab)*self.t
-                    + '<site name="S_{}" pos="0 0 0"/>\n'.format(
+                    + '<site name="S_{}" pos="0 0 0" size="{}"/>\n'.format(
                         i_section,
+                        self.r_thickness*0.45,
                     )
                 )
 
@@ -270,9 +277,10 @@ class GenKin_O_weld2:
                     )
             f.write(
                 (self.curr_tab)*self.t
-                + '<site name="S_{}" pos="{} 0 0"/>\n'.format(
+                + '<site name="S_{}" pos="{} 0 0" size="{}"/>\n'.format(
                     'last',
                     self.displace_link,
+                    self.r_thickness*0.45,
                 )
             )
             f.write(
@@ -345,6 +353,38 @@ class GenKin_O_weld2:
             # curr_tab -= 1
             # f.write(t + '</contact>\n')
             f.write('</mujoco>\n')
+
+    def _write_weldweight(self):
+        ## ADDITIONAL MASS -- to strengthen weld constraint: more mass, stronger weld
+        ww_massmulti = 40.
+        mass_density = 1000.0
+        if self.mass_link is None:
+            mass_ww = ww_massmulti * mass_density * self.r_len * (self.r_thickness/2)**2 * np.pi
+        else:
+            mass_ww = ww_massmulti * self.r_mass
+        with open(self.obj_path3, "w+") as f:
+            f.write("<worldbody>\n")
+            f.write(
+                '   <body pos="0. 0. 0.">\n'
+            )
+            f.write(
+                # self.curr_tab*self.t
+                # + '<geom name="Ganchor" pos="{} 0 0" type="{}" size="{:1.4f}" rgba="{}" mass="{}" conaffinity="0" contype="0" condim="1"/>\n'.format(
+                '       <geom pos="{} 0 0" type="{}" size="{:1.4f}" rgba="{}" mass="{}" conaffinity="0" contype="0" condim="1"/>\n'.format(
+                    self.displace_link,
+                    'sphere',
+                    self.cap_size[0]*1.0,
+                    self.rgba_linkgeom,
+                    mass_ww
+                    # 1.0,
+                    # self.con_data[0],
+                    # self.con_data[1],
+                )
+            )
+            f.write(
+                '   </body>\n'
+            )
+            f.write("</worldbody>\n")
 
     def _write_equality(self, f):
         f.write(self.t + '<equality>\n')
