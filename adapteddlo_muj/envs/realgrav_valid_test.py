@@ -17,32 +17,49 @@ from adapteddlo_muj.utils.xml_utils import XMLWrapper
 import adapteddlo_muj.utils.mjc2_utils as mjc2
 
 from adapteddlo_muj.assets.genrope.gdv_O import GenKin_O
-from adapteddlo_muj.assets.genrope.gdv_O_weld2_xfrc import GenKin_O_weld2_xfrc
+from adapteddlo_muj.assets.genrope.gdv_O_xfrc import GenKin_O_xfrc
+from adapteddlo_muj.assets.genrope.gdv_N import GenKin_N
 from adapteddlo_muj.controllers.ropekin_controller_xfrc import DLORopeXfrc
-from adapteddlo_muj.utils.data_utils import compute_PCA
+from adapteddlo_muj.controllers.ropekin_controller_adapt import DLORopeAdapt
+from adapteddlo_muj.utils.data_utils import compute_PCA, centralize_devdata
 
 
-class TestRopeXfrcEnv(gym.Env, utils.EzPickle):
+class TestRopeEnv(gym.Env, utils.EzPickle):
     def __init__(
         self,
         do_render=False,
         alpha_bar=1.345/50,   # 1.345/50,
         beta_bar=0.789/50,    # 0.789/50,
         r_pieces=30,    # max. 33
-        r_mass=0.58,
+        r_mass=None,
         r_len = 2*np.pi,
         r_thickness=0.03,
-        j_damp=1.5,
+        test_type=None,
         overall_rot=None,
-        new_start=True,
+        manual_rot=False,
+        new_start=False,
         limit_f=False,
-        picklefilename=None,
+        stifftorqtype='adapt',
+        grav_on=True,
+        rgba_vals=None
     ):
         utils.EzPickle.__init__(self)
 
         self.do_render = do_render
+        self.test_type = test_type
         self.limit_f = limit_f
-        self.ocvt_picklepath = picklefilename
+        self.storqtype = stifftorqtype
+        self.rgba_vals = rgba_vals
+        # if self.storqtype == 'lop':
+        #     self.picklefolder = 'lop'
+        # elif self.storqtype == 'adapt':
+        #     self.picklefolder = 'adapt'
+        # elif self.storqtype == 'hyb':
+        #     self.picklefolder = 'hyb'
+        if grav_on:
+            self.picklefolder = 'real/grav/' + self.storqtype
+        else:
+            self.picklefolder = 'real/nograv/' + self.storqtype
 
         # rope init
         self.r_len = r_len
@@ -60,10 +77,21 @@ class TestRopeXfrcEnv(gym.Env, utils.EzPickle):
             1., 0., 0., 0.
         ])
         self.rope_initpose[0] += self.r_len/2
-        self.overall_rot = 0. # 27 * (2*np.pi) # 57 * (np.pi/180)
-        if overall_rot is not None:
+        self.overall_rot = 0.0 # 27 * (2*np.pi) # 57 * (np.pi/180)
+        if overall_rot is not None and not manual_rot:
             self.overall_rot = overall_rot
-        self.j_damp = j_damp
+            self.overall_rot_tmp = 0.0
+        if manual_rot:
+            self.overall_rot_tmp = overall_rot
+        self.overall_rot_4mconst = overall_rot
+
+        # init stiffnesses for capsule
+        J1 = np.pi * (self.r_thickness/2)**4/2.
+        Ix = np.pi * (self.r_thickness/2)**4/4.
+        self.stiff_vals = [
+            self.beta_bar/J1,
+            self.alpha_bar/Ix
+        ]
 
         xml, arm_xml = self._get_xmlstr()
 
@@ -74,6 +102,17 @@ class TestRopeXfrcEnv(gym.Env, utils.EzPickle):
         if self.do_render:
             self.viewer = mujoco_viewer.MujocoViewer(self.model, self.data)
             self.rend_rate = int(10)
+            self.set_viewer_details(
+                dist=1.5,
+                azi=90.0,
+                elev=0.0,
+                lookat=np.array([-0.75,0.0,0.10])
+            )
+
+            # self.viewer.cam.distance = 5.7628
+            # self.viewer.cam.azimuth = -40.478
+            # self.viewer.cam.elevation = -12.434
+            # self.viewer.cam.lookat = np.array([-1.17009866, -1.37107526,  0.02327594])
             # self.do_render=False
         else:
             self.viewer = None
@@ -95,8 +134,10 @@ class TestRopeXfrcEnv(gym.Env, utils.EzPickle):
         )
 
         # init gravity
-        self.model.opt.gravity[-1] = -9.81
-        # self.model.opt.gravity[-1] = 0.
+        if grav_on:
+            self.model.opt.gravity[-1] = -9.81
+        else:
+            self.model.opt.gravity[-1] = 0.0
 
         self.sim.forward()
 
@@ -111,37 +152,57 @@ class TestRopeXfrcEnv(gym.Env, utils.EzPickle):
 
         # init dlo controller
         self.f_limit = 1000.
-        self.dlo_sim = DLORopeXfrc(
-            model=self.model,
-            data=self.data,
-            n_link=self.r_pieces,
-            alpha_bar=self.alpha_bar,
-            beta_bar=self.beta_bar,
-            overall_rot=self.overall_rot,
-            f_limit=self.f_limit,
-        )
+        if self.storqtype == 'xfrc':
+            self.dlo_sim = DLORopeXfrc(
+                model=self.model,
+                data=self.data,
+                n_link=self.r_pieces,
+                alpha_bar=self.alpha_bar,
+                beta_bar=self.beta_bar,
+                overall_rot=self.overall_rot,
+                f_limit=self.f_limit,
+            )
+            self.joint_qveladdr_full = self.dlo_sim.dlo_joint_qveladdr_full.copy()
+        elif self.storqtype == 'adapt':
+            self.dlo_sim = DLORopeAdapt(
+                model=self.model,
+                data=self.data,
+                n_link=self.r_pieces,
+                alpha_bar=self.alpha_bar,
+                beta_bar=self.beta_bar,
+                overall_rot=self.overall_rot,
+                f_limit=self.f_limit,
+                bothweld=self.bothweld
+            )
+            self.joint_qveladdr_full = self.dlo_sim.dlo_joint_qveladdr_full.copy()
         # if self.do_render:
         #     self.viewer._paused = True
 
+        if (self.test_type == 'lhb'): # or (self.test_type == 'speedtest2'):
+            self.start_lhbtest(new_start)
+        elif self.test_type == 'mbi':
+            self.start_circletest(new_start)
+        else:
+            self.freq_velreset = 0.2
         # # pickle stuff
-        self._init_pickletool()
+        # self._init_pickletool()
         # self._save_initpickle()
-        if not new_start:
-            self._load_initpickle()
+        # self._load_initpickle()
 
     def _init_ids(self):
-        self.joint_site_idx = np.zeros(self.r_pieces+1, dtype=int)
-        for i_sec in range(self.r_pieces):
-            self.joint_site_idx[i_sec] = mjc2.obj_name2id(
+        if self.storqtype != 'native':
+            self.joint_site_idx = np.zeros(self.r_pieces+1, dtype=int)
+            for i_sec in range(self.r_pieces):
+                self.joint_site_idx[i_sec] = mjc2.obj_name2id(
+                    self.model,
+                    "site",
+                    'S_{}'.format(i_sec)
+                )
+            self.joint_site_idx[self.r_pieces] = mjc2.obj_name2id(
                 self.model,
                 "site",
-                'S_{}'.format(i_sec)
+                'S_{}'.format('last')
             )
-        self.joint_site_idx[self.r_pieces] = mjc2.obj_name2id(
-            self.model,
-            "site",
-            'S_{}'.format('last')
-        )
 
 
         # init vec_bodyid for cable
@@ -161,54 +222,142 @@ class TestRopeXfrcEnv(gym.Env, utils.EzPickle):
             "site",
             'S_last'
         )
-        self.ropeend_body_id = mjc2.obj_name2id(self.model,"body","eef_body2")
+        self.ropeend_body_id = mjc2.obj_name2id(self.model,"body","stiffrope")
+        if self.storqtype == 'native':
+            self.ropeend_getstate_bodyid = mjc2.obj_name2id(self.model,"body","stiffrope")
+    
+            self.joint_ids = []
+            self.joint_qveladdr = []
+            for i in range(1, self.r_pieces):    # from freejoint2 to freejoint(n_links)
+                fj_str = f'J_{i}'
+                if i == (self.r_pieces-1):
+                    fj_str = 'J_last'
+                self.joint_ids.append(mjc2.obj_name2id(
+                    self.model,"joint",fj_str
+                ))
+                # if self.model.jnt_type(
+                    # self.dlo_joint_ids[-1]
+                # ) == self.model.mjtJoint.mjJNT_FREE:
+                    # print('it is free joint')
+                    # print(fj_str)
+                    # print(self.model.jnt_dofadr[self.dlo_joint_ids[-1]])
+                self.joint_qveladdr.append(
+                    self.model.jnt_dofadr[self.joint_ids[-1]]
+                )
+            self.joint_qveladdr = np.array(self.joint_qveladdr)
+            self.joint_qveladdr_full = [
+                n for n in range(
+                    self.joint_qveladdr[0],
+                    self.joint_qveladdr[-1] + 3
+                )
+            ]
 
     def _get_xmlstr(self):
         # load model
         # update rope model
+        if self.storqtype == 'native':
+            rope_xml_file = "nativerope1dkin.xml"
+            overall_file = "overall_native.xml"
+        else:
+            rope_xml_file = "dlorope1dkin.xml"
+            overall_file = "overall.xml"
         world_base_path = os.path.join(
             os.path.dirname(os.path.dirname(__file__)),
-            "assets/world.xml"
+            "assets/world_realexp.xml"
         )
         box_path = os.path.join(
             os.path.dirname(world_base_path),
             "anchorbox.xml"
         )
+        weldweight_path = os.path.join(
+            os.path.dirname(world_base_path),
+            "weldweight.xml"
+        )
         rope_path = os.path.join(
             os.path.dirname(world_base_path),
-            "dlorope1dkin.xml"
+            rope_xml_file
         )
-        self.bothweld = True
-        GenKin_O_weld2_xfrc(
-            r_len=self.r_len,
-            r_thickness=self.r_thickness,
-            r_pieces=self.r_pieces,
-            # r_mass=3.,
-            r_mass=self.r_mass,
-            j_stiff=0.0,
-            j_damp=self.j_damp,
-            init_pos=self.rope_initpose[:3],
-            init_quat=self.rope_initpose[3:],
-            coll_on=True,
-            d_small=0.,
-            rope_type="capsule",
-            vis_subcyl=False,
-            obj_path=rope_path,
-        )
+
+        self.bothweld = False
+        if self.storqtype=='native':
+            GenKin_N(
+                r_len=self.r_len,
+                r_thickness=self.r_thickness,
+                r_pieces=self.r_pieces,
+                r_mass=self.r_mass,
+                stiff_vals=self.stiff_vals,
+                j_damp=0.01,
+                init_pos=self.rope_initpose[:3],
+                init_quat=self.rope_initpose[3:],
+                coll_on=True,
+                rope_type="capsule",
+                vis_subcyl=False,
+                obj_path=rope_path,
+                rgba_vals=self.rgba_vals
+            )
+        if self.storqtype=='xfrc':
+            GenKin_O_xfrc(
+                r_len=self.r_len,
+                r_thickness=self.r_thickness,
+                r_pieces=self.r_pieces,
+                r_mass=self.r_mass,
+                j_stiff=0.0,
+                j_damp=0.01,
+                init_pos=self.rope_initpose[:3],
+                init_quat=self.rope_initpose[3:],
+                coll_on=True,
+                d_small=0.,
+                rope_type="capsule",
+                vis_subcyl=False,
+                obj_path=rope_path,
+                rgba_vals=self.rgba_vals
+            )
+        if self.storqtype=='adapt':
+            GenKin_O(
+                r_len=self.r_len,
+                r_thickness=self.r_thickness,
+                r_pieces=self.r_pieces,
+                r_mass=self.r_mass,
+                j_stiff=0.0,
+                j_damp=0.01,
+                init_pos=self.rope_initpose[:3],
+                init_quat=self.rope_initpose[3:],
+                coll_on=True,
+                d_small=0.,
+                rope_type="capsule",
+                vis_subcyl=False,
+                obj_path=rope_path,
+                rgba_vals=self.rgba_vals
+            )
 
         self.xml = XMLWrapper(world_base_path)
         dlorope = XMLWrapper(rope_path)
         anchorbox = XMLWrapper(box_path)
+        weldweight = XMLWrapper(weldweight_path)
+
+        if self.test_type == 'mbi':
+            dlorope.merge(
+                weldweight,
+                element_name="body",
+                attrib_name="name",
+                attrib_value="B_last",
+                action="append",
+            )
 
         self.xml.merge_multiple(
             anchorbox, ["worldbody", "equality", "contact"]
         )
-        self.xml.merge_multiple(
-            dlorope, ["worldbody"]
-        )
+        if self.storqtype == "native":
+            self.xml.merge_multiple(
+                dlorope, ["worldbody","extension"]
+            )
+        else:
+            self.xml.merge_multiple(
+                dlorope, ["worldbody"]
+            )
         asset_path = os.path.join(
             os.path.dirname(os.path.dirname(__file__)),
-            "assets/overall.xml"
+            "assets/" + overall_file
         )
 
         xml_string = self.xml.get_xml_string()
@@ -220,19 +369,24 @@ class TestRopeXfrcEnv(gym.Env, utils.EzPickle):
 
     def step(self, action=np.zeros(6)):
         # t1 = time()
-        self.dlo_sim.update_force()
-        # print(self.data.qfrc_smooth)
+        if self.storqtype == 'xfrc':
+            self.dlo_sim.update_force()
+        elif self.storqtype == 'adapt':
+            self.dlo_sim.update_torque()
+
+        # print(self.data.ncon)
+        # print(mjc2.obj_id2name(self.model,"geom",self.data.contact[0].geom[0]))
+        # print(mjc2.obj_id2name(self.model,"geom",self.data.contact[0].geom[1]))
+
         # self.dlo_sim.reset_qvel_rotx()
         # t2 = time()
-        # if self.env_steps%1000:
-        #     print(self.env_steps)
         self.sim.step()
         self.sim.forward()
         # t3 = time()
-        # print(t3-t1)
         if self.do_render:
             if self.env_steps%self.rend_rate==0:
                 self.viewer.render()
+                # self.print_viewer_details()
         # if self.env_steps%10000==0:
         #     self.viewer.render()
 
@@ -243,15 +397,15 @@ class TestRopeXfrcEnv(gym.Env, utils.EzPickle):
 
         if self.instability_check():
             print(f'unstable {self.env_steps}')
-            input()
+            self.viewer._paused = True
+            # input()
             # if self.do_render:
                 # self.viewer.render()
                 # self.viewer._paused = True
-        # print times
-        # print(f"env_steps = {self.env_steps}")
+
+        # # print times
         # print(t2-t1)
         # print(t3-t2)
-        # print(t3-t1)
 
         return self._get_observations(), 0, done, False, 0
 
@@ -277,9 +431,12 @@ class TestRopeXfrcEnv(gym.Env, utils.EzPickle):
                 self.viewer.close()
                 self.viewer = None
 
-        self.dlo_sim.reset_body()
-        self.sim.forward()
-        self.dlo_sim.reset_sim()
+        if self.storqtype == 'native':
+            self.sim.forward()
+        else:
+            self.dlo_sim.reset_body()
+            self.sim.forward()
+            self.dlo_sim.reset_sim()
 
         # reset obs
         self.observations = dict(
@@ -317,19 +474,18 @@ class TestRopeXfrcEnv(gym.Env, utils.EzPickle):
                 self.reset_vel()
 
     def instability_check(self):
-        if np.linalg.norm(self.data.qvel[self.dlo_sim.dlo_joint_qveladdr_full]) > 200.:
+        if np.linalg.norm(self.data.qvel[self.joint_qveladdr_full]) > 300.:
             return True
         return False
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~|| Pickle Stuff ||~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def _init_pickletool(self):
-        if self.ocvt_picklepath is None:
-            self.ocvt_picklepath = 'ourtest' # 'rob3.pickle'
+        self.ocvt_picklepath = 'ocvt' # 'rob3.pickle'
         self.ocvt_picklepath = self.ocvt_picklepath + '.pickle'
         self.ocvt_picklepath = os.path.join(
             os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            "data/test/" + self.ocvt_picklepath
+            "data/" + self.ocvt_picklepath
         )
 
     def _save_initpickle(self):
@@ -337,17 +493,23 @@ class TestRopeXfrcEnv(gym.Env, utils.EzPickle):
         self.hold_pos(10.)
 
         ## create pickle
-        self.init_pickle = self.get_state()
+        if self.storqtype == 'native':
+            self.init_pickle = self.get_state2()
+        else:
+            self.init_pickle = self.get_state()
 
         ## save pickle
         with open(self.ocvt_picklepath, 'wb') as f:
             pickle.dump(self.init_pickle,f)
-        print('Pickle saved!')
+        input('Pickle saved!')
 
     def _load_initpickle(self):
         with open(self.ocvt_picklepath, 'rb') as f:
             self.init_pickle = pickle.load(f)
-        self.set_state(self.init_pickle)
+        if self.storqtype == 'native':
+            self.set_state2(self.init_pickle)
+        else:
+            self.set_state(self.init_pickle)
 
     def get_state(self):
         (
@@ -412,284 +574,72 @@ class TestRopeXfrcEnv(gym.Env, utils.EzPickle):
         self._get_observations()
         self.dlo_sim._update_xvecs()
 
+    def get_state2(self):
+        ropeend_pos = self.model.body_pos[
+            self.ropeend_getstate_bodyid,:
+        ].copy()
+        ropeend_quat = self.model.body_quat[
+            self.ropeend_getstate_bodyid,:
+        ].copy()
+
+        state = np.empty(
+            mujoco.mj_stateSize(
+                self.model,
+                mujoco.mjtState.mjSTATE_PHYSICS
+            )
+        )
+        mujoco.mj_getState(
+            self.model, self.data, state,
+            spec=mujoco.mjtState.mjSTATE_PHYSICS
+        )
+
+        bodypose_data = [
+            self.model.body_pos[:].copy(),
+            self.model.body_quat[:].copy()
+        ]
+        return [
+            np.concatenate((
+                [0], # [self.cur_time],
+                [0], # [self.env_steps],
+                ropeend_pos,
+                ropeend_quat,
+            )),
+            state,
+            bodypose_data
+        ]
+    def set_state2(self, p_state):
+        self.cur_time = 0 # p_state[0][0]
+        self.env_steps = 0 # p_state[0][1]
+        self.model.body_pos[
+            self.ropeend_getstate_bodyid,:
+        ] = p_state[0][2:5]
+        self.model.body_quat[
+            self.ropeend_getstate_bodyid,:
+        ] = p_state[0][5:9]
+        mujoco.mj_setState(
+            self.model, self.data, p_state[1],
+            spec=mujoco.mjtState.mjSTATE_PHYSICS
+        )
+        self.model.body_pos[:] = p_state[2][0]
+        self.model.body_quat[:] = p_state[2][1]
+        # self.dlo_sim.overall_rot = 27. * (2.*np.pi)
+        # self.dlo_sim.dlo_math.resetTheta(
+        #     self.dlo_sim.p_thetan, self.dlo_sim.overall_rot
+        # )
+
+        # self.sim.forward()
+        self.step()
+        self._get_observations()
+
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~|| End Pickle Stuff ||~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~|| Validation Stuff ||~~~~~~~~~~~~~~~~~~~~~~~~~~
-    def print_nativeinfo(self):
-        id_print = self.vec_bodyid[int(len(self.vec_bodyid)/2)]
-        qadr = (
-            self.model.jnt_qposadr[self.model.body_jntadr[id_print]]
-            + self.model.body_dofnum[id_print]-3
-        )
-        quat_diff = np.zeros(4)
-        omega_curve = np.zeros(3)
-        # for i in range(len(self.model.body_quat)):
-        #     print(mjc2.obj_id2name(self.model, "body", i))
-        #     print(self.model.jnt_qposadr[self.model.body_jntadr[i]])
-        #     print(self.model.body_jntadr[i])
-        # input()
-        # print(self.vec_bodyid)
-        dofadr = self.model.jnt_dofadr[self.model.body_jntadr[id_print]]
-        # print(id_print)
-        # print(dofadr)
-        # self.dlo_sim2.update_force()
-        qfrc_jnt = self.data.qfrc_passive[dofadr:dofadr+self.model.body_dofnum[id_print]]
-        # qfrc_jnt2 = self.dlo_sim.qfrc_our2[dofadr:dofadr+self.model.body_dofnum[id_print]]
-        # print(self.dlo_sim.qfrc_our)
-        # print(self.dlo_sim.qfrc_our2)
-        # print(qfrc_jnt)
-        mujoco.mju_mulQuat(quat_diff, self.model.body_quat[id_print], self.data.qpos[qadr:qadr+4])
-        mujoco.mju_quat2Vel(omega_curve, quat_diff, 1.0)
-        print(self.env_steps)
-        # print(self.model.body_quat)
-        # print(f"qpos = {self.data.qpos[qadr:qadr+4]}")
-        # print(f"body_quat = {self.model.body_quat[id_print]}")
-        # print(f"quat_diff = {quat_diff}")
-        print(self.data.qfrc_passive)
-        print(self.dlo_sim.force_node)
-        print(self.dlo_sim.x)
-        # print(self.dlo_sim2.force_node)
-        # print(self.dlo_sim2.x)
-
-        # print(f"omega_curve = {omega_curve}")
-        # print(f"qfrc_passive = {qfrc_jnt}")
-        # print(f"qfrc_our2 = {qfrc_jnt2}")
-        # print(f"ratio1 = {qfrc_jnt[1]/omega_curve[1]}")
-        # print(f"ratio2 = {qfrc_jnt2[1]/omega_curve[1]}")
-        input()
-
-    def test_force_curvature(self,l_shorten=0.3,n_steps=100):
-        step_len = l_shorten / n_steps / 2
-        pos_move = np.array([step_len, -step_len, -step_len])
-        for i in range(1):
-            self.ropeend_pos_all(pos_move=pos_move.copy())
-            self.print_nativeinfo()
-        pos_move = np.array([step_len, step_len, step_len])
-        for i in range(1):
-            self.ropeend_pos_all(pos_move=pos_move.copy())
-        pos_move = np.array([step_len, 0., 0.])
-        print('0')
-        for i in range(n_steps-2):
-            # sys.stdout.write(f"\033[{1}F")
-            print(f"init stage: {i+1}/{n_steps-2}")
-            # self.reset_vel()
-            # print(self.sitename2pos("r_joint0_site"))
-            # print(self.sitename2pos("r_joint180_site"))
-            # print(self.sitename2pos("r_joint0_site")-self.sitename2pos("r_joint180_site"))
-            self.ropeend_pos_all(pos_move=pos_move.copy())
-            # self.print_nativeinfo()
-
-    def test_force_curvature2(self,om_val):
-        self.model.opt.gravity[-1] = 0.
-        print(f"om_val = {om_val}")
-        self.set_curve(np.array([0.,om_val, 0.]))
-        # self.hold_pos(1.1)
-        # self.data.eq_active[0] = 0
-        # print("Released eq_weld.")
-        # self.hold_pos(10.)
-        self.print_nativeinfo()
-
-    def test_restoringbend(self):
-        # remove one connect eq
-        self.data.eq_active[1] = 0
-        # choose midpoint of rope
-        mid_id = self.vec_bodyid[int(len(self.vec_bodyid)/2)]
-        # set new weld obj to midpoint
-        self.model.eq_obj1id[0] = mid_id
-        # move weld box to midpoint
-        body_id2 = mjc2.obj_name2id(self.model,"body","eef_body")
-        self.model.eq_data[0][3:6] /= 2.
-        self.model.body_pos[body_id2][:] = (
-            self.data.xpos[mid_id][:]
-            - self.model.eq_data[0][3:6]
-        )
-        self.hold_pos(10.)
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~|| Lhb things ||~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    def lhb_init(self):
-        # Twist 27 turns (27 * 360)
-        s_ss_center = None
-        s_ss_mincenter = 10.
-        l_shorten = 0.3
-        n_steps = 100
-        step_len = l_shorten / n_steps / 2
-        # n_steps = int(l_shorten / step_len)
-        # print(self.sitename2pos("r_joint0_site"))
-        # print(self.sitename2pos("r_joint180_site"))
-        # print(self.sitename2pos("r_joint0_site")-self.sitename2pos("r_joint180_site"))
-        pos_move = np.array([step_len, -step_len, -step_len])
-        for i in range(1):
-            self.ropeend_pos_all(pos_move=pos_move.copy())
-        # pos_move = np.array([0., -step_len, 0.])
-        # self.ropeend_pos_all(pos_move=-pos_move.copy())
-        # self.ropeend_pos_all(pos_move=pos_move.copy())
-        pos_move = np.array([step_len, step_len, step_len])
-        for i in range(1):
-            self.ropeend_pos_all(pos_move=pos_move.copy())
-
-        pos_move = np.array([step_len, 0., 0.])
-        print('0')
-        for i in range(n_steps-2):
-            sys.stdout.write(f"\033[{1}F")
-            print(f"init stage: {i+1}/{n_steps-2}")
-            # self.reset_vel()
-            # print(self.sitename2pos("r_joint0_site"))
-            # print(self.sitename2pos("r_joint180_site"))
-            # print(self.sitename2pos("r_joint0_site")-self.sitename2pos("r_joint180_site"))
-            self.ropeend_pos_all(pos_move=pos_move.copy())
-            # self.ropeend_pos(pos_move=pos_move.copy())
-
-            # print(i)
-            # if i % 1 == 0:
-                # self.reset_vel()
-        # for i in range(27*360):
-        #     self.ropeend_rot(rot_axis=0)
-        #     self.reset_vel()
-        # step_remain = l_shorten - 2* n_steps * step_len
-        # self.ropeend_pos(np.array([step_remain, 0., 0.]))
-        # print(self.sitename2pos("r_joint0_site"))
-        # print(self.sitename2pos("r_joint0_site"))
-        # print(self.sitename2pos("r_joint0_site")-self.sitename2pos("r_joint180_site"))
-
-    def lhb_testing(self):
-        print('0')
-        for i in range(100):
-            sys.stdout.write(f"\033[{1}F")
-            print(f"testing stage: {i+1}/{100}")
-            self.hold_pos(0.2)
-            # if i % 1 == 0:
-            #     self.reset_vel()
-        # self.reset_vel()
-        # hold_time = 30.
-        # init_time = self.cur_time
-        # while (self.cur_time-init_time) < hold_time:
-        #     self.step()
-
-        s_ss, fphi = self.lhb_var_compute()
-        fphi_min_id = np.where(fphi == fphi.min())[0][0]
-        s_ss_min_id = floor(len(s_ss) / 2)
-        s_ss_center = s_ss - s_ss[s_ss_min_id]
-        fphi_center = fphi.copy()
-        min_id_diff = fphi_min_id - s_ss_min_id
-        if min_id_diff > 0:
-            fphi_center[:-min_id_diff] = fphi[min_id_diff:]
-            fphi_center[-min_id_diff:] = np.ones(min_id_diff)
-        elif min_id_diff < 0:
-            fphi_center[-min_id_diff:] = fphi[:min_id_diff]
-            fphi_center[:-min_id_diff] = np.ones(-min_id_diff)
-
-        # while (self.cur_time-init_time) < hold_time:
-        #     self.step()
-        #     s_ss, fphi = self.lhb_var_compute()
-        #     maxdevi_id = np.where(fphi == fphi.min())[0][0]
-        #     s_ss_maxdevi = abs(s_ss[maxdevi_id])
-        #     if s_ss_maxdevi < s_ss_mincenter or s_ss_center is None:
-        #         s_ss_mincenter = s_ss_maxdevi
-        #         s_ss_center = s_ss.copy()
-        #         fphi_center = fphi.copy()
-        return s_ss_center, fphi_center
-
-    def lhb_var_compute(self):
-        joint_site_pos = np.array(
-            self.data.site_xpos[self.joint_site_idx[:]]
-        ).copy()
-        t_vec = joint_site_pos[1:] - joint_site_pos[:self.r_pieces]
-        for i in range(len(t_vec)):
-            t_vec[i] = t_vec[i] / np.linalg.norm(t_vec[i])
-        e_x = np.array([-1., 0., 0.])
-        devi_set = np.arccos(np.dot(t_vec, e_x))
-        max_devi = np.max(devi_set)
-        s_step = self.r_len / (self.r_pieces)
-        s = np.zeros(len(devi_set))
-        for i in range(len(devi_set)):
-            s[i] = s_step * i + s_step/2
-        s = s - np.mean(s)
-        max_devi2 = max_devi
-        # max_devi2 = 0.919
-        s_ss = (
-            s * (self.beta_bar*12/(2*self.alpha_bar))
-            * np.sqrt((1-np.cos(max_devi2))/(1+np.cos(max_devi2)))
-        )
-        # s_ss = s_ss - np.mean(s_ss)
-        fphi = (np.cos(devi_set)-np.cos(max_devi))/(1-np.cos(max_devi))
-        return s_ss, fphi
-
-    def start_lhbtest(self, new_start):
-        """
-        For LHB:
-            - low mass: 0.058 --> lower mass, more centered
-            - low damp: 0.3
-            - hold step: 3 seconds --> longer hold more centered
-            - vel reset: every sim step --> more frequent, more stable
-                - (can try to implement reset_vel at fixed time intervals)
-        """
-        # init vars
-        self.freq_velreset = 0.2
-        # Test for 1 rope type - length, alpha, beta
-        # localized helical buckling test
-        lhb_picklename = 'lhbtest{}.pickle'.format(self.r_pieces)
-        lhb_picklename = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            "data/lhb/our/" + lhb_picklename
-        )
-        if new_start:
-            self.lhb_init()
-            self.init_pickle = self.get_state()
-            with open(lhb_picklename, 'wb') as f:
-                pickle.dump(self.init_pickle,f)
-            print('Pickle saved!')
-            # input('Pickle saved!')
-            # s_ss_center, fphi_center =  self.lhb_testing()
-        else:
-            with open(lhb_picklename, 'rb') as f:
-                self.init_pickle = pickle.load(f)
-
-            # set overall rot
-            self.set_state(self.init_pickle)
-            self.init_pickle[0][9] = self.overall_rot
-            self.p_thetan = self.overall_rot % (2. * np.pi)
-            if self.p_thetan > np.pi:
-                self.p_thetan -= 2 * np.pi
-            self.init_pickle[0][10] = self.p_thetan
-
-        s_ss_center, fphi_center =  self.lhb_testing()
-            # s_ss_center = None
-            # s_ss_mincenter = 10.
-            # hold_time = 50.
-            # init_time = self.cur_time
-            # while (self.cur_time-init_time) < hold_time:
-            #     self.step()
-            #     # shouldn't this line onwards be out of the loop?
-            #     # no, it is in the loop to ensure the final graphs are centralized
-            #     s_ss, fphi = self.lhb_var_compute()
-            #     maxdevi_id = np.where(fphi == fphi.min())[0][0]
-            #     s_ss_maxdevi = abs(s_ss[maxdevi_id])
-            #     if s_ss_maxdevi < s_ss_mincenter or s_ss_center is None:
-            #         s_ss_mincenter = s_ss_maxdevi
-            #         s_ss_center = s_ss.copy()
-            #         fphi_center = fphi.copy()
-
-        print(f"fphi = {fphi_center}")
-        print(f"s_ss = {s_ss_center}")
-        # input()
-        # print(f"max_devi = {max_devi}")
-        pickledata = [fphi_center, s_ss_center]
-        pickledata_path = 'lhb{}.pickle'.format(self.r_pieces)
-        pickledata_path = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            "data/lhb/our/" + pickledata_path
-        )
-        with open(pickledata_path, 'wb') as f:
-            pickle.dump(pickledata,f)
-        print('pickled data')
-
-        print(f"r_pieces = {self.r_pieces}")
-
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~|| Circle ||~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def circle_init(self):
         # assuming that rope axis is parallel to x axis
         # self.hold_pos(10.)
+        holder_offset = np.array([0.12,0.0,0.0])
         self.stablestep = False
         y_offset = 0.3
         start_pos = self.data.xpos[
@@ -704,6 +654,7 @@ class TestRopeXfrcEnv(gym.Env, utils.EzPickle):
             )
         ]
         e_pos = end_pos - start_pos
+        e_pos -= holder_offset
         step_len = 5e-3
         n_steps = e_pos[0] / step_len
         if n_steps < 0:
@@ -729,7 +680,7 @@ class TestRopeXfrcEnv(gym.Env, utils.EzPickle):
         for i in range(n_steps):
             print(f"steps: {i+1} / {n_steps}")
             self.ropeend_pos(np.array([step_len, 0., 0.]))
-        self.ropeend_pos(np.array([step_remain - 1e-3, 0., 0.]))
+        self.ropeend_pos(np.array([step_remain, 0., 0.]))
         for i in range(n_steps):
             print(f"steps: {i+1} / {n_steps}")
             self.ropeend_pos(np.array([0., -step_ylen, 0.]))
@@ -743,9 +694,12 @@ class TestRopeXfrcEnv(gym.Env, utils.EzPickle):
             self.reset_vel()
 
     def check_e_PCA_circle(self):
-        joint_site_pos = np.array(
-            self.data.site_xpos[self.joint_site_idx[:]]
-        ).copy()
+        if self.storqtype == 'native':
+            joint_site_pos = self.observations['rope_pose'].copy()
+        else:
+            joint_site_pos = np.array(
+                self.data.site_xpos[self.joint_site_idx[:]]
+            ).copy()
         joint_site_pos = joint_site_pos[:self.r_pieces-1]
         # exclude 2 nodes to account for overlap
         return compute_PCA(
@@ -755,21 +709,31 @@ class TestRopeXfrcEnv(gym.Env, utils.EzPickle):
         )
 
     def start_circletest(self, new_start):
+        # if self.do_render:
+        #     self.set_viewer_details(
+        #         4.5076,
+        #         45.922,
+        #         -19.810,
+        #         np.array([-3.46078809, -0.26378238, 0.63761223])
+        #     )
         # Test for multiple rope types (vary alpha and beta bar)
         # alpha = 1.
         # r_len = 2*np.pi * self.r_pieces / (self.r_pieces-1)
         self.freq_velreset = 0.2
         self.stable_bool = True
-        e_tol = 1000. # 0.075
+        e_tol = 7.5 # 0.075
         circtest_picklename = 'mbitest1.pickle'
         circtest_picklename = os.path.join(
             os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            "data/mbi/our/" + circtest_picklename
+            "data/mbi/" + self.picklefolder + "/" + circtest_picklename
         )
         if new_start:
             self.circle_oop = False
             self.circle_init()
-            self.init_pickle = self.get_state()
+            if self.storqtype == 'native':
+                self.init_pickle = self.get_state2()
+            else:
+                self.init_pickle = self.get_state()
             with open(circtest_picklename, 'wb') as f:
                 pickle.dump(self.init_pickle,f)
             input(f'Circle Pickle saved!')
@@ -777,25 +741,38 @@ class TestRopeXfrcEnv(gym.Env, utils.EzPickle):
             with open(circtest_picklename, 'rb') as f:
                 self.init_pickle = pickle.load(f)
 
-            # set overall rot
-            self.init_pickle[0][9] = self.overall_rot
-            self.p_thetan = self.overall_rot % (2. * np.pi)
-            if self.p_thetan > np.pi:
-                self.p_thetan -= 2 * np.pi
-            self.init_pickle[0][10] = self.p_thetan
+            if self.storqtype == 'native':
+                self.set_state2(self.init_pickle)
+            else:
+                # set overall rot
+                self.init_pickle[0][9] = self.overall_rot
+                self.p_thetan = self.overall_rot % (2. * np.pi)
+                if self.p_thetan > np.pi:
+                    self.p_thetan -= 2 * np.pi
+                self.init_pickle[0][10] = self.p_thetan
+                self.set_state(self.init_pickle)
 
-            self.set_state(self.init_pickle)
+            if self.storqtype == 'native':
+                self.rot_x_rads2(x_rads=self.overall_rot)
+                self.reset_vel()
+            else:
+                self.rot_x_rads(x_rads=self.overall_rot_tmp)
 
             # # get and apply force normal to the circle
             norm_force = self.get_rope_normal()
             # self.apply_force_t(t=0.3,force_dir=np.array([0., 0., 1.]))
-            self.apply_force_t(t=0.8,force_dir=norm_force)
+            # self.apply_force_t(t=0.8,force_dir=norm_force)
 
             # self.hold_pos(100.)
             # create a for loop that checks PCA error at each iter
             max_e = 0.
+            e_outofplane = 0.
+            self.circle_oop = False
+            t_step = 0.2
+            hold_t = 30
+            hold_steps = int(hold_t / t_step)
             print('0')
-            for i in range(100):
+            for i in range(hold_steps):
                 # self.ropeend_rot(rot_axis=0)
                 # if not i % int(1.76*360) and i != 0:
                 #     self.reset_vel()
@@ -805,107 +782,73 @@ class TestRopeXfrcEnv(gym.Env, utils.EzPickle):
                 #     self.hold_pos(0.3)
                 # self.reset_vel()
                 sys.stdout.write(f"\033[{1}F")
-                print(f"Holding for {i+1} / {100}..")
-                self.hold_pos(0.2, rend=True)
+                # print(f"e_outofplane = {e_outofplane}")
+                print(f"Holding for {i+1} / {hold_steps}..")
+                self.hold_pos(t_step, rend=True)
                 if self.instability_check():
                     self.stable_bool = False
                 e_outofplane = self.check_e_PCA_circle()
+                # print(self.data.contact)
                 if e_outofplane > max_e:
                     max_e = e_outofplane
-                # if self.do_render:
-                #     self.viewer.render()
+                if max_e > e_tol or self.data.ncon > 0:
+                    print(f"e_tol = {e_tol}")
+                    print(f"e_outofplane = {e_outofplane}")
+                    print(f"max_e = {max_e}")
+
+                    self.circle_oop = True
+                    print(f'b_a = {self.beta_bar/self.alpha_bar} ==================================')
+                    print(f'out of plane theta_crit = {self.overall_rot} ==================================')
+                    return e_outofplane
                 # print(f'e_outofplane = {e_outofplane}')
-            self.circle_oop = False
             print(f"e_tol = {e_tol}")
             print(f"e_outofplane = {e_outofplane}")
             print(f"max_e = {max_e}")
-            if e_outofplane > e_tol or max_e > 5:
+            # if e_outofplane > e_tol or max_e > 5:
+            if max_e > e_tol:
                 self.circle_oop = True
                 print(f'b_a = {self.beta_bar/self.alpha_bar} ==================================')
                 print(f'out of plane theta_crit = {self.overall_rot} ==================================')
                 # print(f'e_outofplane = {e_outofplane}')
             if not self.stable_bool:
                 self.circle_oop = True
+                input('Unstable sim: press "Enter" to continue..')
             return e_outofplane
 
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~|| Speed Test ||~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    def run_speedtest1(self):
-        start_t = time()
-        start_step = self.env_steps
-        pos_move = np.array([1.5e-3, -1.5e-3, -1.5e-3])
-        print('0')
-        for i in range(25):
-            sys.stdout.write(f"\033[{1}F")
-            print(f"Testing for {i+1} / {50} steps..")
-            self.ropeend_pos_all(pos_move=pos_move.copy())
-
-        for i in range(360):
-            self.ropeend_rot(rot_axis=0)
-
-        pos_move = np.array([1.5e-3, 1.5e-3, 1.5e-3])
-        for i in range(25):
-            sys.stdout.write(f"\033[{1}F")
-            print(f"Testing for {i+1+25} / {50} steps..")
-            self.ropeend_pos_all(pos_move=pos_move.copy())
-        total_steps = self.env_steps - start_step
-        total_time = time() - start_t
-        real_speed = total_time / total_steps
-        real_v_sim_speed = real_speed / self.dt
-
-        print(f"Time taken = {total_time} s / {total_steps} steps")
-        print(f"    = {real_speed} s / steps")
-        print(f"    = {total_time} s / {total_steps*self.dt} s")
-        print(f"    = {real_v_sim_speed} s / s (real time / sim time)")
-
-        return real_v_sim_speed
-
-    def run_speedtest2(self):
-        # Load lhb_test and carry out speed that with that simulation
-        self.freq_velreset = 2000
-        lhb_picklename = 'lhbtest{}.pickle'.format(self.r_pieces)
-        lhb_picklename = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            "data/lhb/our/" + lhb_picklename
-        )
-        with open(lhb_picklename, 'rb') as f:
-            self.init_pickle = pickle.load(f)
-        self.set_state(self.init_pickle)
-        self.init_pickle[0][9] = self.overall_rot
-        self.p_thetan = self.overall_rot % (2. * np.pi)
-        if self.p_thetan > np.pi:
-            self.p_thetan -= 2 * np.pi
-        self.init_pickle[0][10] = self.p_thetan
-
-        # run for 10,000 steps
-        start_t = time()
-        start_step = self.env_steps
-        st_steps = 10000
-        print('0')
-        for i in range(st_steps):
-            if (i+1) % 1000 == 0:
-                sys.stdout.write(f"\033[{1}F")
-                print(f"Testing for {i+1} / {st_steps} steps..")
-            self.step()
-
-        total_steps = self.env_steps - start_step
-        total_time = time() - start_t
-        real_speed = total_time / total_steps
-        real_v_sim_speed = real_speed / self.dt
-
-        print(f"Time taken = {total_time} s / {total_steps} steps")
-        print(f"    = {real_speed} s / steps")
-        print(f"    = {total_time} s / {total_steps*self.dt} s")
-        print(f"    = {real_v_sim_speed} s / s (real time / sim time)")
-
-        return real_v_sim_speed
-
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~|| Utils ||~~~~~~~~~~~~~~~~~~~~~~~~~~
+    def print_viewer_details(self):
+        print(f"distance = {self.viewer.cam.distance}")
+        print(f"azimuth = {self.viewer.cam.azimuth}")
+        print(f"elevation = {self.viewer.cam.elevation}")
+        print(f"lookat = {self.viewer.cam.lookat}")
+
+    def set_viewer_details(
+        self,
+        dist, azi, elev, lookat      
+    ):
+        self.viewer.cam.distance = dist
+        self.viewer.cam.azimuth = azi
+        self.viewer.cam.elevation = elev
+        self.viewer.cam.lookat = lookat
 
     def reset_vel(self):
         self.data.qvel[:] = np.zeros(len(self.data.qvel[:]))
         self.sim.forward()
         # pass
+
+    def rot_x_rads(self, x_rads):
+        n_rotsteps = int(x_rads/(np.pi)*180)
+        rad_leftover = (
+            x_rads
+            - (n_rotsteps / 180 * np.pi)
+        )
+        if n_rotsteps > 0:
+            print('0')
+        for i in range(n_rotsteps):
+            sys.stdout.write(f"\033[{1}F")
+            print(f"init rot stage (degs): {i+1}/{n_rotsteps}")
+            self.ropeend_rot(rot_axis=0)
+        self.ropeend_rot(rot_a=rad_leftover,rot_axis=0)
 
     def rot_x_rads2(self, x_rads):
         x_rads /= 2.0   # rotate from both ends

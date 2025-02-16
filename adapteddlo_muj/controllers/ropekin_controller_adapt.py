@@ -33,7 +33,7 @@ import adapteddlo_muj.utils.mjc2_utils as mjc2
 from adapteddlo_muj.utils.dlo_utils import force2torq
 # from adapteddlo_muj.utils.filters import ButterLowPass
 
-class DLORopeBal:
+class DLORopeAdapt:
     # Base rope controller is for both ends fixed
     def __init__(
         self,
@@ -116,6 +116,7 @@ class DLORopeBal:
                 self.model.jnt_dofadr[self.dlo_joint_ids[-1]]
             )
         self.dlo_joint_qveladdr = np.array(self.dlo_joint_qveladdr)
+        self.qvel0_addr = np.min(self.dlo_joint_qveladdr)
         self.dlo_joint_qveladdr_full = [
             n for n in range(
                 self.dlo_joint_qveladdr[0],
@@ -459,11 +460,11 @@ class DLORopeBal:
         # t4 = time()
 
         if self.bothweld:
-            self.data.qfrc_passive[3:] += self.torq_node[:-1].flatten()
-            self.data.qfrc_passive[:3] = np.sum(self.force_node[excl_joints:-excl_joints],axis=0)
+            self.data.qfrc_passive[self.qvel0_addr+3:] += self.torq_node[:-1].flatten()
+            self.data.qfrc_passive[self.qvel0_addr:3] = np.sum(self.force_node[excl_joints:-excl_joints],axis=0)
         else:
             # self.data.qfrc_passive[3:6] -= self.torq_node[0].flatten()
-            self.data.qfrc_passive[:] += self.torq_node[1:-1].flatten()
+            self.data.qfrc_passive[self.qvel0_addr:] += self.torq_node[1:-1].flatten()
         # self.data.xfrc_applied[self.vec_bodyid[0],3:] = self.torq_node[-1]
         # t5 = time()
         # print("hi")
@@ -504,11 +505,11 @@ class DLORopeBal:
         self._calc_centerlineTorq(excl_joints=excl_joints)
 
         if self.bothweld:
-            self.data.qfrc_passive[3:] += self.torq_node[:-1].flatten()
+            self.data.qfrc_passive[self.qvel0_addr+3:] += self.torq_node[:-1].flatten()
             # self.data.qfrc_passive[:3] = np.sum(self.force_node[excl_joints:-excl_joints],axis=0)
             pass
         else:
-            self.data.qfrc_passive[:] += self.torq_node[1:-1].flatten()
+            self.data.qfrc_passive[self.qvel0_addr:] += self.torq_node[1:-1].flatten()
         # self.data.xfrc_applied[self.vec_bodyid[0],3:] = np.sum(self.torq_node_global,axis=0)
         # self.data.xfrc_applied[self.vec_bodyid[-1],3:] = - np.sum(self.torq_node_global,axis=0)
         # self.data.xfrc_applied[self.vec_bodyid[-1],3:] = -10*self.torq_node[0]

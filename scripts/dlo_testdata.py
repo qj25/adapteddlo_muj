@@ -3,6 +3,7 @@ To-do:
 """
 
 import os
+import argparse
 import numpy as np
 import pickle
 import matplotlib.pyplot as plt
@@ -10,81 +11,26 @@ import matplotlib.pyplot as plt
 from adapteddlo_muj.envs.our_rope_valid_test import TestRopeEnv
 from adapteddlo_muj.envs.our_xfrc_rope_valid_test import TestRopeXfrcEnv
 from adapteddlo_muj.envs.native_cable_valid_test import TestCableEnv
+from adapteddlo_muj.utils.argparse_utils import dtd_parse
 
 #======================| Settings |======================
-lopbal_type_id = 2
-lopbal_type_list = ['native','xfrc','bal']
-lopbal_type = lopbal_type_list[lopbal_type_id]
 
-test_type_g = 'mbi'
-new_start_g = True
-lfp_g = False
-do_render_g = True
+parser = dtd_parse()
+# Parse the arguments
+args = parser.parse_args()
 
-if test_type_g == 'mbi':
+lopbal_type = args.stiff
+test_type_g = args.test
+do_render_g = bool(args.render)
+new_start_g = bool(args.newstart)
+lfp_g = bool(args.loadresults)
+
+if test_type_g == 'mbi' and args.newstart == 2:
     new_start_g = False
 
 # if test_type_g == 'lhb' and lopbal_type == 'native':
     # new_start_g = True
 #======================| End Settings |======================
-
-"""
-Note:
-    - (fixed by now using 'apply_force_t')
-        previous issues with 'apply_force' where data.xfrc_applied remains
-        when not rendered, but is reset to zeros when rendered. fixed by 
-        new func which applies at each timestep.
-    - timestep of 0.0005 to ensure stability
-        (esp for higher r_pieces)
-    - force applied through apply_FT 
-        (xfrc_applied can only apply through center of mass, com)
-
-native:
-    - requires manual rotation of end 
-        (lhb - "eef_body2", mbi - "stiffrope")
-
-circle:
-    - *control magnitude and duration of disturbance force
-    - uses one weld, one fixed end.
-    - force of 1N in the z-dir to introduce instability
-    our:
-    - TL: now trying with smaller force duration
-    - j_damp = 0.15
-    - freq_velreset = 100000
-    - force 1.0 norm, 0.8s
-    0.15 7000, 1.0 10000, 0.7 7000
-    native:
-    - same but requirement that e_outofplane > 5.0 at the end
-
-lhb:
-    - uses two welded ends (ensure symmetry)
-    our:
-    - j_damp = 1.0
-    - freq_velreset = 2000
-
-    - j_damp = 1.2
-    - freq_velreset = 10000
-
-    native:
-    - use longer rot hold to ensure stability!
-    - trying: 
-        - GOOD:
-            1.2, 10000
-        - BAD: 
-            0.5, 100000
-            0.75, 100000 
-            1.5, 100000
-            2.0, 100000
-        - better:
-            3.0 100000
-        - spikey 60: j_damp 1.0, 100000 velreset, longer rot hold
-        - TR: j_damp 3.5, 100000 velreset, longer rot hold
-        - BR: j_damp 4.0, 100000 velreset, longer rot hold
-    - j_damp = 1.5, 0.15*1.449560295
-    - freq_velreset = 550
-
-speed_test
-"""
 
 def lhb_data(
     alpha_bar,

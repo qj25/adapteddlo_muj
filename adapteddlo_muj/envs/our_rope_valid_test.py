@@ -18,7 +18,7 @@ import adapteddlo_muj.utils.mjc2_utils as mjc2
 
 from adapteddlo_muj.assets.genrope.gdv_O import GenKin_O
 from adapteddlo_muj.assets.genrope.gdv_O_weld2 import GenKin_O_weld2
-from adapteddlo_muj.controllers.ropekin_controller_bal import DLORopeBal
+from adapteddlo_muj.controllers.ropekin_controller_adapt import DLORopeAdapt
 from adapteddlo_muj.utils.data_utils import compute_PCA, centralize_devdata
 
 
@@ -42,7 +42,7 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
         self.do_render = do_render
         self.test_type = test_type
         self.limit_f = limit_f
-        self.picklefolder = 'bal'
+        self.picklefolder = 'adapt'
 
         # rope init
         self.r_len = r_len
@@ -114,7 +114,7 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
 
         # init dlo controller
         self.f_limit = 1000.
-        self.dlo_sim = DLORopeBal(
+        self.dlo_sim = DLORopeAdapt(
             model=self.model,
             data=self.data,
             n_link=self.r_pieces,

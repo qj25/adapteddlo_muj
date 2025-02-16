@@ -122,7 +122,10 @@ class GenKin_O_weld2:
             self.cap_size[1] = (self.r_len / self.r_pieces - self.d_small) / 2
         self.cap_size[1] -= self.d_small
         self.joint_size = self.cap_size[0]
-
+        if self.cap_size[0] > 0.8 * self.cap_size[1]:
+            print(f"Warning: thickness too large -ratio- {self.cap_size[0]/self.cap_size[1]}")
+            print("Consider reducing to prevent unwanted collisions")
+            input()
         # body_names
         self.str_names = list(str(x_n) for x_n in range(self.r_pieces))
         self.str_names[0] = 'first'
@@ -179,7 +182,7 @@ class GenKin_O_weld2:
                         (self.curr_tab)*self.t
                         + '<site name="S_{}" pos="0 0 0" size="{}"/>\n'.format(
                             self.str_names[i_section],
-                            self.r_thickness*0.45,
+                            self.r_thickness*0.45
                         )
                     )
                 else:
@@ -202,7 +205,7 @@ class GenKin_O_weld2:
                 if self.mass_link is None:
                     f.write(
                         self.curr_tab*self.t
-                        + '<geom name="G{}" pos="{} 0 0" quat="0.707107 0 -0.707107 0" type="{}" size="{:1.4f} {:1.4f}" rgba="{}" conaffinity="{}" contype="{}" condim="1"/>\n'.format(
+                        + '<geom name="G{}" pos="{} 0 0" quat="0.707107 0 -0.707107 0" type="{}" size="{:1.4f} {:1.4f}" rgba="{}" conaffinity="{}" contype="{}" solref="{}" condim="1"/>\n'.format(
                             i_section,
                             self.displace_link/2,
                             self.rope_type,
@@ -211,13 +214,13 @@ class GenKin_O_weld2:
                             self.rgba_linkgeom,
                             self.con_data[0],
                             self.con_data[1],
-
+                            self.solref_val
                         )
                     )
                 else:
                     f.write(
                         self.curr_tab*self.t
-                        + '<geom name="G{}" pos="{} 0 0" quat="0.707107 0 -0.707107 0" type="{}" size="{:1.4f} {:1.4f}" rgba="{}" mass="{}" conaffinity="{}" contype="{}"/>\n'.format(
+                        + '<geom name="G{}" pos="{} 0 0" quat="0.707107 0 -0.707107 0" type="{}" size="{:1.4f} {:1.4f}" rgba="{}" mass="{}" conaffinity="{}" contype="{}" solref="{}" condim="1"/>\n'.format(
                             i_section,
                             self.displace_link/2,
                             self.rope_type,
@@ -227,13 +230,14 @@ class GenKin_O_weld2:
                             self.mass_link,
                             self.con_data[0],
                             self.con_data[1],
+                            self.solref_val
                         )
                     )
                 f.write(
                     (self.curr_tab)*self.t
-                    + '<site name="S_{}" pos="0 0 0" size="{}"/>\n'.format(
+                    + '<site name="S_{}" pos="0 0 0" size="{}" rgba="0 0 0 0"/>\n'.format(
                         i_section,
-                        self.r_thickness*0.45,
+                        self.r_thickness*0.45
                     )
                 )
 
@@ -265,14 +269,14 @@ class GenKin_O_weld2:
                         self.curr_tab*self.t
                         + '<site name="twistcylx_{}" pos="0 0 0.05" quat="0.707 0 0 -0.707" size="0.001 0.05" rgba="0 0 1 {}" type="cylinder" group="1" />\n'.format(
                             i_section + 1,
-                            self.subcyl_alpha,
+                            self.subcyl_alpha
                         )
                     )
                     f.write(
                         self.curr_tab*self.t
                         + '<site name="twistcyly_{}" pos="0 0.05 0" quat="0.707 -0.707 0 0" size="0.001 0.05" rgba="1 1 0 {}" type="cylinder" group="1" />\n'.format(
                             i_section + 1,
-                            self.subcyl_alpha,
+                            self.subcyl_alpha
                         )
                     )
             f.write(
@@ -280,7 +284,7 @@ class GenKin_O_weld2:
                 + '<site name="S_{}" pos="{} 0 0" size="{}"/>\n'.format(
                     'last',
                     self.displace_link,
-                    self.r_thickness*0.45,
+                    self.r_thickness*0.45
                 )
             )
             f.write(
@@ -297,6 +301,8 @@ class GenKin_O_weld2:
             f.write(self.t + "</worldbody>\n")
             f.write(self.t + '<sensor>\n')
             f.write(self.t + '</sensor>\n')
+            self._write_equality(f)
+            self._write_exclusion(f)
             f.write('</mujoco>\n')
 
     def _write_anchorbox(self):
@@ -357,7 +363,7 @@ class GenKin_O_weld2:
     def _write_weldweight(self):
         ## ADDITIONAL MASS -- to strengthen weld constraint: more mass, stronger weld
         ww_massmulti = 40.
-        mass_density = 1000.0
+        mass_density = 1000.
         if self.mass_link is None:
             mass_ww = ww_massmulti * mass_density * self.r_len * (self.r_thickness/2)**2 * np.pi
         else:
@@ -403,7 +409,7 @@ class GenKin_O_weld2:
             # self.t + "   <connect body1='{}' body2='r_joint{}_body' solref='0.004 1' anchor='0 0 0'/>\n".format(
             # self.t + "   <connect body1='{}' body2='r_joint{}_body' anchor='0 0 0'/>\n".format(
             # self.t + "   <weld body1='{}' body2='r_joint{}_body' solref='{}' relpose='0. 0 0 1 0 0 0'/>\n".format(
-            self.t + "   <weld body1='B_{}' body2='{}' solref='{}'/>\n".format(
+            2*self.t + "<weld body1='B_{}' body2='{}' solref='{}'/>\n".format(
                 # 25,
                 self.str_names[self.r_pieces-1],
                 self.attach_bodyname,
@@ -426,18 +432,19 @@ class GenKin_O_weld2:
         f.write(self.t + '</equality>\n')
 
     def _write_exclusion(self, f):
-        f.write(self.curr_tab*self.t + '<contact>\n')
-        self.curr_tab += 1
+        curr_tab = 1
+        f.write(curr_tab*self.t + '<contact>\n')
+        curr_tab += 1
         f.write(
-            self.curr_tab*self.t
+            curr_tab*self.t
             + '<exclude body1="B_first" body2="B_last"/>\n'
         )
         f.write(
-            self.curr_tab*self.t
+            curr_tab*self.t
             + '<exclude body1="B_1" body2="B_last"/>\n'
         )
         f.write(
-            self.curr_tab*self.t
+            curr_tab*self.t
             + '<exclude body1="B_first" body2="B_{}"/>\n'.format(
                 self.r_pieces-2
             )
@@ -446,29 +453,29 @@ class GenKin_O_weld2:
             i1 = self.str_names[i_section-1]
             i2 = self.str_names[i_section]
             f.write(
-                self.curr_tab*self.t
+                curr_tab*self.t
                 + '<exclude body1="B_{}" body2="B_{}"/>\n'.format(
                     i1,
                     i2
                 )
             )
         f.write(
-            self.curr_tab*self.t
+            curr_tab*self.t
             + '<exclude body1="eef_body" body2="B_first"/>\n'.format(
                 self.r_pieces
             )
         )
         f.write(
-            self.curr_tab*self.t
+            curr_tab*self.t
             + '<exclude body1="eef_body" body2="B_last"/>\n'.format(
                 self.r_pieces
             )
         )
         f.write(
-            self.curr_tab*self.t
+            curr_tab*self.t
             + '<exclude body1="eef_body" body2="B_{}"/>\n'.format(
                 self.r_pieces-2
             )
         )
-        self.curr_tab -= 1
-        f.write(self.curr_tab*self.t + '</contact>\n')
+        curr_tab -= 1
+        f.write(curr_tab*self.t + '</contact>\n')
