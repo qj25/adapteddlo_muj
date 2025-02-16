@@ -1,0 +1,77 @@
+PID_ACTUATOR = """
+	<general ctrlrange='-1 1' gaintype="user" 
+    
+    biastype="user" forcerange="-100 100" 
+    
+    gainprm="200 10 10.0 0.1 0.1 0" joint="hinge" name="a-hinge"/>
+"""
+<plugin plugin="mujoco.pid">
+            <instance name="j1_pid">
+                <config key="kp" value="10000.0"/>
+                <config key="ki" value="500.0"/>
+                <config key="kd" value="200.0"/>
+                <config key="imax" value="100.0"/>
+            </instance>
+            <instance name="j2_pid">
+                <config key="kp" value="100.0"/>
+                <config key="ki" value="50.0"/>
+                <config key="kd" value="10.0"/>
+                <config key="imax" value="100.0"/>
+            </instance>
+            <instance name="j3_pid">
+                <config key="kp" value="1500.0"/>
+                <config key="ki" value="500.0"/>
+                <config key="kd" value="100.0"/>
+                <config key="imax" value="100.0"/>
+            </instance>
+            <instance name="j4_pid">
+                <config key="kp" value="100.0"/>
+                <config key="ki" value="500.0"/>
+                <config key="kd" value="20.0"/>
+                <config key="imax" value="100.0"/>
+            </instance>
+            <instance name="j5_pid">
+                <config key="kp" value="100.0"/>
+                <config key="ki" value="10.0"/>
+                <config key="kd" value="10.0"/>
+                <config key="imax" value="0.0"/>
+            </instance>
+            <instance name="flange_pid">
+                <config key="kp" value="100.0"/>
+                <config key="ki" value="0.0"/>
+                <config key="kd" value="0.0"/>
+                <config key="imax" value="0.0"/>
+            </instance>
+        </plugin>
+
+joint_limits:
+  joint_1:
+    has_velocity_limits: true
+    max_velocity: 3.92699081698724
+    has_acceleration_limits: true
+    max_acceleration: 19.7335651876739
+  joint_2:
+    has_velocity_limits: true
+    max_velocity: 2.61799387799149
+    has_acceleration_limits: true
+    max_acceleration: 16.8446962097729
+  joint_3:
+    has_velocity_limits: true
+    max_velocity: 2.85832571599111
+    has_acceleration_limits: true
+    max_acceleration: 20.7088551736883
+  joint_4:
+    has_velocity_limits: true
+    max_velocity: 3.92699081698724
+    has_acceleration_limits: true
+    max_acceleration: 20.9664657712827
+  joint_5:
+    has_velocity_limits: true
+    max_velocity: 3.02168853397778
+    has_acceleration_limits: true
+    max_acceleration: 23.7228642589573
+  joint_6:
+    has_velocity_limits: true
+    max_velocity: 6.28318530717959
+    has_acceleration_limits: true
+    max_acceleration: 33.5103216382911

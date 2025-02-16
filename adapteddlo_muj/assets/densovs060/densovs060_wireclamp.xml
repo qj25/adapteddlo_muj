@@ -1,0 +1,125 @@
+<mujoco model="densovs060">
+    <!-- <extension>
+        <plugin plugin="mujoco.pid">
+            <instance name="j1_pid">
+                <config key="kp" value="10000.0"/>
+                <config key="ki" value="500.0"/>
+                <config key="kd" value="200.0"/>
+                <config key="imax" value="100.0"/>
+            </instance>
+            <instance name="j2_pid">
+                <config key="kp" value="100.0"/>
+                <config key="ki" value="50.0"/>
+                <config key="kd" value="10.0"/>
+                <config key="imax" value="100.0"/>
+            </instance>
+            <instance name="j3_pid">
+                <config key="kp" value="1500.0"/>
+                <config key="ki" value="500.0"/>
+                <config key="kd" value="100.0"/>
+                <config key="imax" value="100.0"/>
+            </instance>
+            <instance name="j4_pid">
+                <config key="kp" value="100.0"/>
+                <config key="ki" value="500.0"/>
+                <config key="kd" value="20.0"/>
+                <config key="imax" value="100.0"/>
+            </instance>
+            <instance name="j5_pid">
+                <config key="kp" value="100.0"/>
+                <config key="ki" value="10.0"/>
+                <config key="kd" value="10.0"/>
+                <config key="imax" value="0.0"/>
+            </instance>
+            <instance name="flange_pid">
+                <config key="kp" value="100.0"/>
+                <config key="ki" value="0.0"/>
+                <config key="kd" value="0.0"/>
+                <config key="imax" value="0.0"/>
+            </instance>
+        </plugin>
+    </extension>
+    <actuator>
+        <plugin joint="j1" plugin="mujoco.pid" instance="j1_pid" name="j1_act"/>
+        <plugin joint="j2" plugin="mujoco.pid" instance="j2_pid" name="j2_act"/>
+        <plugin joint="j3" plugin="mujoco.pid" instance="j3_pid" name="j3_act"/>
+        <plugin joint="j4" plugin="mujoco.pid" instance="j4_pid" name="j4_act"/>
+        <plugin joint="j5" plugin="mujoco.pid" instance="j5_pid" name="j5_act"/>
+        <plugin joint="flange" plugin="mujoco.pid" instance="flange_pid" name="flange_act"/>
+    </actuator> -->
+
+    <!-- <actuator>
+        <general gaintype="fixed" biastype="affine" ctrlrange="-6.2831 6.2831" gainprm="20" biasprm="0 -10 -4" joint="j1" name="j1_act"/>
+        <general gaintype="fixed" biastype="affine" ctrlrange="-6.2831 6.2831" gainprm="20" biasprm="0 -10 -4" joint="j2" name="j2_act"/>
+        <general gaintype="fixed" biastype="affine" ctrlrange="-6.2831 6.2831" gainprm="20" biasprm="0 -10 -4" joint="j3" name="j3_act"/>
+        <general gaintype="fixed" biastype="affine" ctrlrange="-6.2831 6.2831" gainprm="20" biasprm="0 -10 -4" joint="j4" name="j4_act"/>
+        <general gaintype="fixed" biastype="affine" ctrlrange="-6.2831 6.2831" gainprm="20" biasprm="0 -10 -4" joint="j5" name="j5_act"/>
+        <general gaintype="fixed" biastype="affine" ctrlrange="-6.2831 6.2831" gainprm="20" biasprm="0 -10 -4" joint="flange" name="flange_act"/>
+    </actuator> -->
+
+    <actuator>
+        <position name="j1_act"     kp="10000.0" kv="200" inheritrange="0.99" joint="j1"/>
+        <position name="j2_act"     kp="100.0" kv="10" inheritrange="0.99" joint="j2"/>
+        <position name="j3_act"     kp="1500.0" kv="100" inheritrange="0.99" joint="j3"/>
+        <position name="j4_act"     kp="100.0" kv="20" inheritrange="0.99" joint="j4"/>
+        <position name="j5_act"     kp="100.0" kv="10" inheritrange="0.99" joint="j5"/>
+        <position name="flange_act" kp="100.0" kv="0" inheritrange="0.99" joint="flange"/>
+        <motor ctrllimited="true" ctrlrange="-80.0 80.0" joint="j1" name="torq_j1"/>
+        <motor ctrllimited="true" ctrlrange="-80.0 80.0" joint="j2" name="torq_j2"/>
+        <motor ctrllimited="true" ctrlrange="-80.0 80.0" joint="j3" name="torq_j3"/>
+        <motor ctrllimited="true" ctrlrange="-80.0 80.0" joint="j4" name="torq_j4"/>
+        <motor ctrllimited="true" ctrlrange="-80.0 80.0" joint="j5" name="torq_j5"/>
+        <motor ctrllimited="true" ctrlrange="-12.0 12.0" joint="flange" name="torq_flange"/>
+    </actuator>
+
+    <compiler angle="radian" />
+    <size njmax="500" nconmax="100" />
+    <asset>
+        <mesh name="BASE_mesh" file="meshes/BASE_mesh.stl" />
+        <mesh name="J1_mesh" file="meshes/J1_mesh.stl" />
+        <mesh name="J2_mesh" file="meshes/J2_mesh.stl" />
+        <mesh name="J3_mesh" file="meshes/J3_mesh.stl" />
+        <mesh name="J4_mesh" file="meshes/J4_mesh.stl" />
+        <mesh name="J5_mesh" file="meshes/J5_mesh.stl" />
+        <mesh name="Flange_mesh" file="meshes/Flange_mesh.stl" />
+    </asset>
+    <worldbody>
+        <geom type="mesh" mesh="BASE_mesh" />
+        <body name="J1" pos="0 0 0.182">
+            <inertial pos="0.013885 -0.005997 0.043991" quat="0.707107 0 0 0.707107" mass="4.327" diaginertia="0.032502 0.025492 0.01779" />
+            <joint name="j1" pos="0 0 0" axis="0 0 1" limited="true" range="-2.96706 2.96706" ref="0" />
+            <geom pos="0 0 0.182" type="mesh" mesh="J1_mesh" />
+            <body name="J2" pos="0 0 0.163">
+                <inertial pos="0.015837 -0.073696 0.010087" quat="0.5 0.5 -0.5 0.5" mass="9.475" diaginertia="0.112871 0.108024 0.025579" />
+                <joint name="j2" pos="0 0 0" axis="0 1 0" limited="true" range="-2.0944 2.0944" ref="0" />
+                <geom pos="0 0 0.163" type="mesh" mesh="J2_mesh" />
+                <body name="J3" pos="0 0 0.305">
+                    <inertial pos="0.011544 -0.057408 0.006203" quat="0.5 0.5 -0.5 0.5" mass="4.097" diaginertia="0.016882 0.015999 0.00638" />
+                    <joint name="j3" pos="0 0 0" axis="0 1 0" limited="true" range="-2.18166 2.70526" ref="0" />
+                    <geom pos="0 0 0.305" type="mesh" mesh="J3_mesh" />
+                    <body name="J4" pos="-0.01 0 0.165">
+                        <inertial pos="0.003998 -0.004975 0.052919" quat="0.707107 0 0 0.707107" mass="1.779" diaginertia="0.005266 0.005106 0.002621" />
+                        <joint name="j4" pos="0 0 0" axis="0 0 1" limited="true" range="-4.71239 4.71239" ref="0" />
+                        <geom pos="-0.01 0 0.165" type="mesh" mesh="J4_mesh" />
+                        <body name="J5" pos="0 0 0.135">
+                            <inertial pos="0.011902 -0.004739 0.010398" quat="0.5 0.5 0.5 0.5" mass="1.211" diaginertia="0.001629 0.001615 0.001093" />
+                            <joint name="j5" pos="0 0 0" axis="0 1 0" limited="true" range="-2.0944 2.0944" ref="0" />
+                            <geom pos="0 0 0.135" type="mesh" mesh="J5_mesh" />
+                            <body name="Flange" pos="0 0 0.07">
+                                <inertial pos="-0.000401015 0.0770342 0.0962886" quat="0.486311 0.507364 0.4441 0.555751" mass="4.154" diaginertia="0.0349016 0.0227238 0.0216365" />
+                                <joint name="flange" pos="0 0 0" axis="0 0 1" limited="true" range="-6.28319 6.28319" ref="0" />
+                                <geom pos="0 0 0.07" type="mesh" mesh="Flange_mesh" />
+                                <body name="eef_body" pos="0 0 0.055">
+                                    <site name="wireholderbase" pos="0 0 -0.055" type="cylinder" size="0.025 0.005" rgba="0.5 0.5 0.5 1"/>
+                                    <site name="wireholder1" pos="0.002875 0 -0.0275" type="box" size="0.002125 0.01425 0.0275" rgba="0.5 0.5 0.5 1"/>
+                                    <site name="wireholder2" pos="-0.002875 0 -0.0275" type="box" size="0.002125 0.01425 0.0275" rgba="0.5 0.5 0.5 1"/>
+                                    <site name="eef_site" pos="0 0 0." size="0.01 0.01 0.01" rgba="1 0 0 0.3" type="sphere" group="1"/>
+                                </body>
+                            </body>
+                        </body>
+                    </body>
+                </body>
+            </body>
+        </body>
+    </worldbody>
+</mujoco>
