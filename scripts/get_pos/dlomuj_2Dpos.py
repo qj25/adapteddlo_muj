@@ -122,6 +122,10 @@ else:
     seg_len = total_imglen/r_pieces
     newsplit_lines = split_lines(newsplit_lines,seg_len,0.0)
     newsplit_lines_real = newsplit_lines * wire_img2real_dist
+    # # for updating the current pickle
+    # pickle_data = [newsplit_lines_real,[newsplit_lines,start_pt]]
+    # with open(realdata_picklename, 'wb') as f:
+    #     pickle.dump(pickle_data,f)
 
 nslines_int = (newsplit_lines+start_pt).astype('int')
 # show again to test
