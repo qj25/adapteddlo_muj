@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 
 from adapteddlo_muj.envs.realgrav_valid_test import TestRopeEnv
 from adapteddlo_muj.utils.argparse_utils import r2spi_parse
+from adapteddlo_muj.utils.optimize_utils import golden_section_search, midpoint_rootfind, mbi_stiff
 
 """
 1. do real twist mbi w grav 
@@ -62,18 +63,20 @@ args = parser.parse_args()
 stest_type = args.stiff
 wire_color = args.wirecolor
 test_type_g = args.testtype
-do_render_g = args.render
+do_render_g = bool(args.render)
 new_start_g = bool(args.newstart)
 lfp_g = bool(args.loadresults)
 
 grav_on = True
 
 # adjust these
-stiff_scale_list = np.linspace(0.3e-2,1.3e-2,11)
+stiff_lim = np.array([0.034,0.035])
+b_a_lim = np.array([0.0,3.0])
+# stiff_scale_list = np.linspace(0.3e-2,1.3e-2,11)
 # stiff_scale_list = np.linspace(1.85e-2,1.95e-2,11)
 # stiff_scale_list = np.linspace(0.247,0.257,11)
 # bar_glob = np.array([1.0,1.1]) # b_a_ratio_global adjust beta_bar here to get appropriate ratio
-bar_glob = np.array([0.80,0.90]) # b_a_ratio_global adjust beta_bar here to get appropriate ratio
+# bar_glob = np.array([0.80,0.90]) # b_a_ratio_global adjust beta_bar here to get appropriate ratio
 # NOTE: larger beta --> smaller critical twist
 
 # if test_type_g == 'mbi':
@@ -81,6 +84,12 @@ bar_glob = np.array([0.80,0.90]) # b_a_ratio_global adjust beta_bar here to get 
 
 
 #======================| End Settings |======================
+stiff_picklename = wire_color + '_' + stest_type + '_stiff.pickle'
+stiff_picklename = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    "adapteddlo_muj/data/dlo_muj_real/stiff_vals/" + stiff_picklename
+)
+
 model_type2id = dict(
     adapt=0,
     xfrc=1,
@@ -89,33 +98,42 @@ model_type2id = dict(
 # alpha_glob_arr 
 # -- rows=model_type(adapt,xfrc,native)
 # -- columns=wire_type(white,black,red)
-alpha_glob_arr = np.array([
-    [5.644018525809911e-05, 0.0009997975674291843, 0.00063696780505569],
-    [5.644018525809911e-05, 0.0009997975674291843, 0.00063696780505569],
-    [7.256595247469885e-05, 0.0010643006362955833, 0.0006732507812930395],
-])
-b_a_glob_arr = np.array([
-    [1.05,1.10,1.89],
-    [1.05,1.10,1.89],
-    [0.85,1.05,1.80],
-])
+# alpha_glob_arr = np.array([
+#     [5.644018525809911e-05, 0.0009997975674291843, 0.00063696780505569],
+#     [5.644018525809911e-05, 0.0009997975674291843, 0.00063696780505569],
+#     [7.256595247469885e-05, 0.0010643006362955833, 0.0006732507812930395],
+# ])
+# b_a_glob_arr = np.array([
+    # [1.05,1.10,1.89],
+    # [1.05,1.10,1.89],
+    # [0.85,1.05,1.80],
+# ])
 
+if test_type_g == 'twisting':
+    with open(stiff_picklename, 'rb') as f:
+        stiff_pickle = pickle.load(f)
+    alpha_glob, b_a_glob = stiff_pickle
+    if lfp_g:
+        print(f"alpha = {alpha_glob}")
+        print(f"beta = {alpha_glob*b_a_glob}")
+        print(f"b/a = {b_a_glob}")
+        input()
 rope_len = 1.5
 deg2rad = np.pi/180.0
 if wire_color == 'white':
     rgba_vals = np.concatenate((np.array([300,300,300])/300,[1]))
     massperlen = 0.087/5.0
-    alpha_glob = alpha_glob_arr[model_type2id[stest_type],0]
-    ord_glob = 1160.0    # input critical twist here from real experiments
+    # alpha_glob = alpha_glob_arr[model_type2id[stest_type],0]
+    ord_glob = 980.0    # input critical twist here from real experiments
 elif wire_color == 'black':
     rgba_vals = np.concatenate((np.array([0,0,0])/300,[1]))
     massperlen = 0.081/2.98
-    alpha_glob = alpha_glob_arr[model_type2id[stest_type],1]
+    # alpha_glob = alpha_glob_arr[model_type2id[stest_type],1]
     ord_glob = 640.0    # input critical twist here from real experiments
 elif wire_color == 'red':
     rgba_vals = np.concatenate((np.array([300,0,0])/300,[1]))
     massperlen = 0.043/2.0
-    alpha_glob = alpha_glob_arr[model_type2id[stest_type],2]
+    # alpha_glob = alpha_glob_arr[model_type2id[stest_type],2]
     ord_glob = 450.0    # input critical twist here from real experiments
 
 if grav_on:
@@ -324,42 +342,63 @@ def alter_simropepos(pos_arr):
 def alter_simropepos2(pos_arr):
     return pos_arr[1:-1].copy()
 
-if test_type_g == 'twisting':    
-    mbi_test(new_start=new_start_g, load_from_pickle=lfp_g, do_render=do_render_g)
+if test_type_g == 'twisting':
+    mbi_stiff2 = mbi_stiff(
+        stest_type=stest_type,
+        rgba_vals=rgba_vals,
+        massperlen=massperlen,
+        overall_rot=0,
+        r_len=rope_len,
+        do_render=do_render_g,
+        new_start=new_start_g
+    )
+    mbi_stiff2.alpha_bar = alpha_glob
+    mbi_stiff2.overall_rot = ord_glob * deg2rad
+    best_b_a_val = midpoint_rootfind(
+        mbi_stiff2.opt_func2,
+        b_a_lim[0],
+        b_a_lim[1],
+        tol=1e-2
+    )
+    print("Beta/Alpha Found!")
+    print(f"b/a = {best_b_a_val}")
+    stiff_pickle = [alpha_glob,best_b_a_val]
+    with open(stiff_picklename, 'wb') as f:
+        pickle.dump(stiff_pickle,f)
 if test_type_g == 'bending':
     # load pickle of pos
     realdata_picklename = wire_color + '0_data.pickle'
     realdata_picklename = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-        "data/der_muj_real/" + realdata_picklename
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        "adapteddlo_muj/data/dlo_muj_real/" + realdata_picklename
     )
+    
     with open(realdata_picklename, 'rb') as f:
         real_pos, _ = pickle.load(f)
 
-
-    min_diff = 999.
-    for i in range(len(stiff_scale_list)):
-        sim_pos = mbi_indivtest2(
-            r_len=rope_len,
-            alpha_val=1.0*stiff_scale_list[i]/(2*np.pi)**3,
-            beta_val=1.0*stiff_scale_list[i]/(2*np.pi)**3,    # beta has stiffness to discourage twisting
-            new_start=new_start_g,
-            do_render=do_render_g
-        )
-        sim_pos = sim_pos[:,[0,2]]
-        sim_pos = alter_simropepos(sim_pos)
-        
-        diff_pos = np.sum(np.linalg.norm(sim_pos-real_pos,axis=1))/len(sim_pos)
-        print("|===|NEW DATA |================================================")
-        print(f"realpos = {real_pos}")
-        print(f"simpos = {sim_pos}")
-        print(f"stiff_scale = {stiff_scale_list[i]}")
-        print(f"diff_pos = {diff_pos}")
-        if diff_pos < min_diff:
-            min_diff = diff_pos
-        else:
-            print("Minimum Found!")
-            print(f"final alpha = {1.0*stiff_scale_list[i-1]/(2*np.pi)**3}")
-            print(f"stiff_scale = {stiff_scale_list[i-1]}")
-            print(f"id = {i-1}")
-            break
+    mbi_stiff1 = mbi_stiff(
+        stest_type=stest_type,
+        rgba_vals=rgba_vals,
+        real_pos=real_pos,
+        massperlen=massperlen,
+        overall_rot=0,
+        r_len=rope_len,
+        do_render=do_render_g,
+        new_start=new_start_g
+    )
+    best_stiffval = golden_section_search(
+        mbi_stiff1.opt_func,
+        stiff_lim[0],
+        stiff_lim[1],
+        tol=1e-4
+    )
+    min_diff = mbi_stiff1.opt_func(best_stiffval)
+    alpha_stiff = best_stiffval/(2*np.pi)**3
+    print("Minimum Found!")
+    print(f"final alpha = {alpha_stiff}")
+    print(f"stiff_scale = {best_stiffval}")
+    print(f"min_diff = {min_diff}")
+    
+    stiff_pickle = [alpha_stiff,0]
+    with open(stiff_picklename, 'wb') as f:
+        pickle.dump(stiff_pickle,f)

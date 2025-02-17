@@ -369,6 +369,8 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
 
     def step(self, action=np.zeros(6)):
         # t1 = time()
+        # print(f"self.alpha_bar = {self.alpha_bar}")
+        # print(f"self.beta_bar = {self.beta_bar}")
         if self.storqtype == 'xfrc':
             self.dlo_sim.update_force()
         elif self.storqtype == 'adapt':
@@ -655,6 +657,7 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
         ]
         e_pos = end_pos - start_pos
         e_pos -= holder_offset
+        e_pos += self.r_len/self.r_pieces
         step_len = 5e-3
         n_steps = e_pos[0] / step_len
         if n_steps < 0:
@@ -792,23 +795,23 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
                 if e_outofplane > max_e:
                     max_e = e_outofplane
                 if max_e > e_tol or self.data.ncon > 0:
-                    print(f"e_tol = {e_tol}")
-                    print(f"e_outofplane = {e_outofplane}")
-                    print(f"max_e = {max_e}")
+                    # print(f"e_tol = {e_tol}")
+                    # print(f"e_outofplane = {e_outofplane}")
+                    # print(f"max_e = {max_e}")
 
                     self.circle_oop = True
-                    print(f'b_a = {self.beta_bar/self.alpha_bar} ==================================')
-                    print(f'out of plane theta_crit = {self.overall_rot} ==================================')
+                    # print(f'b_a = {self.beta_bar/self.alpha_bar} ==================================')
+                    # print(f'out of plane theta_crit = {self.overall_rot} ==================================')
                     return e_outofplane
                 # print(f'e_outofplane = {e_outofplane}')
-            print(f"e_tol = {e_tol}")
-            print(f"e_outofplane = {e_outofplane}")
-            print(f"max_e = {max_e}")
+            # print(f"e_tol = {e_tol}")
+            # print(f"e_outofplane = {e_outofplane}")
+            # print(f"max_e = {max_e}")
             # if e_outofplane > e_tol or max_e > 5:
             if max_e > e_tol:
                 self.circle_oop = True
-                print(f'b_a = {self.beta_bar/self.alpha_bar} ==================================')
-                print(f'out of plane theta_crit = {self.overall_rot} ==================================')
+                # print(f'b_a = {self.beta_bar/self.alpha_bar} ==================================')
+                # print(f'out of plane theta_crit = {self.overall_rot} ==================================')
                 # print(f'e_outofplane = {e_outofplane}')
             if not self.stable_bool:
                 self.circle_oop = True
