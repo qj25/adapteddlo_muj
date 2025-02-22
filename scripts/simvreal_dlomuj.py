@@ -9,6 +9,7 @@ parser = svr_parse()
 args = parser.parse_args()
 
 wc = args.wirecolor
+mi = args.moveid
 
 test_types = ['adapt','native']
 wire_colors = ['black','red','white']
@@ -43,7 +44,7 @@ for i in range(n_testtypes):
             )
             with open(simdata_picklename, 'rb') as f:
                 pickle_simdata = pickle.load(f)
-                print('sim test data loaded!')
+                # print('sim test data loaded!')
             [init_qpos, z_rot, node_pos_arr_indiv, joint_pos_arr] = pickle_simdata
             if loop_new:
                 node_pos_arr = np.zeros((
@@ -101,9 +102,9 @@ for i in range(n_testtypes):
 
             error_arr[i,j,pos_id] = np.sum(np.linalg.norm(
                 node_pos_arr[i,j,pos_id]-real_pos_arr[j,pos_id],axis=1
-            ))/n_points
+            ))/n_points/r_len
 
-            print(f"pos{pos_id} error = {error_arr[i,j,pos_id]}")
+            # print(f"pos{pos_id} error = {error_arr[i,j,pos_id]}")
 
             # plot3d(
             #     node_pos_arr[i,j,pos_id],
@@ -117,12 +118,15 @@ for j in range(n_wirecolors):
             continue
     print(f"wirecolor: {wire_colors[j]}")
     for pos_id in range(n_pos):
+        if mi is not None:
+            if pos_id != mi:
+                continue
         # if pos_id in posid_excl: continue
         err1 = np.sum(np.linalg.norm(
             node_pos_arr[0,j,pos_id]-node_pos_arr[1,j,pos_id],axis=1
         ))/n_points
-        print(real_pos_arr[j,pos_id])
-        print(f"pos{pos_id} error = {err1}")
+        # print(real_pos_arr[j,pos_id])
+        # print(f"pos{pos_id} error = {err1}")
         plot3d(real_pos_arr[j,pos_id],[node_pos_arr[0,j,pos_id],node_pos_arr[1,j,pos_id]])
 
 # for j in range(n_wirecolors):

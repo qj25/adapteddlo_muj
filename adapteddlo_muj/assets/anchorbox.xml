@@ -1,7 +1,7 @@
 <mujoco model="anchor-box">
   <worldbody>
-    <body name="eef_body" pos="-0.78 0.0 0.5" quat="1.0 0.0 0.0 0.0">
-      <geom name="eef_geom" type="box" mass="1" size="0.01 0.01 0.02" contype="0" conaffinity="0" rgba=".8 .2 .1 0.0" friction="1 0.005 0.0001"/>
+    <body name="eef_body" pos="0.377 0.0 0.3" quat="1.0 0.0 0.0 0.0">
+      <geom name="eef_geom" type="box" mass="1" size="0.006 0.006 0.012" contype="0" conaffinity="0" rgba=".8 .2 .1 0.3" friction="1 0.005 0.0001"/>
     </body>  </worldbody>
   <equality>
      <weld body1='B_last' body2='eef_body' solref='0.001 1'/>

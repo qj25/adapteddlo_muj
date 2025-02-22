@@ -958,8 +958,29 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
         return circ_norm
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~|| End Validation Stuff ||~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-# TestEnv()
+    def print_contacts(self):
+        # Check if there are contacts in the simulation
+        contact_count = self.data.ncon
+        if contact_count == 0:
+            print("No contacts found.")
+            return
+        
+        print(f"Number of contacts: {contact_count}")
+        
+        # Loop over all contacts and print details
+        for i in range(contact_count):
+            contact = self.data.contact[i]
+            
+            # Extracting contact information
+            body1 = contact.geom1
+            body2 = contact.geom2
+            position = contact.pos
+            body1 = mjc2.obj_id2name(self.model, 'geom', body1)
+            body2 = mjc2.obj_id2name(self.model, 'geom', body2)
+            print(f"\nContact {i+1}:")
+            print(f"  Body 1: {body1}, Body 2: {body2}")
+            print(f"  Contact Position: {position}")
+    # TestEnv()
 
 """
 [[ 1.80432751e-03 -9.99979560e-01 -6.13380804e-03  4.92719293e-01]

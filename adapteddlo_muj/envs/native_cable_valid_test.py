@@ -741,7 +741,7 @@ class TestCableEnv(gym.Env, utils.EzPickle):
             norm_force = self.get_rope_normal()
             # norm_force /= 5.0
             # self.apply_force_t(t=0.3,force_dir=np.array([0., 0., 1.]))
-            self.apply_force_t(t=0.8,force_dir=norm_force)
+            self.apply_force_t(t=1.2,force_dir=norm_force)
 
             # self.hold_pos(100.)
             # create a for loop that checks PCA error at each iter

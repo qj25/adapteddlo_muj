@@ -12,9 +12,14 @@ from adapteddlo_muj.envs.plain_rope_valid_test import TestPlainRopeEnv
 from adapteddlo_muj.envs.our_xfrc_rope_valid_test import TestRopeXfrcEnv
 from adapteddlo_muj.envs.our_rope_valid_test import TestRopeEnv
 from adapteddlo_muj.envs.native_cable_valid_test import TestCableEnv
+from adapteddlo_muj.utils.argparse_utils import spdt_parse
+from adapteddlo_muj.utils.plotter import plot_computetime
 
 #======================| Settings |======================
-new_start = True
+parser = spdt_parse()
+args = parser.parse_args()
+
+new_start = bool(args.newstart)
 
 test_type = 'speedtest2'
 
@@ -122,12 +127,23 @@ else:
         r_pieces_list, t_list = pickle.load(f)
     print("Pickle loaded!")
 
-    plt.figure("Speed Tests")
-    plt.xlabel("r_pieces")
-    plt.ylabel('time ratio (real/sim)')
-    for i in range(len(t_list[0])):
-        plt.plot(r_pieces_list, t_list[:,i])
-    plt.legend(['no stiffness','native','our'])
-    plt.grid(True)
-    plt.tight_layout()
-    plt.show()
+    plot_computetime(
+        r_pieces_list, 
+        [
+            t_list[:,0],
+            t_list[:,1],
+            t_list[:,2],
+            t_list[:,3],
+        ]
+    )
+
+    # plt.figure("Speed Tests")
+    # plt.xlabel("r_pieces")
+    # plt.ylabel('time ratio (real/sim)')
+    # input(len(t_list[0]))
+    # for i in range(len(t_list[0])):
+    #     plt.plot(r_pieces_list, t_list[:,i])
+    # plt.legend(['plain','native','direct','adapt'])
+    # plt.grid(True)
+    # plt.tight_layout()
+    # plt.show()

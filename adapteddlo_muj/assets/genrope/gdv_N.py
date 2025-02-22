@@ -67,6 +67,7 @@ class GenKin_N:
         with open(self.obj_path, "w+") as f:
             self._write_init(f)
         self._unpackcompositexml()
+        self._write_blast2()
         self._write_anchorbox()
         self._write_weldweight()
 
@@ -129,21 +130,23 @@ class GenKin_N:
         ))
         # geom 
         if self.mass_link is None:
-            f.write(self.curr_tab*self.t + '<geom type="{}" size="{}" rgba="{}" condim="1" conaffinity="{}" contype="{}"/>\n'.format(
+            f.write(self.curr_tab*self.t + '<geom type="{}" size="{}" rgba="{}" condim="1" conaffinity="{}" contype="{}" solref="{}"/>\n'.format(
                 self.rope_type,
                 self.cap_size,
                 self.rgba_linkgeom,
                 self.con_data[0],
                 self.con_data[1],
+                self.solref_val
             ))
         else:
-            f.write(self.curr_tab*self.t + '<geom type="{}" size="{}" rgba="{}" condim="1" conaffinity="{}" contype="{}" mass="{}"/>\n'.format(
+            f.write(self.curr_tab*self.t + '<geom type="{}" size="{}" rgba="{}" condim="1" conaffinity="{}" contype="{}" mass="{}" solref="{}"/>\n'.format(
                 self.rope_type,
                 self.cap_size,
                 self.rgba_linkgeom,
                 self.con_data[0],
                 self.con_data[1],
-                self.mass_link
+                self.mass_link,
+                self.solref_val
             ))
         self.curr_tab -= 1
         f.write(self.curr_tab*self.t + "</composite>\n")
@@ -190,6 +193,10 @@ class GenKin_N:
                 os.path.dirname(os.path.dirname(__file__)),
                 "nativerope1dkin.xml.xml"
             )
+        self.obj_path0 = os.path.join(
+            os.path.dirname(self.obj_path),
+            "blast2.xml"
+        )
         self.obj_path2 = os.path.join(
             os.path.dirname(self.obj_path),
             "anchorbox.xml"
@@ -205,6 +212,27 @@ class GenKin_N:
         self.cap_size = self.r_thickness / 2
         
         self.curr_tab = 0
+
+    def _write_blast2(self):
+        with open(self.obj_path0, "w+") as f:
+            f.write('<mujoco model="blast2">\n')
+            f.write(self.t + "<worldbody>\n")
+            f.write(2*self.t + f'<body name="B_last2" pos="{self.r_len / self.r_pieces} 0 0"/>\n')
+            # f.write(2*self.t + '</body>\n')
+            f.write(self.t + '</worldbody>\n')
+            f.write('</mujoco>')
+        blast2 = XMLWrapper(self.obj_path0)
+        self.xml = XMLWrapper(self.obj_path)
+        self.xml.merge(
+            blast2,
+            element_name="body",
+            attrib_name="name",
+            attrib_value="B_last",
+            action="append",
+        )
+        xml_string = self.xml.get_xml_string()
+        model = mujoco.MjModel.from_xml_string(xml_string)
+        mujoco.mj_saveLastXML(self.obj_path,model)
 
     def _write_anchorbox(self):
         self.curr_tab = 0
@@ -294,43 +322,45 @@ class GenKin_N:
         f.write(self.t + '</equality>\n')
 
     def _write_exclusion(self, f):
-        f.write(self.curr_tab*self.t + '<contact>\n')
-        self.curr_tab += 1
+        curr_tab = 1
+        f.write(curr_tab*self.t + '<contact>\n')
+        curr_tab += 1
         f.write(
-            self.curr_tab*self.t
+            curr_tab*self.t
             + '<exclude body1="B_first" body2="B_1"/>\n'
         )
         f.write(
-            self.curr_tab*self.t
+            curr_tab*self.t
             + '<exclude body1="B_first" body2="B_last"/>\n'
         )
         f.write(
-            self.curr_tab*self.t
+            curr_tab*self.t
             + '<exclude body1="B_1" body2="B_last"/>\n'
         )
         f.write(
-            self.curr_tab*self.t
+            curr_tab*self.t
             + '<exclude body1="B_first" body2="B_{}"/>\n'.format(
                 self.r_pieces-2
             )
         )
         f.write(
-            self.curr_tab*self.t
+            curr_tab*self.t
             + '<exclude body1="eef_body" body2="B_first"/>\n'.format(
                 self.r_pieces
             )
         )
         f.write(
-            self.curr_tab*self.t
+            curr_tab*self.t
             + '<exclude body1="eef_body" body2="B_last"/>\n'.format(
                 self.r_pieces
             )
         )
         f.write(
-            self.curr_tab*self.t
+            curr_tab*self.t
             + '<exclude body1="eef_body" body2="B_{}"/>\n'.format(
                 self.r_pieces-2
             )
         )
-        self.curr_tab -= 1
-        f.write(self.curr_tab*self.t + '</contact>\n')
+        curr_tab -= 1
+        f.write(curr_tab*self.t + '</contact>\n')
+        

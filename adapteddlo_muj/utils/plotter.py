@@ -1,6 +1,13 @@
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+
+plt.rcParams.update({'pdf.fonttype': 42})   # to prevent type 3 fonts in pdflatex
+img_path = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    "data/figs/"
+)
 
 def plot3d(nodes,nodes2=None):
     # Create a 3D plot
@@ -46,6 +53,7 @@ def plot3d(nodes,nodes2=None):
     ax.set_zlim(mid_z - max_range / 2, mid_z + max_range / 2)
     
     # Show the plot
+    plt.tight_layout()
     plt.show()
 
 def plot_bars(error):
@@ -55,7 +63,7 @@ def plot_bars(error):
     rope_positions = [1,2,3,4]
     wire_colors = ['grey','black','red']
     model_types = ['adapt', 'native']
-    model_edgecolors = ['lightgreen', 'lightpink']
+    # model_edgecolors = ['lightgreen', 'lightpink']
     model_hatch = [None, '\\\\\\']
 
     bar_adapt = []
@@ -82,12 +90,12 @@ def plot_bars(error):
 
     for i in range(len(model_types)):
         t1 = ax.bar(index + (2*i * bar_width), np.zeros_like(error[0,i,]), bar_width-0.04,
-            label=f'{model_types[i]}', color='white', capsize=5, alpha=0.7, hatch=model_hatch[i])
+            label=f'{model_types[i]}', color='white', capsize=5, alpha=0.7, hatch=model_hatch[i], zorder = 10)
         t1[0].set_edgecolor('black')
         # t1[0].set_linewidth(5)
 
-    ax.set_xlabel('Robot Pose')
-    ax.set_ylabel('Position Difference (Simulated - Real)')
+    ax.set_xlabel('Robot Pose',fontsize=14)
+    ax.set_ylabel('Normalized Position Error',fontsize=14)
     # ax.set_title('Comparison of Simulation Models and Real-world Data with Error Bars')
     ax.set_xticks(index + bar_width)
     ax.set_xticklabels(rope_positions)
@@ -95,9 +103,91 @@ def plot_bars(error):
     # Remove the top and right borders (spines)
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
+
+    ax.set_axisbelow(True)
+    ax.yaxis.grid(color='gray', linestyle='dashed')
+    plt.tick_params(axis='both', which='major', labelsize=14)
     
     # Position the legend at the center top
-    ax.legend(loc='upper center', bbox_to_anchor=(0.5, 1.05), ncol=2)
+    ax.legend(loc='upper center', bbox_to_anchor=(0.5, 1.05), ncol=2, fontsize=14)
+    plt.tight_layout()
+    plt.savefig(img_path + "valid_bars.pdf",bbox_inches='tight')
+    plt.show()
+
+def plot_computetime(pieces_list, data_list):
+    plt.style.use('seaborn-v0_8')
+    # Sample data for 4 different results
+    x = np.array(pieces_list)  # Number of discrete pieces simulated (from 1 to 100)
+    y = np.array(data_list)
+
+    # compute percentage difference
+    y_percent = (y[:] - y[0]) / y[0] * 100.0
+
+    # Create the plot
+    fig, twin1 = plt.subplots(figsize=(10, 6))
+    fig.subplots_adjust(right=0.75)
+    ax = twin1.twinx()
+    twin1.set_facecolor('white')
+    twin1.grid(color='#DDDDDD', linewidth=0.8, zorder=0)
+    ax.grid(False)
+    ax.yaxis.tick_left()
+    ax.yaxis.set_label_position("left")
+    twin1.yaxis.tick_right()
+    twin1.yaxis.set_label_position("right")
+
+    ax.spines['top'].set_visible(False)
+    twin1.spines['top'].set_visible(False)
+    for spine_str in [
+        'bottom',
+        'left',
+        'right'    
+    ]:
+        ax.spines[spine_str].set_linewidth(1)
+        ax.spines[spine_str].set_edgecolor('k')
+
+    # Plot each line with a label
+    ax.plot(x, y[0], label='Plain', alpha=0.7, color='k', linewidth=2,zorder=3)
+    ax.plot(x, y[3], label='Adapted', alpha=0.7, linewidth=2)
+    ax.plot(x, y[2], label='Direct', alpha=0.7, linewidth=2)
+    ax.plot(x, y[1], label='Native', alpha=0.7, linewidth=2)
+    twin1.plot(0,0, label='Raw Time', alpha=1.0, color='k', linewidth=2)
+    twin1.plot(0,0, label='Percent Increase', alpha=1.0, color='k', linewidth=2, linestyle='--')
+    # twin1.plot(x, y_percent[0], alpha=0.7, color='k', linewidth=2,linestyle='--')
+    twin1.plot(x, y_percent[3], alpha=0.7, linewidth=2,linestyle='--')
+    twin1.plot(x, y_percent[2], alpha=0.7, linewidth=2,linestyle='--')
+    twin1.plot(x, y_percent[1], alpha=0.7, linewidth=2,linestyle='--')
+
+    ax.set_ylim(0, 50)
+    ax.set_xlim(40, 180)
+    twin1.set_ylim(0, 15)
+    ax.set_yticks(np.linspace(0., 50., 6))
+    ax.set_xticks(x)
+    twin1.set_yticks(np.linspace(0., 15., 6))
+    tkw = dict(size=4, width=1.5)
+    ax.tick_params(axis='y', **tkw)
+    twin1.tick_params(axis='y', **tkw)
+
+    # Add labels and title
+    ax.set_ylabel('Computation Time to Simulate 1s (seconds)', fontsize=14)
+    twin1.set_xlabel('Number of Discrete Pieces', fontsize=14)
+    twin1.set_ylabel("Percentage Increase from Plain (dashed)", fontsize=14)
+    # plt.title('Speed test', fontsize=14)
+
+    # Add a legend
+    ax.legend(fontsize=14, loc='upper left', bbox_to_anchor=(0.21, 0.98),ncol=1)
+    twin1.legend(fontsize=14, loc='upper left', bbox_to_anchor=(0.39, 0.98),ncol=1)
+
+    # Grid for better readability
+    # plt.grid(True, which='both', linestyle='--', linewidth=0.5)
+    ax.tick_params(axis='both', which='major', labelsize=12)
+    twin1.tick_params(axis='both', which='major', labelsize=12)
+    # # Set x and y axis limits for better visualization
+    # plt.xlim([0, 100])
+    # plt.ylim([0, 120])
 
     plt.tight_layout()
+    # Save the plot if needed
+    plt.savefig(img_path + "compute_time.pdf",bbox_inches='tight')
+
+    # Show the plot
     plt.show()

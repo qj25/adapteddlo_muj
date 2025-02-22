@@ -221,7 +221,8 @@ class ValidRnR2Env(gym.Env, utils.EzPickle):
 
         # weld fix
         self.model.eq_data[0][3:6] = np.zeros(3)
-        self.model.eq_data[0][3] = -self.r_len/self.r_pieces
+        # self.model.eq_data[0][3] = -self.r_len/self.r_pieces
+        self.model.eq_data[0][3] = 0.0
         self.model.eq_data[0][6:10] = T.quat_multiply(
             self.model.eq_data[0][6:10],
             np.array([0.707, 0., 0.707, 0.])
@@ -238,17 +239,17 @@ class ValidRnR2Env(gym.Env, utils.EzPickle):
 
         self._get_observations()
 
-        # get weld relation
-        ropeend_id = mjc2.obj_name2id(self.model, "body", "B_last2")
-        eef_pos2 = self.data.xpos[ropeend_id]
-        eef_quat2 = np.array(
-            self.data.xquat[ropeend_id]
-        )
-        eef_id = mjc2.obj_name2id(self.model, "body", "eef_body")
-        eef_pos1 = self.data.xpos[eef_id]
-        eef_quat1 = np.array(
-            self.data.xquat[eef_id]
-        )
+        # # get weld relation
+        # ropeend_id = mjc2.obj_name2id(self.model, "body", "B_last2")
+        # eef_pos2 = self.data.xpos[ropeend_id]
+        # eef_quat2 = np.array(
+        #     self.data.xquat[ropeend_id]
+        # )
+        # eef_id = mjc2.obj_name2id(self.model, "body", "eef_body")
+        # eef_pos1 = self.data.xpos[eef_id]
+        # eef_quat1 = np.array(
+        #     self.data.xquat[eef_id]
+        # )
         # print(eef_pos2-eef_pos1)
         # print(eef_pos1)
         # print(eef_pos2)
@@ -479,6 +480,7 @@ class ValidRnR2Env(gym.Env, utils.EzPickle):
         return xml_string, robotarm
     
     def step(self, action=np.zeros(6)):
+        # self.viewer._paused = True
         self.grav_comp()
         # print(self.data.ncon)
         # print(f"contacts = {self._print_contacts()}")
@@ -490,13 +492,16 @@ class ValidRnR2Env(gym.Env, utils.EzPickle):
         elif self.rope_type == 'adapt':
             self.dlo_sim.update_torque()
 
+        # if self.env_steps==1000:
+        #     self.data.eq_active = True
+
         self.sim.step()
         self.sim.forward()
         self.cur_time += self.dt
 
-        if self.velreset:
-            if self.env_steps%100==0:
-                self.data.qvel = np.zeros_like(self.data.qvel)
+        # if self.velreset:
+        #     if self.env_steps%100==0:
+        #         self.data.qvel = np.zeros_like(self.data.qvel)
 
         if self.env_steps%1==0:
             if self.do_render:
