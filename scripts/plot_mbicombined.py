@@ -20,7 +20,7 @@ fig_dir = os.path.join(
     "adapteddlo_muj/data/figs/" + 'mbi_combined.pdf'
 )
 
-def mbi_plot(b_a, theta_crit):
+def mbi_plot(b_a, theta_crit, c='k'):
     b_a_base = b_a.copy()
     theta_crit_base = 2*np.pi*np.sqrt(3)/(b_a_base)
 
@@ -31,16 +31,19 @@ def mbi_plot(b_a, theta_crit):
 
     if not base_plotted:
         plt.plot(b_a_base, theta_crit_base, c='k', linewidth="2", alpha=0.5, zorder=5)
+    else:
+        next(ax._get_lines.prop_cycler) 
     plt.plot(b_a, theta_crit, alpha=0.7)
     
 
-lopbal_type_list = ['bal','xfrc','native']
-legend_type_list = ['adapted','direct','native']
+lopbal_type_list = ['adapt','native']
+legend_type_list = ['Adapted','Native']
+c_list = ['steelblue', 'sienna']
 
 fig = plt.figure("Michell's Buckling Instability", figsize=(6,4))
 ax = fig.add_subplot(111)
 ax.set_xlabel(r"$\beta/\alpha$")
-ax.set_ylabel(r'$\theta^n$')
+ax.set_ylabel(r'$\theta^n$ (rad)')
 legend_str = []
 legend_str.append('Analytical')
 
@@ -57,8 +60,8 @@ for i in range(len(lopbal_type_list)):
     idhalf_pickle = round(len(pickle_mbidata)/2)
     b_a = pickle_mbidata[:idhalf_pickle]
     theta_crit = pickle_mbidata[idhalf_pickle:]
-    mbi_plot(b_a=b_a, theta_crit=theta_crit)
-    legend_str.append(lopbal_type_list[i])
+    mbi_plot(b_a=b_a, theta_crit=theta_crit, c=c_list[i])
+    legend_str.append(legend_type_list[i])
     base_plotted = True
 
 ax.legend(legend_str)

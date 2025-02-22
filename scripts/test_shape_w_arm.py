@@ -54,6 +54,15 @@ move_id = args.moveid
 do_render = args.render
 # note: for red3native, must reset vel every 100 steps to ensure final pos reachable (due to robot control)
 
+if stest_types is None:
+    stest_types = ['adapt','native']
+else:
+    stest_types = [stest_types]
+if wire_colors is None:
+    wire_colors = ['black','red','white']
+else:
+    wire_colors = [wire_colors]
+
 n_testtypes = len(stest_types)
 n_wirecolors = len(wire_colors)
 r_len = 0.40
@@ -149,21 +158,41 @@ class manip_rope_seq:
     ):
         # self.env = gym.make("adapteddlo_muj:Test-v0")
         # self.env = FlingLRRLRandEnv()
+        stiff_picklename = wire_color + '_' + stest_type + '_stiff.pickle'
+        stiff_picklename = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            "adapteddlo_muj/data/dlo_muj_real/stiff_vals/" + stiff_picklename
+        )
+        with open(stiff_picklename, 'rb') as f:
+            stiff_pickle = pickle.load(f)
+        alpha_glob, b_a_glob = stiff_pickle
+
+        # alpha_glob = 0.001196450659614982
+        # b_a_glob = 1.45
+
+        # alpha_glob = 0.0012514302099516786
+        # b_a_glob = 1.39
+
+        beta_glob = b_a_glob * alpha_glob
+
+        print(f'alpha_glob = {alpha_glob}')
+        print(f'beta_glob = {beta_glob}')
+
         if wire_color == 'white':
             massperlen = 0.087/5.0
             rgba_vals = np.concatenate((np.array([300,300,300])/300,[1]))
-            alpha_glob = alpha_glob_arr[model_type2id[stest_type],0]
-            beta_glob = alpha_glob * b_a_glob_arr[model_type2id[stest_type],0]
+            # alpha_glob = alpha_glob_arr[model_type2id[stest_type],0]
+            # beta_glob = alpha_glob * b_a_glob_arr[model_type2id[stest_type],0]
         elif wire_color == 'black':
             rgba_vals = np.concatenate((np.array([0,0,0])/300,[0.1]))
-            massperlen = 0.081/2.98
-            alpha_glob = alpha_glob_arr[model_type2id[stest_type],1]
-            beta_glob = alpha_glob * b_a_glob_arr[model_type2id[stest_type],1]
+            massperlen = 0.079/2.98
+            # alpha_glob = alpha_glob_arr[model_type2id[stest_type],1]
+            # beta_glob = alpha_glob * b_a_glob_arr[model_type2id[stest_type],1]
         elif wire_color == 'red':
             rgba_vals = np.concatenate((np.array([300,0,0])/300,[1]))
             massperlen = 0.043/2.0
-            alpha_glob = alpha_glob_arr[model_type2id[stest_type],2]
-            beta_glob = alpha_glob * b_a_glob_arr[model_type2id[stest_type],2]
+            # alpha_glob = alpha_glob_arr[model_type2id[stest_type],2]
+            # beta_glob = alpha_glob * b_a_glob_arr[model_type2id[stest_type],2]
         self.env = ValidRnR2Env(
             alpha_bar=alpha_glob,
             beta_bar=beta_glob,
@@ -190,6 +219,7 @@ for i in range(n_testtypes):
                 velreset = True
             else:
                 velreset = False
+            
             print(f"Now computing: {wire_colors[j]}{i_move}_{stest_types[i]}")
             if stest_types[i] == 'native':
                 overall_rot = None
@@ -237,9 +267,10 @@ for i in range(n_testtypes):
                 env1.env.hold_pos(10.)
                 print("held_pos")
             
-            # env1.env.viewer._paused = True
+            if do_render:
+                env1.env.viewer._paused = True
+                env1.env.step()
             # env1.env.hold_pos(10.)
-            # env1.env.step()
 
             # env1.runabit()
             j_pos = env1.env._jd.copy()

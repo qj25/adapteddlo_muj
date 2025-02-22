@@ -10,6 +10,7 @@ parser = d2p_parse()
 args = parser.parse_args()
 wire_color = args.wirecolor
 new_ptselect = bool(args.newptselect)
+testid = args.testid
 
 # Global list to store points
 points = []
@@ -36,13 +37,15 @@ def showInMovedWindow(winname, img, x, y):
     cv2.imshow(winname,img)
 
 # load pickle of pos
-realdata_picklename = wire_color + '0_data.pickle'
+# realdata_picklename = wire_color + '0_data.pickle'
+realdata_picklename = wire_color + testid + '_data.pickle'
 realdata_picklename = os.path.join(
     os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
     "adapteddlo_muj/data/dlo_muj_real/" + realdata_picklename
 )
 # Load the image
 image_name = wire_color + '0.jpg'  # Replace with the path to your image
+# image_name = wire_color + testid + '.jpg'  # Replace with the path to your image
 image_path = os.path.join(
     os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
     'adapteddlo_muj/data/dlo_muj_real/' + image_name
@@ -100,7 +103,7 @@ if new_ptselect:
     # make start of rope the (0.0,0.0) point
     start_pt = points_array[0].copy()
     points_array -= start_pt
-    newsplit_lines = split_lines(points_array,seg_len)
+    newsplit_lines = split_lines(points_array,seg_len,0.0)
     newsplit_lines_real = newsplit_lines * wire_img2real_dist
 
     print("Check difference in img2real")

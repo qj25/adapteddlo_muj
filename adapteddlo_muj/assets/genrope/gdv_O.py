@@ -101,7 +101,7 @@ class GenKin_O:
         if self.obj_path is None:
             self.obj_path = os.path.join(
                 os.path.dirname(os.path.dirname(__file__)),
-                "derrope1dkin.xml"
+                "dlorope1dkin.xml"
             )
         self.obj_path2 = os.path.join(
             os.path.dirname(self.obj_path),

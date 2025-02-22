@@ -73,7 +73,7 @@ class TestRopeXfrcEnv(gym.Env, utils.EzPickle):
 
         if self.do_render:
             self.viewer = mujoco_viewer.MujocoViewer(self.model, self.data)
-            self.rend_rate = int(100)
+            self.rend_rate = int(10)
             # self.do_render=False
         else:
             self.viewer = None
@@ -573,6 +573,13 @@ class TestRopeXfrcEnv(gym.Env, utils.EzPickle):
         return s_ss, fphi, max_devi
 
     def start_lhbtest(self, new_start):
+        if self.do_render:
+            self.set_viewer_details(
+                5.7628,
+                -40.478,
+                -12.434,
+                np.array([-1.17009866, -1.37107526,  0.02327594])
+            )
         """
         For LHB:
             - low mass: 0.058 --> lower mass, more centered
@@ -726,6 +733,13 @@ class TestRopeXfrcEnv(gym.Env, utils.EzPickle):
         )
 
     def start_circletest(self, new_start):
+        if self.do_render:
+            self.set_viewer_details(
+                4.5076,
+                45.922,
+                -19.810,
+                np.array([-3.46078809, -0.26378238, 0.63761223])
+            )
         # Test for multiple rope types (vary alpha and beta bar)
         # alpha = 1.
         # r_len = 2*np.pi * self.r_pieces / (self.r_pieces-1)
@@ -760,7 +774,7 @@ class TestRopeXfrcEnv(gym.Env, utils.EzPickle):
             # # get and apply force normal to the circle
             norm_force = self.get_rope_normal()
             # self.apply_force_t(t=0.3,force_dir=np.array([0., 0., 1.]))
-            self.apply_force_t(t=0.8,force_dir=norm_force)
+            self.apply_force_t(t=1.2,force_dir=norm_force)
 
             # self.hold_pos(100.)
             # create a for loop that checks PCA error at each iter
@@ -885,6 +899,21 @@ class TestRopeXfrcEnv(gym.Env, utils.EzPickle):
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~|| Utils ||~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+    def print_viewer_details(self):
+        print(f"distance = {self.viewer.cam.distance}")
+        print(f"azimuth = {self.viewer.cam.azimuth}")
+        print(f"elevation = {self.viewer.cam.elevation}")
+        print(f"lookat = {self.viewer.cam.lookat}")
+
+    def set_viewer_details(
+        self,
+        dist, azi, elev, lookat      
+    ):
+        self.viewer.cam.distance = dist
+        self.viewer.cam.azimuth = azi
+        self.viewer.cam.elevation = elev
+        self.viewer.cam.lookat = lookat
+
     def reset_vel(self):
         self.data.qvel[:] = np.zeros(len(self.data.qvel[:]))
         self.sim.forward()
@@ -923,7 +952,7 @@ class TestRopeXfrcEnv(gym.Env, utils.EzPickle):
         force_dir=np.array([0., 0., 0.01]),
     ):
         if body_name is None:
-            body_name = "B_{}".format(int(self.r_pieces/2)+1)
+            body_name = "Bmain_{}".format(int(self.r_pieces/2)+1)
         # print(self.sim.data.xfrc_applied[i])
         body_id = mjc2.obj_name2id(self.model,"body",body_name)
         # print(self.model.body_pos[body_id])
