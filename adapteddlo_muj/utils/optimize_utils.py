@@ -88,7 +88,7 @@ class mbi_stiff:
         self.alpha_bar = stiff/(2*np.pi)**3
         self.beta_bar = stiff/(2*np.pi)**3
 
-        env = TestRopeEnv(
+        self.env = TestRopeEnv(
             overall_rot=self.overall_rot,
             do_render=self.do_render,
             r_pieces=self.r_pieces,
@@ -104,13 +104,13 @@ class mbi_stiff:
             rgba_vals=self.rgba_vals
         )
         if self.do_render:
-            env.set_viewer_details(
+            self.env.set_viewer_details(
                 dist=1.5,
                 azi=90.0,
                 elev=0.0,
-                lookat=np.array([-0.75,0.0,0.10])
+                lookat=np.array([-0.81,0.0,0.15])
             )
-        sim_pos = env.observations['rope_pose'][1:-1].copy()[:,[0,2]]
+        sim_pos = self.env.observations['rope_pose'][1:-1].copy()[:,[0,2]]
         sim_pos -= sim_pos[0]
         sim_pos *= -1.0
         diff_pos = np.sum(
@@ -119,9 +119,9 @@ class mbi_stiff:
         # print("|===|NEW DATA |================================================")
         # print(f"stiff_scale = {stiff}")
         # print(f"diff_pos = {diff_pos}")
-        if self.do_render:
-            env.viewer.close()
-        env.close()
+        # if self.do_render:
+            # self.env.viewer.close()
+        # self.env.close()
 
         return diff_pos
     
@@ -129,7 +129,7 @@ class mbi_stiff:
         # optimization function to find b_a (twisting stiffness)
         # must have set self.alpha_bar and self.overall_rot before hand
         self.beta_bar = self.alpha_bar * b_a
-        env = TestRopeEnv(
+        self.env = TestRopeEnv(
             overall_rot=self.overall_rot,
             do_render=self.do_render,
             r_pieces=self.r_pieces,
@@ -145,13 +145,13 @@ class mbi_stiff:
             rgba_vals=self.rgba_vals
         )
         if self.do_render:
-            env.set_viewer_details(
+            self.env.set_viewer_details(
                 dist=1.5,
                 azi=90.0,
                 elev=0.0,
-                lookat=np.array([-0.75,0.0,0.10])
+                lookat=np.array([-0.81,0.0,0.15])
             )
-        return env.circle_oop
+        return self.env.circle_oop
     
 if __name__ == "__main__":
     def square_func(x):

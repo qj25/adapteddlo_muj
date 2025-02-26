@@ -62,7 +62,7 @@ def plot_bars(error):
     # colors_model1 = ['lightblue', 'lightgreen', 'lightcoral']
     rope_positions = [1,2,3,4]
     wire_colors = ['grey','black','red']
-    model_types = ['adapt', 'native']
+    model_types = ['adapted', 'native']
     # model_edgecolors = ['lightgreen', 'lightpink']
     model_hatch = [None, '\\\\\\']
 
@@ -146,12 +146,12 @@ def plot_computetime(pieces_list, data_list):
         ax.spines[spine_str].set_edgecolor('k')
 
     # Plot each line with a label
-    ax.plot(x, y[0], label='Plain', alpha=0.7, color='k', linewidth=2,zorder=3)
-    ax.plot(x, y[3], label='Adapted', alpha=0.7, linewidth=2)
-    ax.plot(x, y[2], label='Direct', alpha=0.7, linewidth=2)
-    ax.plot(x, y[1], label='Native', alpha=0.7, linewidth=2)
-    twin1.plot(0,0, label='Raw Time', alpha=1.0, color='k', linewidth=2)
-    twin1.plot(0,0, label='Percent Increase', alpha=1.0, color='k', linewidth=2, linestyle='--')
+    ax.plot(x, y[0], label='plain', alpha=0.7, color='k', linewidth=2,zorder=3)
+    ax.plot(x, y[3], label='adapted', alpha=0.7, linewidth=2)
+    ax.plot(x, y[2], label='direct', alpha=0.7, linewidth=2)
+    ax.plot(x, y[1], label='native', alpha=0.7, linewidth=2)
+    twin1.plot(0,0, label='raw time', alpha=1.0, color='k', linewidth=2)
+    twin1.plot(0,0, label='percent increase', alpha=1.0, color='k', linewidth=2, linestyle='--')
     # twin1.plot(x, y_percent[0], alpha=0.7, color='k', linewidth=2,linestyle='--')
     twin1.plot(x, y_percent[3], alpha=0.7, linewidth=2,linestyle='--')
     twin1.plot(x, y_percent[2], alpha=0.7, linewidth=2,linestyle='--')
@@ -170,7 +170,7 @@ def plot_computetime(pieces_list, data_list):
     # Add labels and title
     ax.set_ylabel('Computation Time to Simulate 1s (seconds)', fontsize=14)
     twin1.set_xlabel('Number of Discrete Pieces', fontsize=14)
-    twin1.set_ylabel("Percentage Increase from Plain (dashed)", fontsize=14)
+    twin1.set_ylabel("Percentage Increase from plain", fontsize=14)
     # plt.title('Speed test', fontsize=14)
 
     # Add a legend

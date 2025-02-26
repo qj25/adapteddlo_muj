@@ -106,7 +106,7 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
                 dist=1.5,
                 azi=90.0,
                 elev=0.0,
-                lookat=np.array([-0.75,0.0,0.10])
+                lookat=np.array([-0.81,0.0,0.15])
             )
 
             # self.viewer.cam.distance = 5.7628
@@ -802,7 +802,7 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
                     self.circle_oop = True
                     # print(f'b_a = {self.beta_bar/self.alpha_bar} ==================================')
                     # print(f'out of plane theta_crit = {self.overall_rot} ==================================')
-                    return e_outofplane
+                    # return e_outofplane
                 # print(f'e_outofplane = {e_outofplane}')
             # print(f"e_tol = {e_tol}")
             # print(f"e_outofplane = {e_outofplane}")

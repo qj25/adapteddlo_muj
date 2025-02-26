@@ -92,10 +92,10 @@ class ValidRnR2Env(gym.Env, utils.EzPickle):
         if self.do_render:
             self.viewer = mujoco_viewer.MujocoViewer(self.model, self.data)
             self.set_viewer_details(
-                dist=1.,
-                azi=-90.478,
-                elev=-2.434,
-                lookat=np.array([0.55, 0.,  0.25])
+                dist=0.5,
+                azi=-90,
+                elev=0,
+                lookat=np.array([0.585, 0.,  0.3])
             )
         else:
             self.viewer = None
@@ -392,7 +392,7 @@ class ValidRnR2Env(gym.Env, utils.EzPickle):
                 init_quat=self.rope_initpose[3:],
                 coll_on=True,
                 rope_type="capsule",
-                vis_subcyl=True,
+                vis_subcyl=False,
                 obj_path=rope_path,
                 rgba_vals=self.rgba_vals
             )
@@ -409,7 +409,7 @@ class ValidRnR2Env(gym.Env, utils.EzPickle):
                 coll_on=True,
                 d_small=0.,
                 rope_type="capsule",
-                vis_subcyl=True,
+                vis_subcyl=False,
                 obj_path=rope_path,
                 rgba_vals=self.rgba_vals
             )
@@ -428,7 +428,7 @@ class ValidRnR2Env(gym.Env, utils.EzPickle):
                 coll_on=True,
                 d_small=0.,
                 rope_type="capsule",
-                vis_subcyl=True,
+                vis_subcyl=False,
                 obj_path=rope_path,
                 rgba_vals=self.rgba_vals
             )
