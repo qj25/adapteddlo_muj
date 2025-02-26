@@ -52,14 +52,17 @@ python get_pos/get_depth_many_azure.py
 # Sim:
 8. To determine sim stiffness parameters from real experiment (with 2D positions and critical angles obtained):
 ```
-python real_testdata.py
+python real2sim_paramiden.py
+```
+9. To simulate DLO held by Denso VS-060 robot arm in 4 different poses:
+```
+python test_shape_w_arm.py
 ```
 # Compare:
-9. To compare sim and real wire poses:
+10. To compare sim and real DLO poses:
 ```
 python simvreal_dlomuj.py
 ```
-
 
 Note:
 - adjust time step to ensure stability
