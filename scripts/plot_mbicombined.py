@@ -37,7 +37,7 @@ def mbi_plot(b_a, theta_crit, c='k'):
     
 
 lopbal_type_list = ['adapt','native']
-legend_type_list = ['Adapted','Native']
+legend_type_list = ['adapted','native']
 c_list = ['steelblue', 'sienna']
 
 fig = plt.figure("Michell's Buckling Instability", figsize=(6,4))
@@ -45,7 +45,7 @@ ax = fig.add_subplot(111)
 ax.set_xlabel(r"$\beta/\alpha$")
 ax.set_ylabel(r'$\theta^n$ (rad)')
 legend_str = []
-legend_str.append('Analytical')
+legend_str.append('analytical')
 
 for i in range(len(lopbal_type_list)):
     print(f"For {lopbal_type_list[i]}:")

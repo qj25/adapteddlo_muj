@@ -129,15 +129,8 @@ if test_type_g == 'twisting':
     print(f"alpha_all = {alpha_all}")
     print(f"alpha_cv = {alpha_cv*100.0}%")
     print(f"alpha_mean = {alpha_glob}")
-    input()
-    if lfp_g:
-        with open(stiff_picklename, 'rb') as f:
-            stiff_pickle = pickle.load(f)
-        alpha_glob, b_a_glob = stiff_pickle
-        print(f"alpha = {alpha_glob}")
-        print(f"beta = {alpha_glob*b_a_glob}")
-        print(f"b/a = {b_a_glob}")
-        input()
+    input('Press "Enter" to run experiment.. ..')
+    
 rope_len = 1.5
 deg2rad = np.pi/180.0
 if wire_color == 'white':
@@ -146,18 +139,21 @@ if wire_color == 'white':
     # alpha_glob = alpha_glob_arr[model_type2id[stest_type],0]
     crittwist_all = np.array([970.0, 970.0, 980.0, 975.0, 980.0])
     ord_glob = np.mean(crittwist_all)    # input critical twist here from real experiments
+    b_a_arr = np.array([0.8291015625, 0.8291015625, 0.8232421875, 0.8232421875, 0.8232421875])
 elif wire_color == 'black':
     rgba_vals = np.concatenate((np.array([0,0,0])/300,[1]))
     massperlen = 0.081/2.98
     # alpha_glob = alpha_glob_arr[model_type2id[stest_type],1]
     crittwist_all = np.array([470.0, 500.0, 480.0, 470.0, 490.0])
     ord_glob = np.mean(crittwist_all)    # input critical twist here from real experiments
+    b_a_arr = np.array([1.5205078125, 1.3857421875, 1.4736328125, 1.3857421875, 1.4267578125])
 elif wire_color == 'red':
     rgba_vals = np.concatenate((np.array([300,0,0])/300,[1]))
     massperlen = 0.043/2.0
     # alpha_glob = alpha_glob_arr[model_type2id[stest_type],2]
     crittwist_all = np.array([430.0, 470.0, 445.0, 445.0, 460.0])
     ord_glob = np.mean(crittwist_all)    # input critical twist here from real experiments
+    b_a_arr = np.array([1.7724609375, 1.5263671875, 1.6669921875, 1.6669921875, 1.5791015625])
 
 if grav_on:
     picklefolder = 'real/grav'
@@ -187,17 +183,39 @@ if test_type_g == 'twisting':
     )
     mbi_stiff2.alpha_bar = alpha_glob
     mbi_stiff2.overall_rot = ord_glob * deg2rad
-    best_b_a_val = midpoint_rootfind(
-        mbi_stiff2.opt_func2,
-        b_a_lim[0],
-        b_a_lim[1],
-        tol=1e-2
-    )
-    print("Beta/Alpha Found!")
-    print(f"b/a = {best_b_a_val}")
-    stiff_pickle = [alpha_glob,best_b_a_val]
-    with open(stiff_picklename, 'wb') as f:
-        pickle.dump(stiff_pickle,f)
+    if lfp_g:
+        b_a_avg = np.mean(b_a_arr)
+        b_a_cv = np.sum(np.linalg.norm(b_a_arr-b_a_avg))/len(b_a_arr)/b_a_avg
+        print(f"beta_all = {b_a_arr}")
+        print(f"beta_cv = {b_a_cv*100.0}%")
+        print(f"beta_mean = {b_a_avg}")
+        input()
+
+        with open(stiff_picklename, 'rb') as f:
+            stiff_pickle = pickle.load(f)
+        alpha_glob, b_a_glob = stiff_pickle
+        print(f"alpha = {alpha_glob}")
+        print(f"beta = {alpha_glob*b_a_glob}")
+        print(f"b/a = {b_a_glob}")
+        input()
+        mbi_stiff2.alpha_bar = alpha_glob
+        print(f"diff = {mbi_stiff2.opt_func2(b_a_glob)}")
+        mbi_stiff2.env.viewer._paused = True
+        for i in range(100):
+            mbi_stiff2.env.step()
+
+    else:
+        best_b_a_val = midpoint_rootfind(
+            mbi_stiff2.opt_func2,
+            b_a_lim[0],
+            b_a_lim[1],
+            tol=1e-2
+        )
+        print("Beta/Alpha Found!")
+        print(f"b/a = {best_b_a_val}")
+        # stiff_pickle = [alpha_glob,best_b_a_val]
+        # with open(stiff_picklename, 'wb') as f:
+        #     pickle.dump(stiff_pickle,f)
 if test_type_g == 'bending':
     # load pickle of pos
     realdata_picklename = wire_color + test_id + '_data.pickle'
@@ -219,19 +237,32 @@ if test_type_g == 'bending':
         do_render=do_render_g,
         new_start=new_start_g
     )
-    best_stiffval = golden_section_search(
-        mbi_stiff1.opt_func,
-        stiff_lim[0],
-        stiff_lim[1],
-        tol=1e-3
-    )
-    min_diff = mbi_stiff1.opt_func(best_stiffval)
-    alpha_stiff = best_stiffval/(2*np.pi)**3
-    print("Minimum Found!")
-    print(f"final alpha = {alpha_stiff}")
-    print(f"stiff_scale = {best_stiffval}")
-    print(f"min_diff = {min_diff}")
-    
-    bendstiff_pickle = alpha_stiff
-    with open(bendstiff_picklename, 'wb') as f:
-        pickle.dump(bendstiff_pickle,f)
+    if lfp_g:
+        with open(stiff_picklename, 'rb') as f:
+            stiff_pickle = pickle.load(f)
+        alpha_glob, b_a_glob = stiff_pickle
+        print(f"alpha = {alpha_glob}")
+        print(f"beta = {alpha_glob*b_a_glob}")
+        print(f"b/a = {b_a_glob}")
+        input("Press 'Enter' to run experiment.. ..")
+        print(f"diff = {mbi_stiff1.opt_func(alpha_glob*(2*np.pi)**3)}")
+        mbi_stiff1.env.viewer._paused = True
+        for i in range(100):
+            mbi_stiff1.env.step()
+    else:
+        best_stiffval = golden_section_search(
+            mbi_stiff1.opt_func,
+            stiff_lim[0],
+            stiff_lim[1],
+            tol=1e-3
+        )
+        min_diff = mbi_stiff1.opt_func(best_stiffval)
+        alpha_stiff = best_stiffval/(2*np.pi)**3
+        print("Minimum Found!")
+        print(f"final alpha = {alpha_stiff}")
+        print(f"stiff_scale = {best_stiffval}")
+        print(f"min_diff = {min_diff}")
+        
+        bendstiff_pickle = alpha_stiff
+        with open(bendstiff_picklename, 'wb') as f:
+            pickle.dump(bendstiff_pickle,f)

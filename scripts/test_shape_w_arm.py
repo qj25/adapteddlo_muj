@@ -84,16 +84,16 @@ model_type2id = dict(
     # [1.23,1.10,1.89],
     # [1.02,1.05,1.80],
 # ])
-alpha_glob_arr = np.array([
-    [6.547162706224905e-05, 0.0009997975674291843, 0.00063696780505569],
-    [6.547162706224905e-05, 0.0009997975674291843, 0.00063696780505569],
-    [7.619425009843381e-05, 0.0010643006362955833, 0.0006732507812930395],
-])
-b_a_glob_arr = np.array([
-    [1.05,1.10,1.89],
-    [1.05,1.10,1.89],
-    [0.85,1.05,1.80],
-])
+# alpha_glob_arr = np.array([
+#     [6.547162706224905e-05, 0.0009997975674291843, 0.00063696780505569],
+#     [6.547162706224905e-05, 0.0009997975674291843, 0.00063696780505569],
+#     [7.619425009843381e-05, 0.0010643006362955833, 0.0006732507812930395],
+# ])
+# b_a_glob_arr = np.array([
+#     [1.05,1.10,1.89],
+#     [1.05,1.10,1.89],
+#     [0.85,1.05,1.80],
+# ])
 # alpha_glob_arr = np.array([
     # [5.644018525809911e-05, 0.0009997975674291843, 0.00063696780505569],
     # [5.644018525809911e-05, 0.0009997975674291843, 0.00063696780505569],
@@ -184,7 +184,7 @@ class manip_rope_seq:
             # alpha_glob = alpha_glob_arr[model_type2id[stest_type],0]
             # beta_glob = alpha_glob * b_a_glob_arr[model_type2id[stest_type],0]
         elif wire_color == 'black':
-            rgba_vals = np.concatenate((np.array([0,0,0])/300,[0.1]))
+            rgba_vals = np.concatenate((np.array([0,0,0])/300,[1]))
             massperlen = 0.079/2.98
             # alpha_glob = alpha_glob_arr[model_type2id[stest_type],1]
             # beta_glob = alpha_glob * b_a_glob_arr[model_type2id[stest_type],1]
@@ -269,7 +269,8 @@ for i in range(n_testtypes):
             
             if do_render:
                 env1.env.viewer._paused = True
-                env1.env.step()
+                for i in range(100):
+                    env1.env.step()
             # env1.env.hold_pos(10.)
 
             # env1.runabit()
@@ -289,20 +290,20 @@ for i in range(n_testtypes):
                 os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                 "adapteddlo_muj/data/simdata/" + f"simdata_{wire_colors[j]}{i_move}_{stest_types[i]}.pickle"
             )
-            pickle_simdata = [init_qpos, z_rot[pos_id], nodes_pos,j_pos]
-            with open(simdata_picklename, 'wb') as f:
-                pickle.dump(pickle_simdata,f)
+            # pickle_simdata = [init_qpos, z_rot[pos_id], nodes_pos,j_pos]
+            # with open(simdata_picklename, 'wb') as f:
+            #     pickle.dump(pickle_simdata,f)
 
-            excel_dir = os.path.join(
-                os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                "adapteddlo_muj/data/excel/"
-            )
+            # excel_dir = os.path.join(
+            #     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            #     "adapteddlo_muj/data/excel/"
+            # )
 
-            np.savetxt(excel_dir + f"jointpos{i_move}.csv",j_pos,delimiter=",")
-            np.savetxt(excel_dir + "initqpos.csv",init_qpos,delimiter=",")
-            np.savetxt(excel_dir + f"z_rot{i_move}.csv",[z_rot[pos_id]],delimiter=",")
+            # np.savetxt(excel_dir + f"jointpos{i_move}.csv",j_pos,delimiter=",")
+            # np.savetxt(excel_dir + "initqpos.csv",init_qpos,delimiter=",")
+            # np.savetxt(excel_dir + f"z_rot{i_move}.csv",[z_rot[pos_id]],delimiter=",")
 
-            print(f"progress = {pos_id+1 + j*n_pos + i*n_pos*n_wirecolors}/{n_testtypes*n_wirecolors*n_pos}")
+            # print(f"progress = {pos_id+1 + j*n_pos + i*n_pos*n_wirecolors}/{n_testtypes*n_wirecolors*n_pos}")
 
 if move_id is None:
     move_id = 999
