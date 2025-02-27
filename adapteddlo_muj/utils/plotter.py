@@ -168,7 +168,7 @@ def plot_computetime(pieces_list, data_list):
     twin1.tick_params(axis='y', **tkw)
 
     # Add labels and title
-    ax.set_ylabel('Computation Time to Simulate 1s (seconds)', fontsize=14)
+    ax.set_ylabel('Computational Time to Simulate 1s (seconds)', fontsize=14)
     twin1.set_xlabel('Number of Discrete Pieces', fontsize=14)
     twin1.set_ylabel("Percentage Increase from plain", fontsize=14)
     # plt.title('Speed test', fontsize=14)
