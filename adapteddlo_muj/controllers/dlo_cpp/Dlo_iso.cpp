@@ -409,7 +409,7 @@ void DLO_iso::calculateF2LocalTorq()
         torqvec_indiv = distmat[i].array().rowwise().cross(nodes[i].force);
         torqvec += torqvec_indiv;
     }
-    torqvec /= 2;
+    torqvec /= 2.0;
     for (int i = 0; i < (nv+2); i++) {
         nodes[i].torq = DloUtils::rotVecQuat(
             torqvec.row(i),

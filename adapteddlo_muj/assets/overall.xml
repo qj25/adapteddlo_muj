@@ -1,37 +1,20 @@
 <mujoco model="base">
   <compiler angle="radian"/>
-
-  <option timestep="0.0005" tolerance="1e-10" integrator="implicit" cone="elliptic" jacobian="sparse" iterations="30"/>
-
+  <option timestep="0.0015" tolerance="1e-10" integrator="implicit" cone="elliptic" jacobian="sparse" iterations="30"/>
   <size njmax="5000" nconmax="5000"/>
-
   <visual>
     <quality shadowsize="2048"/>
     <map stiffness="700" fogstart="10" fogend="15" znear="0.001" zfar="40" shadowscale="0.5"/>
     <rgba haze="0.15 0.25 0.35 1"/>
   </visual>
-
   <statistic meansize="0.05" extent="2"/>
-
   <asset>
     <texture type="skybox" builtin="gradient" rgb1="1 1 0.9" rgb2="0.9 0.9 0.81" width="512" height="3072"/>
     <texture type="2d" name="texplane" builtin="checker" mark="cross" rgb1="0.2 0.3 0.4" rgb2="0.1 0.15 0.2" markrgb="0.8 0.8 0.8" width="512" height="512"/>
     <material name="matplane" texture="texplane" texuniform="true" reflectance="0.3"/>
-    <mesh name="BASE_mesh" file="/home/qj/git/deformanip/adapteddlo_muj/adapteddlo_muj/assets/densovs060/meshes/BASE_mesh.stl"/>
-    <mesh name="J1_mesh" file="/home/qj/git/deformanip/adapteddlo_muj/adapteddlo_muj/assets/densovs060/meshes/J1_mesh.stl"/>
-    <mesh name="J2_mesh" file="/home/qj/git/deformanip/adapteddlo_muj/adapteddlo_muj/assets/densovs060/meshes/J2_mesh.stl"/>
-    <mesh name="J3_mesh" file="/home/qj/git/deformanip/adapteddlo_muj/adapteddlo_muj/assets/densovs060/meshes/J3_mesh.stl"/>
-    <mesh name="J4_mesh" file="/home/qj/git/deformanip/adapteddlo_muj/adapteddlo_muj/assets/densovs060/meshes/J4_mesh.stl"/>
-    <mesh name="J5_mesh" file="/home/qj/git/deformanip/adapteddlo_muj/adapteddlo_muj/assets/densovs060/meshes/J5_mesh.stl"/>
-    <mesh name="Flange_mesh" file="/home/qj/git/deformanip/adapteddlo_muj/adapteddlo_muj/assets/densovs060/meshes/Flange_mesh.stl"/>
   </asset>
-
   <worldbody>
-    <geom name="floor" size="3 3 0.125" pos="0 0 -1" type="plane" condim="1" material="matplane"/>
-    <geom name="whiteback" size="1 1.35 0.125" pos="0.6 -0.3 0.35" quat="0.707107 -0.707107 0 0" type="plane" contype="0" conaffinity="0" rgba="1 1 1 1"/>
-    <geom type="mesh" mesh="BASE_mesh"/>
-    <site name="ax_y" pos="0 0.1 0" quat="0.707107 0.707107 0 0" size="0.01 0.1" group="1" type="cylinder" rgba="1 1 0 0.3"/>
-    <site name="ax_x" pos="0.1 0 0" quat="0.707107 0 0.707107 0" size="0.01 0.1" group="1" type="cylinder" rgba="0 0 1 0.3"/>
+    <geom name="floor" size="3 3 0.125" pos="0 0 -10" type="plane" condim="1" material="matplane"/>
     <camera pos="0 -1 1.5" quat="0.866019 0.500011 0 0"/>
     <camera pos="1 -1.2 0.8" quat="0.687095 0.527073 0.304042 0.397055"/>
     <camera pos="-1.8 -1.1 0.7" quat="0.732963 0.562422 -0.232963 -0.303603"/>
@@ -40,283 +23,183 @@
     <camera pos="4.5 -8 0.5" quat="0.707107 0.707107 0 0"/>
     <light pos="0 0 5" dir="0 0 -1" directional="true" castshadow="false" diffuse="0.4 0.4 0.4" specular="0.1 0.1 0.1"/>
     <light pos="0 0 4" dir="0 0 -1" directional="true" diffuse="0.6 0.6 0.6" specular="0.2 0.2 0.2"/>
-    <body name="teststand" pos="0.793 0 0.3">
-      <site name="testball_geom" pos="0 0 0" size="0.01" rgba="0.8 0.2 0.1 1"/>
-      <site name="teststand_geom" pos="0 0 -0.15" size="0.005 0.005 0.15" type="box" rgba="0.8 0.2 0.1 1"/>
-      <body name="standbase" pos="0 0 -0.298">
-        <site name="base_geom1" pos="0 0 0" size="0.1 0.005 0.002" type="box" rgba="0.8 0.2 0.1 1"/>
-        <site name="base_geom2" pos="0 0 0" size="0.005 0.1 0.002" type="box" rgba="0.8 0.2 0.1 1"/>
-      </body>
+    <body name="eef_body" pos="-4.645 0 0.5">
+      <geom name="eef_geom" size="0.05 0.05 0.1" type="box" contype="0" conaffinity="0" mass="1" rgba="0.8 0.2 0.1 0"/>
     </body>
-    <body name="J1" pos="0 0 0.182">
-      <inertial pos="0.013885 -0.005997 0.043991" quat="0.707107 0 0 0.707107" mass="4.327" diaginertia="0.032502 0.025492 0.01779"/>
-      <joint name="j1" pos="0 0 0" axis="0 0 1" limited="true" range="-2.96706 2.96706"/>
-      <geom pos="0 0 0.182" type="mesh" mesh="J1_mesh"/>
-      <body name="J2" pos="0 0 0.163">
-        <inertial pos="0.015837 -0.073696 0.010087" quat="0.5 0.5 -0.5 0.5" mass="9.475" diaginertia="0.112871 0.108024 0.025579"/>
-        <joint name="j2" pos="0 0 0" axis="0 1 0" limited="true" range="-2.0944 2.0944"/>
-        <geom pos="0 0 0.163" type="mesh" mesh="J2_mesh"/>
-        <body name="J3" pos="0 0 0.305">
-          <inertial pos="0.011544 -0.057408 0.006203" quat="0.5 0.5 -0.5 0.5" mass="4.097" diaginertia="0.016882 0.015999 0.00638"/>
-          <joint name="j3" pos="0 0 0" axis="0 1 0" limited="true" range="-2.18166 2.70526"/>
-          <geom pos="0 0 0.305" type="mesh" mesh="J3_mesh"/>
-          <body name="J4" pos="-0.01 0 0.165">
-            <inertial pos="0.003998 -0.004975 0.052919" quat="0.707107 0 0 0.707107" mass="1.779" diaginertia="0.005266 0.005106 0.002621"/>
-            <joint name="j4" pos="0 0 0" axis="0 0 1" limited="true" range="-4.71239 4.71239"/>
-            <geom pos="-0.01 0 0.165" quat="1 0 0 0" type="mesh" mesh="J4_mesh"/>
-            <body name="J5" pos="0 0 0.135">
-              <inertial pos="0.011902 -0.004739 0.010398" quat="0.5 0.5 0.5 0.5" mass="1.211" diaginertia="0.001629 0.001615 0.001093"/>
-              <joint name="j5" pos="0 0 0" axis="0 1 0" limited="true" range="-2.0944 2.0944"/>
-              <geom pos="0 0 0.135" quat="1 0 0 0" type="mesh" mesh="J5_mesh"/>
-              <body name="Flange" pos="0 0 0.07">
-                <inertial pos="-0.000401015 0.0770342 0.0962886" quat="0.486311 0.507364 0.4441 0.555751" mass="4.154" diaginertia="0.0349016 0.0227238 0.0216365"/>
-                <joint name="flange" pos="0 0 0" axis="0 0 1" limited="true" range="-6.28319 6.28319"/>
-                <geom pos="0 0 0.07" quat="1 0 0 0" type="mesh" mesh="Flange_mesh"/>
-                <body name="eef_body" pos="0 0 0.055">
-                  <site name="wireholderbase" pos="0 0 -0.055" size="0.025 0.005" type="cylinder"/>
-                  <site name="wireholder1" pos="0.002875 0 -0.0275" size="0.002125 0.01425 0.0275" type="box"/>
-                  <site name="wireholder2" pos="-0.002875 0 -0.0275" size="0.002125 0.01425 0.0275" type="box"/>
-                  <site name="eef_site" pos="0 0 0" size="0.01" group="1" rgba="1 0 0 0.3"/>
-                </body>
-              </body>
-            </body>
-          </body>
-        </body>
-      </body>
+    <body name="eef_body2" pos="4.645 0 0.5">
+      <geom name="eef_geom2" size="0.05 0.05 0.1" type="box" contype="0" conaffinity="0" mass="1" rgba="0.8 0.2 0.1 0"/>
     </body>
-    <body name="stiffrope" pos="0.793 0 0.3" quat="0 0 1 0">
-      <site name="ft_rope" pos="0 0 0" size="0.003" group="1" rgba="1 0 0 0"/>
+    <body name="stiffrope" pos="4.645 0 0.5" quat="0 0 1 0">
+      <joint name="freejoint_A" type="free" limited="false" actuatorfrclimited="false"/>
+      <site name="ft_rope" pos="0 0 0" size="0.05" group="1" rgba="1 0 0 0"/>
       <body name="B_first">
-        <geom name="G0" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-        <site name="S_first" pos="0 0 0" size="0.0027"/>
-        <site name="S_0" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
+        <geom name="G0" size="0.025 0.1161" pos="0.116125 0 0" quat="0.707107 0 -0.707107 0" type="capsule" contype="0" conaffinity="0" condim="1" solref="0.001" rgba="0.1 0.0533333 0.673333 1"/>
+        <site name="S_first" pos="0 0 0" size="0.0225"/>
+        <site name="S_0" pos="0 0 0" size="0.0225" rgba="0 0 0 0"/>
         <site name="twistcylx_1" pos="0 0 0.05" quat="0.707107 0 0 -0.707107" size="0.001 0.05" group="1" type="cylinder" rgba="0 0 1 0"/>
         <site name="twistcyly_1" pos="0 0.05 0" quat="0.707107 -0.707107 0 0" size="0.001 0.05" group="1" type="cylinder" rgba="1 1 0 0"/>
-        <body name="B_1" pos="0.008 0 0">
-          <joint name="J_1" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-          <geom name="G1" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-          <site name="S_1" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-          <body name="B_2" pos="0.008 0 0">
-            <joint name="J_2" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-            <geom name="G2" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-            <site name="S_2" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-            <body name="B_3" pos="0.008 0 0">
-              <joint name="J_3" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-              <geom name="G3" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-              <site name="S_3" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-              <body name="B_4" pos="0.008 0 0">
-                <joint name="J_4" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                <geom name="G4" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                <site name="S_4" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                <body name="B_5" pos="0.008 0 0">
-                  <joint name="J_5" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                  <geom name="G5" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                  <site name="S_5" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                  <body name="B_6" pos="0.008 0 0">
-                    <joint name="J_6" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                    <geom name="G6" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                    <site name="S_6" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                    <body name="B_7" pos="0.008 0 0">
-                      <joint name="J_7" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                      <geom name="G7" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                      <site name="S_7" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                      <body name="B_8" pos="0.008 0 0">
-                        <joint name="J_8" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                        <geom name="G8" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                        <site name="S_8" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                        <body name="B_9" pos="0.008 0 0">
-                          <joint name="J_9" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                          <geom name="G9" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                          <site name="S_9" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                          <body name="B_10" pos="0.008 0 0">
-                            <joint name="J_10" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                            <geom name="G10" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                            <site name="S_10" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                            <body name="B_11" pos="0.008 0 0">
-                              <joint name="J_11" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                              <geom name="G11" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                              <site name="S_11" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                              <body name="B_12" pos="0.008 0 0">
-                                <joint name="J_12" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                                <geom name="G12" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                                <site name="S_12" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                                <body name="B_13" pos="0.008 0 0">
-                                  <joint name="J_13" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                                  <geom name="G13" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                                  <site name="S_13" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                                  <body name="B_14" pos="0.008 0 0">
-                                    <joint name="J_14" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                                    <geom name="G14" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                                    <site name="S_14" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                                    <body name="B_15" pos="0.008 0 0">
-                                      <joint name="J_15" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                                      <geom name="G15" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                                      <site name="S_15" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                                      <body name="B_16" pos="0.008 0 0">
-                                        <joint name="J_16" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                                        <geom name="G16" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                                        <site name="S_16" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                                        <body name="B_17" pos="0.008 0 0">
-                                          <joint name="J_17" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                                          <geom name="G17" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                                          <site name="S_17" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                                          <body name="B_18" pos="0.008 0 0">
-                                            <joint name="J_18" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                                            <geom name="G18" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                                            <site name="S_18" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                                            <body name="B_19" pos="0.008 0 0">
-                                              <joint name="J_19" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                                              <geom name="G19" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                                              <site name="S_19" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                                              <body name="B_20" pos="0.008 0 0">
-                                                <joint name="J_20" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                                                <geom name="G20" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                                                <site name="S_20" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                                                <body name="B_21" pos="0.008 0 0">
-                                                  <joint name="J_21" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                                                  <geom name="G21" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                                                  <site name="S_21" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                                                  <body name="B_22" pos="0.008 0 0">
-                                                    <joint name="J_22" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                                                    <geom name="G22" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                                                    <site name="S_22" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                                                    <body name="B_23" pos="0.008 0 0">
-                                                      <joint name="J_23" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                                                      <geom name="G23" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                                                      <site name="S_23" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                                                      <body name="B_24" pos="0.008 0 0">
-                                                        <joint name="J_24" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                                                        <geom name="G24" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                                                        <site name="S_24" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                                                        <body name="B_25" pos="0.008 0 0">
-                                                          <joint name="J_25" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                                                          <geom name="G25" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                                                          <site name="S_25" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                                                          <body name="B_26" pos="0.008 0 0">
-                                                            <joint name="J_26" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                                                            <geom name="G26" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                                                            <site name="S_26" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                                                            <site name="twistcylx_27" pos="0 0 0.05" quat="0.707107 0 0 -0.707107" size="0.001 0.05" group="1" type="cylinder" rgba="0 0 1 0"/>
-                                                            <site name="twistcyly_27" pos="0 0.05 0" quat="0.707107 -0.707107 0 0" size="0.001 0.05" group="1" type="cylinder" rgba="1 1 0 0"/>
-                                                            <body name="B_27" pos="0.008 0 0">
-                                                              <joint name="J_27" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                                                              <geom name="G27" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                                                              <site name="S_27" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                                                              <body name="B_28" pos="0.008 0 0">
-                                                                <joint name="J_28" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                                                                <geom name="G28" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                                                                <site name="S_28" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                                                                <body name="B_29" pos="0.008 0 0">
-                                                                  <joint name="J_29" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                                                                  <geom name="G29" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                                                                  <site name="S_29" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                                                                  <body name="B_30" pos="0.008 0 0">
-                                                                    <joint name="J_30" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                                                                    <geom name="G30" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                                                                    <site name="S_30" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                                                                    <body name="B_31" pos="0.008 0 0">
-                                                                      <joint name="J_31" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                                                                      <geom name="G31" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                                                                      <site name="S_31" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                                                                      <body name="B_32" pos="0.008 0 0">
-                                                                        <joint name="J_32" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                                                                        <geom name="G32" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                                                                        <site name="S_32" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                                                                        <body name="B_33" pos="0.008 0 0">
-                                                                          <joint name="J_33" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                                                                          <geom name="G33" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                                                                          <site name="S_33" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                                                                          <body name="B_34" pos="0.008 0 0">
-                                                                            <joint name="J_34" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                                                                            <geom name="G34" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                                                                            <site name="S_34" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                                                                            <body name="B_35" pos="0.008 0 0">
-                                                                              <joint name="J_35" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                                                                              <geom name="G35" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                                                                              <site name="S_35" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                                                                              <body name="B_36" pos="0.008 0 0">
-                                                                                <joint name="J_36" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                                                                                <geom name="G36" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                                                                                <site name="S_36" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                                                                                <body name="B_37" pos="0.008 0 0">
-                                                                                  <joint name="J_37" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                                                                                  <geom name="G37" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                                                                                  <site name="S_37" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                                                                                  <body name="B_38" pos="0.008 0 0">
-                                                                                    <joint name="J_38" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                                                                                    <geom name="G38" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                                                                                    <site name="S_38" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                                                                                    <body name="B_39" pos="0.008 0 0">
-                                                                                      <joint name="J_39" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                                                                                      <geom name="G39" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                                                                                      <site name="S_39" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                                                                                      <body name="B_40" pos="0.008 0 0">
-                                                                                        <joint name="J_40" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                                                                                        <geom name="G40" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                                                                                        <site name="S_40" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                                                                                        <body name="B_41" pos="0.008 0 0">
-                                                                                          <joint name="J_41" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                                                                                          <geom name="G41" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                                                                                          <site name="S_41" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                                                                                          <body name="B_42" pos="0.008 0 0">
-                                                                                            <joint name="J_42" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                                                                                            <geom name="G42" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                                                                                            <site name="S_42" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                                                                                            <body name="B_43" pos="0.008 0 0">
-                                                                                              <joint name="J_43" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                                                                                              <geom name="G43" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                                                                                              <site name="S_43" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                                                                                              <body name="B_44" pos="0.008 0 0">
-                                                                                                <joint name="J_44" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                                                                                                <geom name="G44" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                                                                                                <site name="S_44" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                                                                                                <body name="B_45" pos="0.008 0 0">
-                                                                                                  <joint name="J_45" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                                                                                                  <geom name="G45" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                                                                                                  <site name="S_45" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                                                                                                  <body name="B_46" pos="0.008 0 0">
-                                                                                                    <joint name="J_46" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                                                                                                    <geom name="G46" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                                                                                                    <site name="S_46" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                                                                                                    <body name="B_47" pos="0.008 0 0">
-                                                                                                      <joint name="J_47" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                                                                                                      <geom name="G47" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                                                                                                      <site name="S_47" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                                                                                                      <body name="B_48" pos="0.008 0 0">
-                                                                                                        <joint name="J_48" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                                                                                                        <geom name="G48" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                                                                                                        <site name="S_48" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                                                                                                        <body name="B_49" pos="0.008 0 0">
-                                                                                                          <joint name="J_49" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                                                                                                          <geom name="G49" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                                                                                                          <site name="S_49" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                                                                                                          <body name="B_50" pos="0.008 0 0">
-                                                                                                            <joint name="J_50" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                                                                                                            <geom name="G50" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                                                                                                            <site name="S_50" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                                                                                                            <body name="B_last" pos="0.008 0 0">
-                                                                                                              <joint name="J_last" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.01"/>
-                                                                                                              <geom name="G51" size="0.003 0.004" pos="0.004 0 0" quat="0.707107 0 -0.707107 0" type="capsule" condim="1" solref="0.001" mass="0.000203924" rgba="0 0 0 1"/>
-                                                                                                              <site name="S_51" pos="0 0 0" size="0.0027" rgba="0 0 0 0"/>
-                                                                                                              <site name="twistcylx_52" pos="0 0 0.05" quat="0.707107 0 0 -0.707107" size="0.001 0.05" group="1" type="cylinder" rgba="0 0 1 0"/>
-                                                                                                              <site name="twistcyly_52" pos="0 0.05 0" quat="0.707107 -0.707107 0 0" size="0.001 0.05" group="1" type="cylinder" rgba="1 1 0 0"/>
-                                                                                                              <site name="S_last" pos="0.008 0 0" size="0.0027"/>
-                                                                                                              <body name="B_last2" pos="0.008 0 0"/>
-                                                                                                              <body>
-                                                                                                                <geom size="0.003" pos="0.008 0 0" contype="0" conaffinity="0" condim="1" mass="0.424161" rgba="0 0 0 1"/>
-                                                                                                              </body>
-                                                                                                            </body>
-                                                                                                          </body>
-                                                                                                        </body>
-                                                                                                      </body>
-                                                                                                    </body>
-                                                                                                  </body>
-                                                                                                </body>
-                                                                                              </body>
-                                                                                            </body>
-                                                                                          </body>
-                                                                                        </body>
-                                                                                      </body>
+        <body name="B_1" pos="0.23225 0 0">
+          <joint name="J_1" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.5"/>
+          <geom name="G1" size="0.025 0.1161" pos="0.116125 0 0" quat="0.707107 0 -0.707107 0" type="capsule" contype="0" conaffinity="0" condim="1" solref="0.001" rgba="0.1 0.0533333 0.673333 1"/>
+          <site name="S_1" pos="0 0 0" size="0.0225" rgba="0 0 0 0"/>
+          <body name="B_2" pos="0.23225 0 0">
+            <joint name="J_2" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.5"/>
+            <geom name="G2" size="0.025 0.1161" pos="0.116125 0 0" quat="0.707107 0 -0.707107 0" type="capsule" contype="0" conaffinity="0" condim="1" solref="0.001" rgba="0.1 0.0533333 0.673333 1"/>
+            <site name="S_2" pos="0 0 0" size="0.0225" rgba="0 0 0 0"/>
+            <body name="B_3" pos="0.23225 0 0">
+              <joint name="J_3" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.5"/>
+              <geom name="G3" size="0.025 0.1161" pos="0.116125 0 0" quat="0.707107 0 -0.707107 0" type="capsule" contype="0" conaffinity="0" condim="1" solref="0.001" rgba="0.1 0.0533333 0.673333 1"/>
+              <site name="S_3" pos="0 0 0" size="0.0225" rgba="0 0 0 0"/>
+              <body name="B_4" pos="0.23225 0 0">
+                <joint name="J_4" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.5"/>
+                <geom name="G4" size="0.025 0.1161" pos="0.116125 0 0" quat="0.707107 0 -0.707107 0" type="capsule" contype="0" conaffinity="0" condim="1" solref="0.001" rgba="0.1 0.0533333 0.673333 1"/>
+                <site name="S_4" pos="0 0 0" size="0.0225" rgba="0 0 0 0"/>
+                <body name="B_5" pos="0.23225 0 0">
+                  <joint name="J_5" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.5"/>
+                  <geom name="G5" size="0.025 0.1161" pos="0.116125 0 0" quat="0.707107 0 -0.707107 0" type="capsule" contype="0" conaffinity="0" condim="1" solref="0.001" rgba="0.1 0.0533333 0.673333 1"/>
+                  <site name="S_5" pos="0 0 0" size="0.0225" rgba="0 0 0 0"/>
+                  <body name="B_6" pos="0.23225 0 0">
+                    <joint name="J_6" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.5"/>
+                    <geom name="G6" size="0.025 0.1161" pos="0.116125 0 0" quat="0.707107 0 -0.707107 0" type="capsule" contype="0" conaffinity="0" condim="1" solref="0.001" rgba="0.1 0.0533333 0.673333 1"/>
+                    <site name="S_6" pos="0 0 0" size="0.0225" rgba="0 0 0 0"/>
+                    <body name="B_7" pos="0.23225 0 0">
+                      <joint name="J_7" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.5"/>
+                      <geom name="G7" size="0.025 0.1161" pos="0.116125 0 0" quat="0.707107 0 -0.707107 0" type="capsule" contype="0" conaffinity="0" condim="1" solref="0.001" rgba="0.1 0.0533333 0.673333 1"/>
+                      <site name="S_7" pos="0 0 0" size="0.0225" rgba="0 0 0 0"/>
+                      <body name="B_8" pos="0.23225 0 0">
+                        <joint name="J_8" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.5"/>
+                        <geom name="G8" size="0.025 0.1161" pos="0.116125 0 0" quat="0.707107 0 -0.707107 0" type="capsule" contype="0" conaffinity="0" condim="1" solref="0.001" rgba="0.1 0.0533333 0.673333 1"/>
+                        <site name="S_8" pos="0 0 0" size="0.0225" rgba="0 0 0 0"/>
+                        <body name="B_9" pos="0.23225 0 0">
+                          <joint name="J_9" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.5"/>
+                          <geom name="G9" size="0.025 0.1161" pos="0.116125 0 0" quat="0.707107 0 -0.707107 0" type="capsule" contype="0" conaffinity="0" condim="1" solref="0.001" rgba="0.1 0.0533333 0.673333 1"/>
+                          <site name="S_9" pos="0 0 0" size="0.0225" rgba="0 0 0 0"/>
+                          <body name="B_10" pos="0.23225 0 0">
+                            <joint name="J_10" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.5"/>
+                            <geom name="G10" size="0.025 0.1161" pos="0.116125 0 0" quat="0.707107 0 -0.707107 0" type="capsule" contype="0" conaffinity="0" condim="1" solref="0.001" rgba="0.1 0.0533333 0.673333 1"/>
+                            <site name="S_10" pos="0 0 0" size="0.0225" rgba="0 0 0 0"/>
+                            <body name="B_11" pos="0.23225 0 0">
+                              <joint name="J_11" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.5"/>
+                              <geom name="G11" size="0.025 0.1161" pos="0.116125 0 0" quat="0.707107 0 -0.707107 0" type="capsule" contype="0" conaffinity="0" condim="1" solref="0.001" rgba="0.1 0.0533333 0.673333 1"/>
+                              <site name="S_11" pos="0 0 0" size="0.0225" rgba="0 0 0 0"/>
+                              <body name="B_12" pos="0.23225 0 0">
+                                <joint name="J_12" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.5"/>
+                                <geom name="G12" size="0.025 0.1161" pos="0.116125 0 0" quat="0.707107 0 -0.707107 0" type="capsule" contype="0" conaffinity="0" condim="1" solref="0.001" rgba="0.1 0.0533333 0.673333 1"/>
+                                <site name="S_12" pos="0 0 0" size="0.0225" rgba="0 0 0 0"/>
+                                <body name="B_13" pos="0.23225 0 0">
+                                  <joint name="J_13" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.5"/>
+                                  <geom name="G13" size="0.025 0.1161" pos="0.116125 0 0" quat="0.707107 0 -0.707107 0" type="capsule" contype="0" conaffinity="0" condim="1" solref="0.001" rgba="0.1 0.0533333 0.673333 1"/>
+                                  <site name="S_13" pos="0 0 0" size="0.0225" rgba="0 0 0 0"/>
+                                  <body name="B_14" pos="0.23225 0 0">
+                                    <joint name="J_14" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.5"/>
+                                    <geom name="G14" size="0.025 0.1161" pos="0.116125 0 0" quat="0.707107 0 -0.707107 0" type="capsule" contype="0" conaffinity="0" condim="1" solref="0.001" rgba="0.1 0.0533333 0.673333 1"/>
+                                    <site name="S_14" pos="0 0 0" size="0.0225" rgba="0 0 0 0"/>
+                                    <body name="B_15" pos="0.23225 0 0">
+                                      <joint name="J_15" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.5"/>
+                                      <geom name="G15" size="0.025 0.1161" pos="0.116125 0 0" quat="0.707107 0 -0.707107 0" type="capsule" contype="0" conaffinity="0" condim="1" solref="0.001" rgba="0.1 0.0533333 0.673333 1"/>
+                                      <site name="S_15" pos="0 0 0" size="0.0225" rgba="0 0 0 0"/>
+                                      <body name="B_16" pos="0.23225 0 0">
+                                        <joint name="J_16" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.5"/>
+                                        <geom name="G16" size="0.025 0.1161" pos="0.116125 0 0" quat="0.707107 0 -0.707107 0" type="capsule" contype="0" conaffinity="0" condim="1" solref="0.001" rgba="0.1 0.0533333 0.673333 1"/>
+                                        <site name="S_16" pos="0 0 0" size="0.0225" rgba="0 0 0 0"/>
+                                        <body name="B_17" pos="0.23225 0 0">
+                                          <joint name="J_17" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.5"/>
+                                          <geom name="G17" size="0.025 0.1161" pos="0.116125 0 0" quat="0.707107 0 -0.707107 0" type="capsule" contype="0" conaffinity="0" condim="1" solref="0.001" rgba="0.1 0.0533333 0.673333 1"/>
+                                          <site name="S_17" pos="0 0 0" size="0.0225" rgba="0 0 0 0"/>
+                                          <body name="B_18" pos="0.23225 0 0">
+                                            <joint name="J_18" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.5"/>
+                                            <geom name="G18" size="0.025 0.1161" pos="0.116125 0 0" quat="0.707107 0 -0.707107 0" type="capsule" contype="0" conaffinity="0" condim="1" solref="0.001" rgba="0.1 0.0533333 0.673333 1"/>
+                                            <site name="S_18" pos="0 0 0" size="0.0225" rgba="0 0 0 0"/>
+                                            <body name="B_19" pos="0.23225 0 0">
+                                              <joint name="J_19" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.5"/>
+                                              <geom name="G19" size="0.025 0.1161" pos="0.116125 0 0" quat="0.707107 0 -0.707107 0" type="capsule" contype="0" conaffinity="0" condim="1" solref="0.001" rgba="0.1 0.0533333 0.673333 1"/>
+                                              <site name="S_19" pos="0 0 0" size="0.0225" rgba="0 0 0 0"/>
+                                              <body name="B_20" pos="0.23225 0 0">
+                                                <joint name="J_20" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.5"/>
+                                                <geom name="G20" size="0.025 0.1161" pos="0.116125 0 0" quat="0.707107 0 -0.707107 0" type="capsule" contype="0" conaffinity="0" condim="1" solref="0.001" rgba="0.1 0.0533333 0.673333 1"/>
+                                                <site name="S_20" pos="0 0 0" size="0.0225" rgba="0 0 0 0"/>
+                                                <site name="twistcylx_21" pos="0 0 0.05" quat="0.707107 0 0 -0.707107" size="0.001 0.05" group="1" type="cylinder" rgba="0 0 1 0"/>
+                                                <site name="twistcyly_21" pos="0 0.05 0" quat="0.707107 -0.707107 0 0" size="0.001 0.05" group="1" type="cylinder" rgba="1 1 0 0"/>
+                                                <body name="B_21" pos="0.23225 0 0">
+                                                  <joint name="J_21" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.5"/>
+                                                  <geom name="G21" size="0.025 0.1161" pos="0.116125 0 0" quat="0.707107 0 -0.707107 0" type="capsule" contype="0" conaffinity="0" condim="1" solref="0.001" rgba="0.1 0.0533333 0.673333 1"/>
+                                                  <site name="S_21" pos="0 0 0" size="0.0225" rgba="0 0 0 0"/>
+                                                  <body name="B_22" pos="0.23225 0 0">
+                                                    <joint name="J_22" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.5"/>
+                                                    <geom name="G22" size="0.025 0.1161" pos="0.116125 0 0" quat="0.707107 0 -0.707107 0" type="capsule" contype="0" conaffinity="0" condim="1" solref="0.001" rgba="0.1 0.0533333 0.673333 1"/>
+                                                    <site name="S_22" pos="0 0 0" size="0.0225" rgba="0 0 0 0"/>
+                                                    <body name="B_23" pos="0.23225 0 0">
+                                                      <joint name="J_23" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.5"/>
+                                                      <geom name="G23" size="0.025 0.1161" pos="0.116125 0 0" quat="0.707107 0 -0.707107 0" type="capsule" contype="0" conaffinity="0" condim="1" solref="0.001" rgba="0.1 0.0533333 0.673333 1"/>
+                                                      <site name="S_23" pos="0 0 0" size="0.0225" rgba="0 0 0 0"/>
+                                                      <body name="B_24" pos="0.23225 0 0">
+                                                        <joint name="J_24" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.5"/>
+                                                        <geom name="G24" size="0.025 0.1161" pos="0.116125 0 0" quat="0.707107 0 -0.707107 0" type="capsule" contype="0" conaffinity="0" condim="1" solref="0.001" rgba="0.1 0.0533333 0.673333 1"/>
+                                                        <site name="S_24" pos="0 0 0" size="0.0225" rgba="0 0 0 0"/>
+                                                        <body name="B_25" pos="0.23225 0 0">
+                                                          <joint name="J_25" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.5"/>
+                                                          <geom name="G25" size="0.025 0.1161" pos="0.116125 0 0" quat="0.707107 0 -0.707107 0" type="capsule" contype="0" conaffinity="0" condim="1" solref="0.001" rgba="0.1 0.0533333 0.673333 1"/>
+                                                          <site name="S_25" pos="0 0 0" size="0.0225" rgba="0 0 0 0"/>
+                                                          <body name="B_26" pos="0.23225 0 0">
+                                                            <joint name="J_26" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.5"/>
+                                                            <geom name="G26" size="0.025 0.1161" pos="0.116125 0 0" quat="0.707107 0 -0.707107 0" type="capsule" contype="0" conaffinity="0" condim="1" solref="0.001" rgba="0.1 0.0533333 0.673333 1"/>
+                                                            <site name="S_26" pos="0 0 0" size="0.0225" rgba="0 0 0 0"/>
+                                                            <body name="B_27" pos="0.23225 0 0">
+                                                              <joint name="J_27" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.5"/>
+                                                              <geom name="G27" size="0.025 0.1161" pos="0.116125 0 0" quat="0.707107 0 -0.707107 0" type="capsule" contype="0" conaffinity="0" condim="1" solref="0.001" rgba="0.1 0.0533333 0.673333 1"/>
+                                                              <site name="S_27" pos="0 0 0" size="0.0225" rgba="0 0 0 0"/>
+                                                              <body name="B_28" pos="0.23225 0 0">
+                                                                <joint name="J_28" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.5"/>
+                                                                <geom name="G28" size="0.025 0.1161" pos="0.116125 0 0" quat="0.707107 0 -0.707107 0" type="capsule" contype="0" conaffinity="0" condim="1" solref="0.001" rgba="0.1 0.0533333 0.673333 1"/>
+                                                                <site name="S_28" pos="0 0 0" size="0.0225" rgba="0 0 0 0"/>
+                                                                <body name="B_29" pos="0.23225 0 0">
+                                                                  <joint name="J_29" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.5"/>
+                                                                  <geom name="G29" size="0.025 0.1161" pos="0.116125 0 0" quat="0.707107 0 -0.707107 0" type="capsule" contype="0" conaffinity="0" condim="1" solref="0.001" rgba="0.1 0.0533333 0.673333 1"/>
+                                                                  <site name="S_29" pos="0 0 0" size="0.0225" rgba="0 0 0 0"/>
+                                                                  <body name="B_30" pos="0.23225 0 0">
+                                                                    <joint name="J_30" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.5"/>
+                                                                    <geom name="G30" size="0.025 0.1161" pos="0.116125 0 0" quat="0.707107 0 -0.707107 0" type="capsule" contype="0" conaffinity="0" condim="1" solref="0.001" rgba="0.1 0.0533333 0.673333 1"/>
+                                                                    <site name="S_30" pos="0 0 0" size="0.0225" rgba="0 0 0 0"/>
+                                                                    <body name="B_31" pos="0.23225 0 0">
+                                                                      <joint name="J_31" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.5"/>
+                                                                      <geom name="G31" size="0.025 0.1161" pos="0.116125 0 0" quat="0.707107 0 -0.707107 0" type="capsule" contype="0" conaffinity="0" condim="1" solref="0.001" rgba="0.1 0.0533333 0.673333 1"/>
+                                                                      <site name="S_31" pos="0 0 0" size="0.0225" rgba="0 0 0 0"/>
+                                                                      <body name="B_32" pos="0.23225 0 0">
+                                                                        <joint name="J_32" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.5"/>
+                                                                        <geom name="G32" size="0.025 0.1161" pos="0.116125 0 0" quat="0.707107 0 -0.707107 0" type="capsule" contype="0" conaffinity="0" condim="1" solref="0.001" rgba="0.1 0.0533333 0.673333 1"/>
+                                                                        <site name="S_32" pos="0 0 0" size="0.0225" rgba="0 0 0 0"/>
+                                                                        <body name="B_33" pos="0.23225 0 0">
+                                                                          <joint name="J_33" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.5"/>
+                                                                          <geom name="G33" size="0.025 0.1161" pos="0.116125 0 0" quat="0.707107 0 -0.707107 0" type="capsule" contype="0" conaffinity="0" condim="1" solref="0.001" rgba="0.1 0.0533333 0.673333 1"/>
+                                                                          <site name="S_33" pos="0 0 0" size="0.0225" rgba="0 0 0 0"/>
+                                                                          <body name="B_34" pos="0.23225 0 0">
+                                                                            <joint name="J_34" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.5"/>
+                                                                            <geom name="G34" size="0.025 0.1161" pos="0.116125 0 0" quat="0.707107 0 -0.707107 0" type="capsule" contype="0" conaffinity="0" condim="1" solref="0.001" rgba="0.1 0.0533333 0.673333 1"/>
+                                                                            <site name="S_34" pos="0 0 0" size="0.0225" rgba="0 0 0 0"/>
+                                                                            <body name="B_35" pos="0.23225 0 0">
+                                                                              <joint name="J_35" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.5"/>
+                                                                              <geom name="G35" size="0.025 0.1161" pos="0.116125 0 0" quat="0.707107 0 -0.707107 0" type="capsule" contype="0" conaffinity="0" condim="1" solref="0.001" rgba="0.1 0.0533333 0.673333 1"/>
+                                                                              <site name="S_35" pos="0 0 0" size="0.0225" rgba="0 0 0 0"/>
+                                                                              <body name="B_36" pos="0.23225 0 0">
+                                                                                <joint name="J_36" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.5"/>
+                                                                                <geom name="G36" size="0.025 0.1161" pos="0.116125 0 0" quat="0.707107 0 -0.707107 0" type="capsule" contype="0" conaffinity="0" condim="1" solref="0.001" rgba="0.1 0.0533333 0.673333 1"/>
+                                                                                <site name="S_36" pos="0 0 0" size="0.0225" rgba="0 0 0 0"/>
+                                                                                <body name="B_37" pos="0.23225 0 0">
+                                                                                  <joint name="J_37" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.5"/>
+                                                                                  <geom name="G37" size="0.025 0.1161" pos="0.116125 0 0" quat="0.707107 0 -0.707107 0" type="capsule" contype="0" conaffinity="0" condim="1" solref="0.001" rgba="0.1 0.0533333 0.673333 1"/>
+                                                                                  <site name="S_37" pos="0 0 0" size="0.0225" rgba="0 0 0 0"/>
+                                                                                  <body name="B_38" pos="0.23225 0 0">
+                                                                                    <joint name="J_38" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.5"/>
+                                                                                    <geom name="G38" size="0.025 0.1161" pos="0.116125 0 0" quat="0.707107 0 -0.707107 0" type="capsule" contype="0" conaffinity="0" condim="1" solref="0.001" rgba="0.1 0.0533333 0.673333 1"/>
+                                                                                    <site name="S_38" pos="0 0 0" size="0.0225" rgba="0 0 0 0"/>
+                                                                                    <body name="B_last" pos="0.23225 0 0">
+                                                                                      <joint name="J_last" pos="0 0 0" type="ball" actuatorfrclimited="false" damping="0.5"/>
+                                                                                      <geom name="G39" size="0.025 0.1161" pos="0.116125 0 0" quat="0.707107 0 -0.707107 0" type="capsule" contype="0" conaffinity="0" condim="1" solref="0.001" rgba="0.1 0.0533333 0.673333 1"/>
+                                                                                      <site name="S_39" pos="0 0 0" size="0.0225" rgba="0 0 0 0"/>
+                                                                                      <site name="twistcylx_40" pos="0 0 0.05" quat="0.707107 0 0 -0.707107" size="0.001 0.05" group="1" type="cylinder" rgba="0 0 1 0"/>
+                                                                                      <site name="twistcyly_40" pos="0 0.05 0" quat="0.707107 -0.707107 0 0" size="0.001 0.05" group="1" type="cylinder" rgba="1 1 0 0"/>
+                                                                                      <site name="S_last" pos="0.23225 0 0" size="0.0225"/>
+                                                                                      <body name="B_last2" pos="0.23225 0 0"/>
                                                                                     </body>
                                                                                   </body>
                                                                                 </body>
@@ -359,33 +242,55 @@
       </body>
     </body>
   </worldbody>
-
   <contact>
     <exclude body1="eef_body" body2="B_first"/>
-    <exclude body1="eef_body" body2="B_50"/>
+    <exclude body1="eef_body" body2="B_38"/>
     <exclude body1="eef_body" body2="B_last"/>
     <exclude body1="B_first" body2="B_1"/>
-    <exclude body1="B_first" body2="B_50"/>
+    <exclude body1="B_first" body2="B_38"/>
     <exclude body1="B_first" body2="B_last"/>
+    <exclude body1="B_1" body2="B_2"/>
     <exclude body1="B_1" body2="B_last"/>
+    <exclude body1="B_2" body2="B_3"/>
+    <exclude body1="B_3" body2="B_4"/>
+    <exclude body1="B_4" body2="B_5"/>
+    <exclude body1="B_5" body2="B_6"/>
+    <exclude body1="B_6" body2="B_7"/>
+    <exclude body1="B_7" body2="B_8"/>
+    <exclude body1="B_8" body2="B_9"/>
+    <exclude body1="B_9" body2="B_10"/>
+    <exclude body1="B_10" body2="B_11"/>
+    <exclude body1="B_11" body2="B_12"/>
+    <exclude body1="B_12" body2="B_13"/>
+    <exclude body1="B_13" body2="B_14"/>
+    <exclude body1="B_14" body2="B_15"/>
+    <exclude body1="B_15" body2="B_16"/>
+    <exclude body1="B_16" body2="B_17"/>
+    <exclude body1="B_17" body2="B_18"/>
+    <exclude body1="B_18" body2="B_19"/>
+    <exclude body1="B_19" body2="B_20"/>
+    <exclude body1="B_20" body2="B_21"/>
+    <exclude body1="B_21" body2="B_22"/>
+    <exclude body1="B_22" body2="B_23"/>
+    <exclude body1="B_23" body2="B_24"/>
+    <exclude body1="B_24" body2="B_25"/>
+    <exclude body1="B_25" body2="B_26"/>
+    <exclude body1="B_26" body2="B_27"/>
+    <exclude body1="B_27" body2="B_28"/>
+    <exclude body1="B_28" body2="B_29"/>
+    <exclude body1="B_29" body2="B_30"/>
+    <exclude body1="B_30" body2="B_31"/>
+    <exclude body1="B_31" body2="B_32"/>
+    <exclude body1="B_32" body2="B_33"/>
+    <exclude body1="B_33" body2="B_34"/>
+    <exclude body1="B_34" body2="B_35"/>
+    <exclude body1="B_35" body2="B_36"/>
+    <exclude body1="B_36" body2="B_37"/>
+    <exclude body1="B_37" body2="B_38"/>
+    <exclude body1="B_38" body2="B_last"/>
   </contact>
-
   <equality>
-    <weld body1="B_last" body2="eef_body" anchor="0 0 0" relpose="0.395 0 -0.775 0 0 -1 0" torquescale="1" solref="0.001"/>
+    <weld body1="B_last" body2="eef_body" anchor="0 0 0" torquescale="1" relpose="0.23225 0 0 0 0 -1 0" solref="0.001"/>
+    <weld body1="B_first" body2="eef_body2" anchor="0 0 0" torquescale="1" relpose="0 0 0 0 0 -1 0" solref="0.001"/>
   </equality>
-
-  <actuator>
-    <general name="j1_act" joint="j1" ctrlrange="-2.93739 2.93739" biastype="affine" gainprm="10000" biasprm="0 -10000 -200"/>
-    <general name="j2_act" joint="j2" ctrlrange="-2.07346 2.07346" biastype="affine" gainprm="100" biasprm="0 -100 -10"/>
-    <general name="j3_act" joint="j3" ctrlrange="-2.15723 2.68083" biastype="affine" gainprm="1500" biasprm="0 -1500 -100"/>
-    <general name="j4_act" joint="j4" ctrlrange="-4.66527 4.66527" biastype="affine" gainprm="100" biasprm="0 -100 -20"/>
-    <general name="j5_act" joint="j5" ctrlrange="-2.07346 2.07346" biastype="affine" gainprm="100" biasprm="0 -100 -10"/>
-    <general name="flange_act" joint="flange" ctrlrange="-6.22036 6.22036" biastype="affine" gainprm="100" biasprm="0 -100"/>
-    <general name="torq_j1" joint="j1" ctrllimited="true" ctrlrange="-80 80"/>
-    <general name="torq_j2" joint="j2" ctrllimited="true" ctrlrange="-80 80"/>
-    <general name="torq_j3" joint="j3" ctrllimited="true" ctrlrange="-80 80"/>
-    <general name="torq_j4" joint="j4" ctrllimited="true" ctrlrange="-80 80"/>
-    <general name="torq_j5" joint="j5" ctrllimited="true" ctrlrange="-80 80"/>
-    <general name="torq_flange" joint="flange" ctrllimited="true" ctrlrange="-12 12"/>
-  </actuator>
 </mujoco>
