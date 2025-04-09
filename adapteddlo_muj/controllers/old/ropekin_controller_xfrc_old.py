@@ -30,10 +30,9 @@ import mujoco
 import adapteddlo_muj.utils.transform_utils as T
 import adapteddlo_muj.controllers.dlo_cpp.Dlo_iso as Dlo_iso
 import adapteddlo_muj.utils.mjc2_utils as mjc2
-from adapteddlo_muj.utils.dlo_utils import force2torq
 # from adapteddlo_muj.utils.filters import ButterLowPass
 
-class DLORopeAdapt:
+class DLORopeXfrc:
     # Base rope controller is for both ends fixed
     def __init__(
         self,
@@ -43,15 +42,11 @@ class DLORopeAdapt:
         overall_rot=0.,
         alpha_bar=1.345/10,
         beta_bar=0.789/10,
-        bothweld=True,
         f_limit=1000.,  # used only for LHB test
         incl_prevf=False
     ):
         self.model = model
         self.data = data
-
-        # type of force application
-        self.bothweld = bothweld
 
         # init variable
         self.d_vec = 0
@@ -67,15 +62,11 @@ class DLORopeAdapt:
         self.e = np.zeros((self.nv+1,3))
 
         self.force_node = np.zeros((self.nv+2,3))
-        self.torq_node = np.zeros((self.nv+2,3))
-        # self.torq_node_global = np.zeros((self.nv+2,3))
         self.incl_prevf = incl_prevf
         if self.incl_prevf:
             self.force_node_prev = np.zeros((self.nv+2,3))
             self.prevf_ratio = 0.1
         self.force_node_flat = self.force_node.flatten()
-        self.torq_node_flat = self.torq_node.flatten()
-        # self.torq_node_global_flat = self.torq_node_global.flatten()
 
         self.reset_rot = overall_rot 
         self.overall_rot = self.reset_rot
@@ -116,7 +107,6 @@ class DLORopeAdapt:
                 self.model.jnt_dofadr[self.dlo_joint_ids[-1]]
             )
         self.dlo_joint_qveladdr = np.array(self.dlo_joint_qveladdr)
-        self.qvel0_addr = np.min(self.dlo_joint_qveladdr)
         self.dlo_joint_qveladdr_full = [
             n for n in range(
                 self.dlo_joint_qveladdr[0],
@@ -135,7 +125,7 @@ class DLORopeAdapt:
 
     def _init_sitebody(self):
         for i in range(self.d_vec, self.nv+2 + self.d_vec):
-            ii = i
+            ii = (self.nv+1 + 2*self.d_vec) - i
             ii_s = ii
             ii_b = ii
             if ii == (self.nv+1):
@@ -153,14 +143,14 @@ class DLORopeAdapt:
             self.vec_bodyid[i - self.d_vec] = mjc2.obj_name2id(
                 self.model,"body",'B_{}'.format(ii_b)
             )
-        self.ropestart_bodyid = mjc2.obj_name2id(
+        self.ropeend_bodyid = mjc2.obj_name2id(
             self.model,"body",'stiffrope'
         )
         self.startsec_site = mjc2.obj_name2id(
-            self.model,"site",'S_first'.format(self.nv+1 + self.d_vec)
+            self.model,"site",'S_last'.format(self.nv+1 + self.d_vec)
         )
         self.endsec_site = mjc2.obj_name2id(
-            self.model,"site",'S_last'.format(1 + self.d_vec)
+            self.model,"site",'S_first'.format(1 + self.d_vec)
         )
 
     def _update_xvecs(self):
@@ -223,32 +213,32 @@ class DLORopeAdapt:
         return bf_align
 
     def get_dlosim(self):
-        ropestart_pos = self.model.body_pos[
-            self.ropestart_bodyid,:
+        ropeend_pos = self.model.body_pos[
+            self.ropeend_bodyid,:
         ].copy()
-        ropestart_quat = self.model.body_quat[
-            self.ropestart_bodyid,:
+        ropeend_quat = self.model.body_quat[
+            self.ropeend_bodyid,:
         ].copy()
         return (
-            ropestart_pos,
-            ropestart_quat,
+            ropeend_pos,
+            ropeend_quat,
             self.overall_rot,
             self.p_thetan
         )
 
     def set_dlosim(
         self,
-        ropestart_pos,
-        ropestart_quat,
+        ropeend_pos,
+        ropeend_quat,
         overall_rot,
         p_thetan
     ):
         self.model.body_pos[
-            self.ropestart_bodyid,:
-        ] = ropestart_pos
+            self.ropeend_bodyid,:
+        ] = ropeend_pos
         self.model.body_quat[
-            self.ropestart_bodyid,:
-        ] = ropestart_quat
+            self.ropeend_bodyid,:
+        ] = ropeend_quat
         self.overall_rot = overall_rot
         # self.overall_rot = 27.*(2.*np.pi)
         self.p_thetan = p_thetan
@@ -372,17 +362,8 @@ class DLORopeAdapt:
         self.force_node = self.force_node_flat.reshape((self.nv+2,3))
         if self.incl_prevf:
             self._incl_prevforce()
-
-    def _calc_centerlineTorq(self, excl_joints):
-        body_quats_flat = self.data.xquat[self.vec_bodyid[:]].flatten()
-        self.dlo_math.calculateCenterlineTorq(
-            self.torq_node_flat,
-            # self.torq_node_global_flat,
-            body_quats_flat,
-            excl_joints
-        )
-        self.torq_node = self.torq_node_flat.reshape((self.nv+2,3))
-        # self.torq_node_global = self.torq_node_global_flat.reshape((self.nv+2,3))
+        # print('force = ')
+        # print(self.force_node)
 
     def _limit_force(self, f1):
         # limit the force on each node to self.f_limit
@@ -419,110 +400,52 @@ class DLORopeAdapt:
             self.vec_bodyid[:]
         )
 
-    def update_force(
-            self,
-        ):
+    def update_force(self, f_scale=1.0, limit_f=False, limit_f_indiv=False, damp_f=False):
         # t1 = time()
         bf_align = self._update_dlo_cpp()
+        # excl_joints = 2 - 2*self.d_vec # 2 joints excluded from each side (no force)
         # t2 = time()
-
         self._calc_centerlineF()
         self.avg_force = np.linalg.norm(self.force_node)/len(self.force_node)
+        # t3 = time()
+
+        # if limit_f:
+        #     self._limit_totalforce()
+        # if limit_f_indiv:
+        #     self._limit_force(self.force_node)
 
         excl_joints = 0
         ids_i = range(excl_joints,self.nv+2-excl_joints)
 
-        # force 2 torq compute
-        """
-        add new cpp code to do force2torq:
-            - new func called _calc_centerlineTorq -- calculateCenterlineTorq:
-                - inputs: arr body_quats_flat, int excl_joints
-                - output: arr torq_node_flat
-                - content: 
-                    - make excl_joints global (to use in subfuncs)
-                    - get adj_dist
-                    - force2torq func:
-                        - make create_distmatrix func -- get distmat 
-                        - make torqvec func -- get torq_node
-                    - combine next two into the same loop
-                        - make quat_inverse_many func:
-                            - how to negative quat
-                        - make mju_rotVecQuat -- get rotated torq
-        """
-        adj_dist = self.x[1:] - self.x[:-1]
-        self.torq_node = force2torq(self.force_node, adj_dist, ids_i)
-        # Get bodyquats
-        # t3 = time()
-        body_invquat = T.quat_inverse_many(self.data.xquat[self.vec_bodyid[:]])
-        for i in range(1,len(self.torq_node)):
-            mujoco.mju_rotVecQuat(self.torq_node[i], self.torq_node[i], body_invquat[i])
-        self.torq_node = np.flip(self.torq_node,0)
+        self.data.xfrc_applied[self.vec_bodyid[ids_i],:3] = (
+            f_scale * self.force_node[ids_i]
+        )
+
+        # for i in ids_i:
+            # mujoco.mj_applyFT(
+                # self.model,self.data,
+                # self.force_node[i],
+                # np.zeros(3),
+                # self.x[i],
+                # self.vec_bodyid[i],
+                # self.data.qfrc_passive
+            # )
         # t4 = time()
-
-        # if self.bothweld:
-        #     self.data.qfrc_passive[self.qvel0_addr+3:] += self.torq_node[:-1].flatten()
-        #     self.data.qfrc_passive[self.qvel0_addr:3] = np.sum(self.force_node[excl_joints:-excl_joints],axis=0)
-        # else:
-        #     # self.data.qfrc_passive[3:6] -= self.torq_node[0].flatten()
-        #     self.data.qfrc_passive[self.qvel0_addr:] += self.torq_node[1:-1].flatten()
-
-        # self.data.xfrc_applied[self.vec_bodyid[0],3:] = self.torq_node[-1]
-        # t5 = time()
         # print("hi")
         # print(t2-t1)
         # print(t3-t2)
         # print(t4-t3)
-        # print(t5-t4)
-        # print(t4-t2)
-        # print(t4a-t4)
 
         return self.force_node.copy(), self.x.copy(), bf_align
-
-    def update_torque(self):
-        # t1 = time()
-        bf_align = self._update_dlo_cpp()
-        # t2 = time()
-
-        excl_joints = 0
-
-        # force 2 torq compute
-        """
-        add new cpp code to do force2torq:
-            - new func called _calc_centerlineTorq -- calculateCenterlineTorq:
-                - in cpp for a ~50x speed up (7e-4 to 1.5e-5)
-                - inputs: arr body_quats_flat, int excl_joints
-                - output: arr torq_node_flat
-                - content: 
-                    - make excl_joints global (to use in subfuncs)
-                    - get adj_dist
-                    - force2torq func:
-                        - make create_distmatrix func -- get distmat 
-                        - make torqvec func -- get torq_node
-                    - combine next two into the same loop
-                        - make quat_inverse_many func:
-                            - how to negative quat
-                        - make mju_rotVecQuat -- get rotated torq
-        """
-        self._calc_centerlineTorq(excl_joints=excl_joints)
-
-        if self.bothweld:
-            self.data.qfrc_passive[self.qvel0_addr-3:] += self.torq_node[:-1].flatten()
-            # self.data.qfrc_passive[:3] = np.sum(self.force_node[excl_joints:-excl_joints],axis=0)
-            pass
-        else:
-            self.data.qfrc_passive[self.qvel0_addr:] += self.torq_node[1:-1].flatten()
-        # self.data.xfrc_applied[self.vec_bodyid[0],3:] = np.sum(self.torq_node_global,axis=0)
-        # self.data.xfrc_applied[self.vec_bodyid[-1],3:] = - np.sum(self.torq_node_global,axis=0)
-        # self.data.xfrc_applied[self.vec_bodyid[-1],3:] = -10*self.torq_node[0]
-
+    
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~|| Other things ||~~~~~~~~~~~~~~~~~~~~~~~~~~
-    def ropestart_rot(self, rot_a=np.pi/180):
+    def ropeend_rot(self, rot_a=np.pi/180):
         rot_quat = T.axisangle2quat(np.array([rot_a, 0., 0.]))
-        new_quat = T.quat_multiply(rot_quat, self.model.body_quat[self.ropestart_bodyid])
-        self.model.body_quat[self.ropestart_bodyid] = new_quat
+        new_quat = T.quat_multiply(rot_quat, self.model.body_quat[self.ropeend_bodyid])
+        self.model.body_quat[self.ropeend_bodyid] = new_quat
 
-    def ropestart_pos(self, pos_move=np.array([0., -1e-4, 0.])):
-        self.model.body_pos[self.ropestart_bodyid][:] += pos_move.copy()
+    def ropeend_pos(self, pos_move=np.array([0., -1e-4, 0.])):
+        self.model.body_pos[self.ropeend_bodyid][:] += pos_move.copy()
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~|End of Class|~~~~~~~~~~~~~~~~~~~~~~~~

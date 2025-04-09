@@ -366,15 +366,15 @@ void DLO_iso::calculateCenterlineTorq(
         distmat[i].block(0,0,i-1,3) = \
             distmat[i-1].block(0,0,i-1,3).array().rowwise() \
             + distmat[i].row(i-1).array();
-        // distmat[i-1] = - distmat[i-1];
+        distmat[i-1] = - distmat[i-1];
         for (int j = 0; j < (i); j++) {
-            distmat[j].row(i) = distmat[i].row(j);
+            distmat[j].row(i) = - distmat[i].row(j);
         }
     }
     // extra for id 1:
     distmat[0].row(1) = distmat[1].row(0); // not negative - alr done
-    // // extra for id nv+1:
-    // distmat[nv+1] = - distmat[nv+1];
+    // extra for id nv+1:
+    distmat[nv+1] = - distmat[nv+1];
     // for (int i = 2; i < (nv+2); i++) {
     //     std::cout << i << std::endl;
     //     std::cout << distmat[i].block(0,0,i-1,3) << std::endl;
@@ -391,7 +391,7 @@ void DLO_iso::calculateCenterlineTorq(
     // update force on actual simulation
     for (int i = 0; i < (nv+2); i++) {
         for (int j = 0; j < 3; j++) {
-            node_torq[3*i+j] = nodes[i].torq(j);
+            node_torq[3*i+j] = nodes[nv+1-i].torq(j);
             // node_torq_global[3*i+j] = nodes[nv+1-i].torq_global(j);
         }
     }

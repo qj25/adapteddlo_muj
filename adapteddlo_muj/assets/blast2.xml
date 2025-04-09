@@ -1,5 +1,5 @@
 <mujoco model="blast2">
   <worldbody>
-    <body name="B_last2" pos="0.008 0 0"/>
+    <body name="B_last2" pos="0.23224999999999998 0 0"/>
   </worldbody>
 </mujoco>
