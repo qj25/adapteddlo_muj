@@ -1,5 +1,5 @@
 <worldbody>
    <body pos="0. 0. 0.">
-       <geom pos="0.23224999999999998 0 0" type="sphere" size="0.0250" rgba="0.1 0.05333333333333334 0.6733333333333333 1" mass="729.6348937962294" conaffinity="0" contype="0" condim="1"/>
+       <geom pos="0.12566370614359174 0 0" type="sphere" size="0.0250" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" mass="503.3498244555573" conaffinity="0" contype="0" condim="1"/>
    </body>
 </worldbody>
