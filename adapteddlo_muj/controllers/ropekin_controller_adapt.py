@@ -123,6 +123,7 @@ class DLORopeAdapt:
                 self.dlo_joint_qveladdr[-1] + 3
             )
         ]
+        self.qvellast_addr = np.max(self.dlo_joint_qveladdr_full)
         self.rotx_qveladdr = self.dlo_joint_qveladdr[:] + 2
         self.rxqva_len = len(self.rotx_qveladdr)
 
@@ -506,11 +507,11 @@ class DLORopeAdapt:
         self._calc_centerlineTorq(excl_joints=excl_joints)
 
         if self.bothweld:
-            self.data.qfrc_passive[self.qvel0_addr-3:] += self.torq_node[:-1].flatten()
+            self.data.qfrc_passive[self.qvel0_addr-3:self.qvellast_addr+1] += self.torq_node[:-1].flatten()
             # self.data.qfrc_passive[:3] = np.sum(self.force_node[excl_joints:-excl_joints],axis=0)
             pass
         else:
-            self.data.qfrc_passive[self.qvel0_addr:] += self.torq_node[1:-1].flatten()
+            self.data.qfrc_passive[self.qvel0_addr:self.qvellast_addr+1] += self.torq_node[1:-1].flatten()
         # self.data.xfrc_applied[self.vec_bodyid[0],3:] = np.sum(self.torq_node_global,axis=0)
         # self.data.xfrc_applied[self.vec_bodyid[-1],3:] = - np.sum(self.torq_node_global,axis=0)
         # self.data.xfrc_applied[self.vec_bodyid[-1],3:] = -10*self.torq_node[0]
