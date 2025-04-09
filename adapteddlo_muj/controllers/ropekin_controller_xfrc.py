@@ -125,7 +125,7 @@ class DLORopeXfrc:
 
     def _init_sitebody(self):
         for i in range(self.d_vec, self.nv+2 + self.d_vec):
-            ii = (self.nv+1 + 2*self.d_vec) - i
+            ii = i
             ii_s = ii
             ii_b = ii
             if ii == (self.nv+1):
@@ -143,14 +143,14 @@ class DLORopeXfrc:
             self.vec_bodyid[i - self.d_vec] = mjc2.obj_name2id(
                 self.model,"body",'B_{}'.format(ii_b)
             )
-        self.ropeend_bodyid = mjc2.obj_name2id(
+        self.ropestart_bodyid = mjc2.obj_name2id(
             self.model,"body",'stiffrope'
         )
         self.startsec_site = mjc2.obj_name2id(
-            self.model,"site",'S_last'.format(self.nv+1 + self.d_vec)
+            self.model,"site",'S_first'.format(self.nv+1 + self.d_vec)
         )
         self.endsec_site = mjc2.obj_name2id(
-            self.model,"site",'S_first'.format(1 + self.d_vec)
+            self.model,"site",'S_last'.format(1 + self.d_vec)
         )
 
     def _update_xvecs(self):
@@ -213,32 +213,32 @@ class DLORopeXfrc:
         return bf_align
 
     def get_dlosim(self):
-        ropeend_pos = self.model.body_pos[
-            self.ropeend_bodyid,:
+        ropestart_pos = self.model.body_pos[
+            self.ropestart_bodyid,:
         ].copy()
-        ropeend_quat = self.model.body_quat[
-            self.ropeend_bodyid,:
+        ropestart_quat = self.model.body_quat[
+            self.ropestart_bodyid,:
         ].copy()
         return (
-            ropeend_pos,
-            ropeend_quat,
+            ropestart_pos,
+            ropestart_quat,
             self.overall_rot,
             self.p_thetan
         )
 
     def set_dlosim(
         self,
-        ropeend_pos,
-        ropeend_quat,
+        ropestart_pos,
+        ropestart_quat,
         overall_rot,
         p_thetan
     ):
         self.model.body_pos[
-            self.ropeend_bodyid,:
-        ] = ropeend_pos
+            self.ropestart_bodyid,:
+        ] = ropestart_pos
         self.model.body_quat[
-            self.ropeend_bodyid,:
-        ] = ropeend_quat
+            self.ropestart_bodyid,:
+        ] = ropestart_quat
         self.overall_rot = overall_rot
         # self.overall_rot = 27.*(2.*np.pi)
         self.p_thetan = p_thetan
@@ -439,13 +439,13 @@ class DLORopeXfrc:
         return self.force_node.copy(), self.x.copy(), bf_align
     
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~|| Other things ||~~~~~~~~~~~~~~~~~~~~~~~~~~
-    def ropeend_rot(self, rot_a=np.pi/180):
+    def ropestart_rot(self, rot_a=np.pi/180):
         rot_quat = T.axisangle2quat(np.array([rot_a, 0., 0.]))
-        new_quat = T.quat_multiply(rot_quat, self.model.body_quat[self.ropeend_bodyid])
-        self.model.body_quat[self.ropeend_bodyid] = new_quat
+        new_quat = T.quat_multiply(rot_quat, self.model.body_quat[self.ropestart_bodyid])
+        self.model.body_quat[self.ropestart_bodyid] = new_quat
 
-    def ropeend_pos(self, pos_move=np.array([0., -1e-4, 0.])):
-        self.model.body_pos[self.ropeend_bodyid][:] += pos_move.copy()
+    def ropestart_pos(self, pos_move=np.array([0., -1e-4, 0.])):
+        self.model.body_pos[self.ropestart_bodyid][:] += pos_move.copy()
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~|End of Class|~~~~~~~~~~~~~~~~~~~~~~~~
