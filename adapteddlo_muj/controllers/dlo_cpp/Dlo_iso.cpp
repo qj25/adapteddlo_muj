@@ -14,19 +14,12 @@
 
 /*
 note:
-*A* Nodes are in reversed order from MuJoCo (incl. the python part)
-    (i.e., child defined as node 0, parents as node n)
-    torque defined is from parent on child, from n to 0
-    therefore it is same sign but reversed order from MuJoCo.
-    e.g.,   MuJoCo_numbering:   0a   1a   2a   3a
-            DER_numbering:      3b   2b   1b   0b
-        torques are from 3b to 2b (consistent w MuJ - 0a to 1a),
-        define in nodes order 0b to 3b (opposite of MuJ - 3a to 0a)
+*A* Nodes and torques are defined in the same manner as in MuJoCo.
 
 *B* Distance matrix defined:
     final distmat[a].row(b) = distmat[b].row(a) 
     is the distance from a to b (b-a)
-    such that b < a,
+    such that a < b,
     JUST USE negative to get a to b!
     this distance.cross(force) will give the torque direction in *A*.
 */
