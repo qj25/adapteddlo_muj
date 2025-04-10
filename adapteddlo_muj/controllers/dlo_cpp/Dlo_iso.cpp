@@ -47,7 +47,7 @@ DLO_iso::DLO_iso(
     alpha_bar = a_bar;
     beta_bar = b_bar;
 
-    Eigen::Matrix<double, Eigen::Dynamic, 3> dist1(nv+2, 3);
+    Eigen::MatrixXd dist1(nv+2, 3);
     for (int i = 0; i < (nv+1); i++) {
         edges.push_back(e1);
         nodes.push_back(x1);
@@ -393,8 +393,8 @@ void DLO_iso::calculateCenterlineTorq(
 void DLO_iso::calculateF2LocalTorq()
 {
     // Eigen::MatrixXd torqvec_indiv(nv+2,3);
-    Eigen::Matrix<double, Eigen::Dynamic, 3> torqvec(nv+2,3);
-    Eigen::Matrix<double, Eigen::Dynamic, 3> torqvec_indiv(nv+2, 3);
+    Eigen::MatrixXd torqvec(nv+2,3);
+    Eigen::MatrixXd torqvec_indiv(nv+2,3);
     for (int i = 0; i < (nv+2); i++) {
         torqvec.row(i) << 0., 0., 0.;
     }
