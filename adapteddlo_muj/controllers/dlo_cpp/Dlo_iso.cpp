@@ -206,7 +206,7 @@ bool DLO_iso::transfBF(const Eigen::Matrix3d &bf_0)
     return bf_align;
 }
 
-void DLO_iso::updateThetaN(const double theta_n)
+void DLO_iso::updateThetaN_old(const double theta_n)
 {
     double diff_theta = theta_n - p_thetan;
     int t_n_whole;
@@ -233,6 +233,25 @@ void DLO_iso::updateThetaN(const double theta_n)
     }
 
     edges[nv].theta = t_n_whole * (2 * M_PI) + theta_n;
+    p_thetan = theta_n;
+}
+
+void DLO_iso::updateThetaN(const double theta_n)
+{
+    // TEST THIS. should work with unalgined overall_rot
+    double diff_theta = theta_n - p_thetan;
+    int t_n_whole;
+
+    // acct for 2pi rotation
+    if (abs(diff_theta) < (M_PI)) {
+        edges[nv].theta += diff_theta;
+    }
+    else if (diff_theta > 0.) {
+        edges[nv].theta += diff_theta - (2 * M_PI);
+    }
+    else {
+        edges[nv].theta += diff_theta + (2 * M_PI);
+    }
     p_thetan = theta_n;
 }
 
