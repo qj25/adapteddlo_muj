@@ -139,6 +139,7 @@ private:
     // void initBF(Eigen::Matrix3d &bf_0);  //
     bool transfBF(const Eigen::Matrix3d &bf_0);    //
     
+    void updateThetaN_old(double theta_n);  //
     void updateThetaN(double theta_n);  //
 
     // main calculation
