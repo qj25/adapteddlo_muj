@@ -6,7 +6,7 @@ setup(name='adapteddlo_muj',
       #       package for package in find_packages() if package.startswith("rl_tut")
       # ]
       # python_requires='>3',
-      install_requires=['gymnasium','stable-baselines3'], # And any other dependencies foo needs
+      install_requires=['gymnasium'], # And any other dependencies foo needs
       packages=['adapteddlo_muj'],
 )
 
