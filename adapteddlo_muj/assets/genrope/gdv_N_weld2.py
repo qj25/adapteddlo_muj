@@ -190,7 +190,7 @@ class GenKin_N_weld2:
         if self.obj_path is None:
             self.obj_path = os.path.join(
                 os.path.dirname(os.path.dirname(__file__)),
-                "nativerope1dkin.xml.xml"
+                "nativerope1dkin.xml"
             )
         self.obj_path0 = os.path.join(
             os.path.dirname(self.obj_path),
