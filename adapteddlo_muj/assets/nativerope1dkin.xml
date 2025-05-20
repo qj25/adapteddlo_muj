@@ -2,16 +2,17 @@
   <compiler angle="radian" />
 
   <extension>
-    <plugin plugin="mujoco.elasticity.cable">
+    <plugin plugin="mujoco.elasticity.wire">
       <instance name="composite">
         <config key="twist" value="1285870.0810189354" />
         <config key="bend" value="4384018.400432112" />
+        <config key="twist_displace" value="100.0" />
       </instance>
     </plugin>
   </extension>
 
   <custom>
-    <text name="composite_" data="rope_" />
+    <text name="composite_" data="wire_" />
   </custom>
 
   <worldbody>
@@ -176,11 +177,13 @@
                                                                                     <geom name="G38" size="0.025 0.116125" pos="0.116125 0 0" quat="0.707107 0 -0.707107 0" type="capsule" contype="0" conaffinity="0" condim="1" solref="0.001" rgba="0.1 0.0533333 0.673333 1" />
                                                                                     <plugin instance="composite" />
                                                                                     <body name="B_last" pos="0.23225 0 0">
-                                                                                      <body name="B_last2" pos="1 0 0" />
-<joint name="J_last" pos="0 0 0" type="ball" group="3" actuatorfrclimited="false" damping="0.5" />
+                                                                                      <joint name="J_last" pos="0 0 0" type="ball" group="3" actuatorfrclimited="false" damping="0.5" />
                                                                                       <geom name="G39" size="0.025 0.116125" pos="0.116125 0 0" quat="0.707107 0 -0.707107 0" type="capsule" contype="0" conaffinity="0" condim="1" solref="0.001" rgba="0.1 0.0533333 0.673333 1" />
                                                                                       <site name="S_last" pos="0.23225 0 0" group="3" />
                                                                                       <plugin instance="composite" />
+                                                                                      <body name="B_last2" pos="0.23225 0 0">
+                                                                                        <plugin instance="composite" />
+                                                                                      </body>
                                                                                     </body>
                                                                                   </body>
                                                                                 </body>

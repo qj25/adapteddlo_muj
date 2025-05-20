@@ -35,7 +35,7 @@ do_render_g = bool(args.render)
 new_start_g = bool(args.newstart)
 lfp_g = bool(args.loadresults)
 
-plugin_name = lopbal_dict(lopbal_type)
+plugin_name = lopbal_dict[lopbal_type]
 
 if test_type_g == 'mbi' and args.newstart == 2:
     new_start_g = False
