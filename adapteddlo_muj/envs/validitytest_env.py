@@ -40,7 +40,8 @@ class TestPluginEnv(gym.Env, utils.EzPickle):
 
         lopbal_dict = dict(
             cable="native",
-            wire="adapt"
+            wire="adapt",
+            wire_qst="adapt",
         )
 
         self.data_foldername = lopbal_dict[plugin_name] + "/plgn/"
@@ -65,8 +66,14 @@ class TestPluginEnv(gym.Env, utils.EzPickle):
         self.overall_rot = 0. # 27 * (2*np.pi) # 57 * (np.pi/180)
         if overall_rot is not None:
             self.overall_rot = overall_rot # / (2.*np.pi) * 360.
+        if self.plugin_name != "cable":
+            self.twist_displace = self.overall_rot
+        else:
+            self.twist_displace = 0.0
 
         # init stiffnesses for capsule
+        print(f"pystiff = {self.alpha_bar}/{self.beta_bar}")
+        input()
         J1 = np.pi * (self.r_thickness/2)**4/2.
         Ix = np.pi * (self.r_thickness/2)**4/4.
         self.stiff_vals = [
@@ -208,7 +215,8 @@ class TestPluginEnv(gym.Env, utils.EzPickle):
                 rope_type="capsule",
                 vis_subcyl=False,
                 obj_path=rope_path,
-                plugin_name=self.plugin_name
+                plugin_name=self.plugin_name,
+                twist_displace=self.twist_displace
             )
         elif self.test_type == 'mbi':
             GenKin_N(
@@ -224,7 +232,8 @@ class TestPluginEnv(gym.Env, utils.EzPickle):
                 rope_type="capsule",
                 vis_subcyl=False,
                 obj_path=rope_path,
-                plugin_name=self.plugin_name
+                plugin_name=self.plugin_name,
+                twist_displace=self.twist_displace
             )
         elif self.test_type == 'speedtest1':
             # j_damp = self.r_len / 9.29
@@ -241,7 +250,8 @@ class TestPluginEnv(gym.Env, utils.EzPickle):
                 rope_type="capsule",
                 vis_subcyl=False,
                 obj_path=rope_path,
-                plugin_name=self.plugin_name
+                plugin_name=self.plugin_name,
+                twist_displace=self.twist_displace
             )
         else:
             input(f'Invalid test_type: {self.test_type}')
@@ -473,7 +483,8 @@ class TestPluginEnv(gym.Env, utils.EzPickle):
         for i in range(1):
             self.ropeend_pos_all(pos_move=pos_move.copy())
         
-        self.rot_x_rads2(x_rads=self.overall_rot)
+        if self.plugin_name == "cable":
+            self.rot_x_rads2(x_rads=self.overall_rot)
 
         pos_move = np.array([step_len, 0., 0.])
         print('0')
@@ -746,14 +757,16 @@ class TestPluginEnv(gym.Env, utils.EzPickle):
                 self.init_pickle = pickle.load(f)
 
             self.set_state(self.init_pickle)
-    
-            self.rot_x_rads(x_rads=self.overall_rot)
+
+            if self.plugin_name == "cable":
+                self.rot_x_rads(x_rads=self.overall_rot)
 
             # # get and apply force normal to the circle
             norm_force = self.get_rope_normal()
             # norm_force /= 5.0
             # self.apply_force_t(t=0.3,force_dir=np.array([0., 0., 1.]))
             self.apply_force_t(t=1.2,force_dir=norm_force)
+            print(norm_force)
 
             # self.hold_pos(100.)
             # create a for loop that checks PCA error at each iter
