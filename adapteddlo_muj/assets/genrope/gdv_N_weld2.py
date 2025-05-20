@@ -20,6 +20,7 @@ class GenKin_N_weld2:
         attach_sitename="eef_body",
         vis_subcyl=True,
         obj_path=None,
+        plugin_name="cable"
     ):
         """
         connected by kinematic chain
@@ -33,6 +34,10 @@ class GenKin_N_weld2:
         - init_pos: starting position for base of rope/box
         - init_angle: rotation angle of the box about the z axis 
         """
+
+        self._init_plugins()
+        ## cable or wire or wire_qst
+        self.plugin_name = plugin_name
 
         self.r_len = r_len
         self.r_thickness = r_thickness
@@ -65,15 +70,77 @@ class GenKin_N_weld2:
         with open(self.obj_path, "w+") as f:
             self._write_init(f)
         self._unpackcompositexml()
-        self._write_blast2()
+        if self.plugin_name == "cable":
+            insert_pt = f'<joint name="J_last"'
+            insert_str = '<body name="B_last2" pos="1 0 0"/>'
+            self._add_strtoxml(
+                insert_pt=insert_pt,
+                insert_str=insert_str
+            )
+
+        insert_pt = f'<joint name="J_10"'
+        insert_str = '<site name="S_10" pos="1 0 0" group="3"/>'
+        self._add_strtoxml(
+            insert_pt=insert_pt,
+            insert_str=insert_str
+        )
+        insert_pt = f'<joint name="J_8"'
+        insert_str = '<site name="S_8" pos="1 0 0" group="3"/>'
+        self._add_strtoxml(
+            insert_pt=insert_pt,
+            insert_str=insert_str
+        )
+
         self._write_anchorbox()
         self._write_weldweight()
+
+    def _init_plugins(self):
+        plugin_path = os.environ.get("MJPLUGIN_PATH")
+        if plugin_path:
+            plugin_file = os.path.join(plugin_path, "libelasticity.so")
+            try:
+                mujoco.mj_loadPluginLibrary(plugin_file)
+            except Exception as e:
+                print(f"Failed to load plugin: {e}")
+        else:
+            print("MJPLUGIN_PATH is not set.")
 
     def _unpackcompositexml(self):
         self.xml = XMLWrapper(self.obj_path)
         xml_string = self.xml.get_xml_string()
         model = mujoco.MjModel.from_xml_string(xml_string)
         mujoco.mj_saveLastXML(self.obj_path,model)
+
+    def _add_strtoxml(self, insert_pt, insert_str):
+        self.xml = XMLWrapper(self.obj_path)
+        xml_string = self.xml.get_xml_string()
+        xml_string = self.add_xmlstr(xml_string,insert_pt,insert_str)
+        with open(self.obj_path, "w+") as f:
+            f.write(xml_string)
+    
+    def add_xmlstr(self,xml_str, tag_name, insert_str):
+        """
+        Inserts `insert_str` into the first occurrence of the specified `tag_name` in the MuJoCo XML.
+    
+        Args:
+            xml_str (str): Original MuJoCo XML as string.
+            tag_name (str): Tag (e.g. 'worldbody', 'sensor') where content should be added.
+            insert_str (str): XML snippet to insert inside the tag.
+    
+        Returns:
+            str: Modified XML string.
+        """
+        # open_tag = f"<{tag_name}>"
+        # close_tag = f"</{tag_name}>"
+        open_tag = tag_name
+
+        if open_tag not in xml_str:
+            raise ValueError(f"Tag <{tag_name}> not found in the XML.")
+    
+        # Insert before the closing tag
+        idx = xml_str.find(tag_name)
+        new_xml = xml_str[:idx] + insert_str + "\n" + xml_str[idx:]
+        return new_xml
 
     def _write_init(self, f):
         f.write('<mujoco model="stiff-rope">\n')
@@ -82,7 +149,7 @@ class GenKin_N_weld2:
         # extension
         f.write(self.curr_tab*self.t + "<extension>\n")
         self.curr_tab += 1
-        f.write(self.curr_tab*self.t + '<plugin plugin="mujoco.elasticity.cable"/>\n')
+        f.write(self.curr_tab*self.t + f'<plugin plugin="mujoco.elasticity.{self.plugin_name}"/>\n')
         self.curr_tab -= 1
         f.write(self.curr_tab*self.t + "</extension>\n")
 
@@ -107,12 +174,13 @@ class GenKin_N_weld2:
         f.write(self.curr_tab*self.t + '<freejoint name="freejoint_A"/>\n')
 
         # cable
-        f.write(self.curr_tab*self.t + '<composite type="cable" curve="s" count="{} 1 1" size="{}" offset="0 0 0" initial="none">\n'.format(
+        f.write(self.curr_tab*self.t + '<composite type="{}" curve="s" count="{} 1 1" size="{}" offset="0 0 0" initial="none">\n'.format(
+            self.plugin_name,
             self.r_pieces+1,
             self.r_len,
         ))
         self.curr_tab += 1
-        f.write(self.curr_tab*self.t + '<plugin plugin="mujoco.elasticity.cable">\n')
+        f.write(self.curr_tab*self.t + f'<plugin plugin="mujoco.elasticity.{self.plugin_name}">\n')
         self.curr_tab += 1
         f.write(self.curr_tab*self.t + '<config key="twist" value="{}"/>\n'.format(
             self.stiff_vals[0]
@@ -120,6 +188,10 @@ class GenKin_N_weld2:
         f.write(self.curr_tab*self.t + '<config key="bend" value="{}"/>\n'.format(
             self.stiff_vals[1]
         ))
+        if self.plugin_name != "cable":
+            f.write(self.curr_tab*self.t + '<config key="twist_displace" value="{}"/>\n'.format(
+                0.0
+            ))
         # f.write(self.curr_tab*self.t + '<config key="vmax" value="100000"/>\n')
         self.curr_tab -= 1
         f.write(self.curr_tab*self.t + '</plugin>\n')
@@ -192,10 +264,6 @@ class GenKin_N_weld2:
                 os.path.dirname(os.path.dirname(__file__)),
                 "nativerope1dkin.xml"
             )
-        self.obj_path0 = os.path.join(
-            os.path.dirname(self.obj_path),
-            "blast2.xml"
-        )
         self.obj_path2 = os.path.join(
             os.path.dirname(self.obj_path),
             "anchorbox.xml"
@@ -212,27 +280,6 @@ class GenKin_N_weld2:
         
         self.curr_tab = 0
 
-    def _write_blast2(self):
-        with open(self.obj_path0, "w+") as f:
-            f.write('<mujoco model="blast2">\n')
-            f.write(self.t + "<worldbody>\n")
-            f.write(2*self.t + f'<body name="B_last2" pos="{self.r_len / self.r_pieces} 0 0"/>\n')
-            # f.write(2*self.t + '</body>\n')
-            f.write(self.t + '</worldbody>\n')
-            f.write('</mujoco>')
-        blast2 = XMLWrapper(self.obj_path0)
-        self.xml = XMLWrapper(self.obj_path)
-        self.xml.merge(
-            blast2,
-            element_name="body",
-            attrib_name="name",
-            attrib_value="B_last",
-            action="append",
-        )
-        xml_string = self.xml.get_xml_string()
-        model = mujoco.MjModel.from_xml_string(xml_string)
-        mujoco.mj_saveLastXML(self.obj_path,model)
-
     def _write_anchorbox(self):
         self.curr_tab = 0
         with open(self.obj_path2, "w+") as f:
@@ -248,12 +295,16 @@ class GenKin_N_weld2:
                 self.init_pos[1]-self.grow_dirn[1]*self.r_len,
                 self.init_pos[2]-self.grow_dirn[2]*self.r_len
             ))
+            f.write((self.curr_tab+1)*self.t + '<site name="eef_body_site" pos="0 0 0" size="0.01 0.01 0.01" rgba="0 0 0 0" type="sphere" group="1"/>\n')
             f.write((self.curr_tab+1)*self.t + '<geom name="eef_geom" type="box" mass="1" size="{} {} {}" contype="0" conaffinity="0" rgba=".8 .2 .1 {}" friction="1 0.005 0.0001"/>\n'.format(
                 self.r_thickness,
                 self.r_thickness,
                 self.r_thickness*2.0,
                 self.subcyl_alpha
             ))
+            f.write((self.curr_tab+1)*self.t + '<body name="eef_body_sensor" pos="0 0 0" quat="1.0 0.0 0.0 0.0">\n')
+            f.write((self.curr_tab+2)*self.t + '<site name="sensor_site1" pos="0 0 0" size="0.01 0.01 0.01" rgba="0 0 0 0" type="sphere" group="1"/>\n')
+            f.write((self.curr_tab+1)*self.t + '</body>')
             f.write(self.curr_tab*self.t + '</body>')
 
             # box at start
@@ -262,18 +313,23 @@ class GenKin_N_weld2:
                 self.init_pos[1],
                 self.init_pos[2]
             ))
+            f.write((self.curr_tab+1)*self.t + '<site name="eef_body2_site" pos="0 0 0" size="0.01 0.01 0.01" rgba="0 0 0 0" type="sphere" group="1"/>\n')
             f.write((self.curr_tab+1)*self.t + '<geom name="eef_geom2" type="box" mass="1" size="{} {} {}" contype="0" conaffinity="0" rgba=".8 .2 .1 {}" friction="1 0.005 0.0001"/>\n'.format(
                 self.r_thickness,
                 self.r_thickness,
                 self.r_thickness*2.0,
                 self.subcyl_alpha
             ))
+            f.write((self.curr_tab+1)*self.t + '<body name="eef_body2_sensor" pos="0 0 0" quat="1.0 0.0 0.0 0.0">\n')
+            f.write((self.curr_tab+2)*self.t + '<site name="sensor_site2" pos="0 0 0" size="0.01 0.01 0.01" rgba="0 0 0 0" type="sphere" group="1"/>\n')
+            f.write((self.curr_tab+1)*self.t + '</body>')
             f.write(self.curr_tab*self.t + '</body>')
 
             self.curr_tab -= 1
             f.write(self.curr_tab*self.t + "</worldbody>\n")
             self._write_equality(f)
             self._write_exclusion(f)
+            self._write_sensor(f)
             # f.write(t + '<contact>\n')
             # curr_tab += 1
             # for i in range(1,r_pieces+1):
@@ -329,7 +385,8 @@ class GenKin_N_weld2:
             # self.t + "   <weld body1='B_last' body2='{}' solref='{}' relpose='0.0 0 0 0 0 -1 0'/>\n".format(
             self.t + "   <weld body1='B_last' body2='{}' solref='{}'/>\n".format(
                 # 25,
-                self.attach_sitename,
+                # self.attach_sitename,
+                'eef_body_sensor',
                 self.solref_val,
                 # anchor_pt
                 # self.r_len / self.r_pieces
@@ -341,7 +398,7 @@ class GenKin_N_weld2:
             # self.t + "   <weld body1='B_last' body2='{}' solref='{}' relpose='0.0 0 0 0 0 -1 0'/>\n".format(
             self.t + "   <weld body1='B_first' body2='{}' solref='{}'/>\n".format(
                 # 25,
-                'eef_body2',
+                'eef_body2_sensor',
                 self.solref_val,
                 # anchor_pt
                 # self.r_len / self.r_pieces
@@ -354,3 +411,39 @@ class GenKin_N_weld2:
         self.curr_tab += 1
         self.curr_tab -= 1
         f.write(self.curr_tab*self.t + '</contact>\n')
+
+    def _write_sensor(self, f):
+        sensor_siteA = "sensor_site1"
+        sensor_siteB = "sensor_site2"
+        # sensor_siteA = "S_first"
+        # sensor_siteB = "S_last"
+        f.write(self.curr_tab*self.t + '<sensor>\n')
+        self.curr_tab += 1
+        f.write(self.curr_tab*self.t + '<torque name="torque_A" site="{}"/>\n'.format(
+            sensor_siteA
+        ))
+        f.write(self.curr_tab*self.t + '<force name="force_A" site="{}"/>\n'.format(
+            sensor_siteA
+        ))
+        f.write(self.curr_tab*self.t + '<torque name="torque_B" site="{}"/>\n'.format(
+            sensor_siteB
+        ))
+        f.write(self.curr_tab*self.t + '<force name="force_B" site="{}"/>\n'.format(
+            sensor_siteB
+        ))
+
+        f.write(self.curr_tab*self.t + '<torque name="torque_C" site="{}"/>\n'.format(
+            'S_8'
+        ))
+        f.write(self.curr_tab*self.t + '<force name="force_C" site="{}"/>\n'.format(
+            'S_8'
+        ))
+        f.write(self.curr_tab*self.t + '<torque name="torque_D" site="{}"/>\n'.format(
+            'S_10'
+        ))
+        f.write(self.curr_tab*self.t + '<force name="force_D" site="{}"/>\n'.format(
+            'S_10'
+        ))
+
+        self.curr_tab -= 1
+        f.write(self.curr_tab*self.t + '</sensor>\n')

@@ -20,7 +20,8 @@ class GenKin_N:
         attach_sitename="eef_body",
         vis_subcyl=True,
         obj_path=None,
-        rgba_vals=None
+        rgba_vals=None,
+        plugin_name="cable"
     ):
         """
         connected by kinematic chain
@@ -34,6 +35,8 @@ class GenKin_N:
         - init_pos: starting position for base of rope/box
         - init_angle: rotation angle of the box about the z axis 
         """
+        self._init_plugins()
+        self.plugin_name = plugin_name
 
         self.r_len = r_len
         self.r_thickness = r_thickness
@@ -67,9 +70,19 @@ class GenKin_N:
         with open(self.obj_path, "w+") as f:
             self._write_init(f)
         self._unpackcompositexml()
-        self._write_blast2()
         self._write_anchorbox()
         self._write_weldweight()
+
+    def _init_plugins(self):
+        plugin_path = os.environ.get("MJPLUGIN_PATH")
+        if plugin_path:
+            plugin_file = os.path.join(plugin_path, "libelasticity.so")
+            try:
+                mujoco.mj_loadPluginLibrary(plugin_file)
+            except Exception as e:
+                print(f"Failed to load plugin: {e}")
+        else:
+            print("MJPLUGIN_PATH is not set.")
 
     def _unpackcompositexml(self):
         self.xml = XMLWrapper(self.obj_path)
@@ -84,7 +97,7 @@ class GenKin_N:
         # extension
         f.write(self.curr_tab*self.t + "<extension>\n")
         self.curr_tab += 1
-        f.write(self.curr_tab*self.t + '<plugin plugin="mujoco.elasticity.cable"/>\n')
+        f.write(self.curr_tab*self.t + f'<plugin plugin="mujoco.elasticity.{self.plugin_name}"/>\n')
         self.curr_tab -= 1
         f.write(self.curr_tab*self.t + "</extension>\n")
 
@@ -108,12 +121,13 @@ class GenKin_N:
         self.curr_tab += 1
 
         # cable
-        f.write(self.curr_tab*self.t + '<composite type="cable" curve="s" count="{} 1 1" size="{}" offset="0 0 0" initial="none">\n'.format(
+        f.write(self.curr_tab*self.t + '<composite type="{}" curve="s" count="{} 1 1" size="{}" offset="0 0 0" initial="none">\n'.format(
+            self.plugin_name,
             self.r_pieces+1,
             self.r_len,
         ))
         self.curr_tab += 1
-        f.write(self.curr_tab*self.t + '<plugin plugin="mujoco.elasticity.cable">\n')
+        f.write(self.curr_tab*self.t + f'<plugin plugin="mujoco.elasticity.{self.plugin_name}">\n')
         self.curr_tab += 1
         f.write(self.curr_tab*self.t + '<config key="twist" value="{}"/>\n'.format(
             self.stiff_vals[0]
@@ -193,10 +207,6 @@ class GenKin_N:
                 os.path.dirname(os.path.dirname(__file__)),
                 "nativerope1dkin.xml"
             )
-        self.obj_path0 = os.path.join(
-            os.path.dirname(self.obj_path),
-            "blast2.xml"
-        )
         self.obj_path2 = os.path.join(
             os.path.dirname(self.obj_path),
             "anchorbox.xml"
@@ -212,27 +222,6 @@ class GenKin_N:
         self.cap_size = self.r_thickness / 2
         
         self.curr_tab = 0
-
-    def _write_blast2(self):
-        with open(self.obj_path0, "w+") as f:
-            f.write('<mujoco model="blast2">\n')
-            f.write(self.t + "<worldbody>\n")
-            f.write(2*self.t + f'<body name="B_last2" pos="{self.r_len / self.r_pieces} 0 0"/>\n')
-            # f.write(2*self.t + '</body>\n')
-            f.write(self.t + '</worldbody>\n')
-            f.write('</mujoco>')
-        blast2 = XMLWrapper(self.obj_path0)
-        self.xml = XMLWrapper(self.obj_path)
-        self.xml.merge(
-            blast2,
-            element_name="body",
-            attrib_name="name",
-            attrib_value="B_last",
-            action="append",
-        )
-        xml_string = self.xml.get_xml_string()
-        model = mujoco.MjModel.from_xml_string(xml_string)
-        mujoco.mj_saveLastXML(self.obj_path,model)
 
     def _write_anchorbox(self):
         self.curr_tab = 0
@@ -322,45 +311,43 @@ class GenKin_N:
         f.write(self.t + '</equality>\n')
 
     def _write_exclusion(self, f):
-        curr_tab = 1
-        f.write(curr_tab*self.t + '<contact>\n')
-        curr_tab += 1
+        f.write(self.curr_tab*self.t + '<contact>\n')
+        self.curr_tab += 1
         f.write(
-            curr_tab*self.t
+            self.curr_tab*self.t
             + '<exclude body1="B_first" body2="B_1"/>\n'
         )
         f.write(
-            curr_tab*self.t
+            self.curr_tab*self.t
             + '<exclude body1="B_first" body2="B_last"/>\n'
         )
         f.write(
-            curr_tab*self.t
+            self.curr_tab*self.t
             + '<exclude body1="B_1" body2="B_last"/>\n'
         )
         f.write(
-            curr_tab*self.t
+            self.curr_tab*self.t
             + '<exclude body1="B_first" body2="B_{}"/>\n'.format(
                 self.r_pieces-2
             )
         )
         f.write(
-            curr_tab*self.t
+            self.curr_tab*self.t
             + '<exclude body1="eef_body" body2="B_first"/>\n'.format(
                 self.r_pieces
             )
         )
         f.write(
-            curr_tab*self.t
+            self.curr_tab*self.t
             + '<exclude body1="eef_body" body2="B_last"/>\n'.format(
                 self.r_pieces
             )
         )
         f.write(
-            curr_tab*self.t
+            self.curr_tab*self.t
             + '<exclude body1="eef_body" body2="B_{}"/>\n'.format(
                 self.r_pieces-2
             )
         )
-        curr_tab -= 1
-        f.write(curr_tab*self.t + '</contact>\n')
-        
+        self.curr_tab -= 1
+        f.write(self.curr_tab*self.t + '</contact>\n')
