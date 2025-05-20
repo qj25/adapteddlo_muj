@@ -21,7 +21,8 @@ class GenKin_N:
         vis_subcyl=True,
         obj_path=None,
         rgba_vals=None,
-        plugin_name="cable"
+        plugin_name="cable",
+        twist_displace=0.0
     ):
         """
         connected by kinematic chain
@@ -46,6 +47,7 @@ class GenKin_N:
         self.r_mass = r_mass
         self.init_pos = init_pos
         self.init_quat = T.quat_multiply(init_quat,np.array([0., 0., 1., 0.]))
+        self.twist_displace = twist_displace
         if coll_on:
             self.con_data = [1, 1]
         else:
@@ -135,6 +137,10 @@ class GenKin_N:
         f.write(self.curr_tab*self.t + '<config key="bend" value="{}"/>\n'.format(
             self.stiff_vals[1]
         ))
+        if self.plugin_name != "cable":
+            f.write(self.curr_tab*self.t + '<config key="twist_displace" value="{}"/>\n'.format(
+                self.twist_displace
+            ))
         # f.write(self.curr_tab*self.t + '<config key="vmax" value="0.05"/>\n')
         self.curr_tab -= 1
         f.write(self.curr_tab*self.t + '</plugin>\n')

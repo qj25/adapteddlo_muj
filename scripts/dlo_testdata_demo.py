@@ -19,7 +19,7 @@ from adapteddlo_muj.utils.argparse_utils import dtd_parse
 
 lopbal_dict = dict(
     native="cable",
-    adapt="wire",
+    adapt="wire_qst",
     xfrc="xfrc"
 )
 
@@ -191,8 +191,8 @@ def mbi_test(new_start=False, load_from_pickle=False, do_render=False):
                 new_start=new_start,
                 do_render=do_render
             )
-        overall_rot = 9.0
-        # overall_rot = 5.5
+        # overall_rot = 9.0
+        overall_rot = 8.5
         # overall_rot = 0.0
         for i in range(n_data_mbi):
             # overall_rot = 7.5
