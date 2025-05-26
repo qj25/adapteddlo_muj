@@ -15,6 +15,7 @@ import adapteddlo_muj.utils.transform_utils as T
 from adapteddlo_muj.utils.mjc_utils import MjSimWrapper
 from adapteddlo_muj.utils.xml_utils import XMLWrapper
 import adapteddlo_muj.utils.mjc2_utils as mjc2
+from adapteddlo_muj.utils.mjc_utils import get_sensor_id, get_sensor_force, fix_ftsensor_weld
 
 from adapteddlo_muj.assets.genrope.gdv_N import GenKin_N
 from adapteddlo_muj.assets.genrope.gdv_N_weld2 import GenKin_N_weld2
@@ -44,7 +45,7 @@ class TestPluginEnv(gym.Env, utils.EzPickle):
             wire_qst="adapt",
         )
 
-        self.data_foldername = lopbal_dict[plugin_name] + "/plgn/"
+        self.data_foldername = lopbal_dict[plugin_name] + "/plgn/" + plugin_name + "/"
 
         self.do_render = do_render
         self.test_type = test_type
@@ -72,8 +73,8 @@ class TestPluginEnv(gym.Env, utils.EzPickle):
             self.twist_displace = 0.0
 
         # init stiffnesses for capsule
-        print(f"pystiff = {self.alpha_bar}/{self.beta_bar}")
-        input()
+        # print(f"pystiff = {self.alpha_bar}/{self.beta_bar}")
+        # input()
         J1 = np.pi * (self.r_thickness/2)**4/2.
         Ix = np.pi * (self.r_thickness/2)**4/4.
         self.stiff_vals = [
@@ -107,6 +108,8 @@ class TestPluginEnv(gym.Env, utils.EzPickle):
         # init obs
         self.observations = dict(
             rope_pose=np.zeros((self.r_pieces,3)),
+            ft_world_0=np.zeros(6),
+            ft_world_1=np.zeros(6),
         )
 
         # init gravity
@@ -137,6 +140,19 @@ class TestPluginEnv(gym.Env, utils.EzPickle):
         # self._load_initpickle()
 
     def _init_ids(self):
+        if self.test_type == 'lhb':
+            # # body_names of attached sensors A and B, respectively.
+            self.eefname_list = ['eef_body_sensor', 'eef_body2_sensor']
+            self.sensorids_list = [
+                get_sensor_id(self.model, self.eefname_list[0]),
+                get_sensor_id(self.model, self.eefname_list[1])
+            ]
+            # box body ids
+            self.box_bodyids = [
+                mjc2.obj_name2id(self.model,"body",self.eefname_list[0]),
+                mjc2.obj_name2id(self.model,"body",self.eefname_list[1])
+            ]
+
         # init vec_bodyid for cable
         self.vec_bodyid = np.zeros(self.r_pieces, dtype=int)
         for i in range(self.r_pieces):
@@ -261,7 +277,7 @@ class TestPluginEnv(gym.Env, utils.EzPickle):
         anchorbox = XMLWrapper(box_path)
 
         self.xml.merge_multiple(
-            anchorbox, ["worldbody", "equality", "contact"]
+            anchorbox, ["worldbody", "equality", "contact", "sensor"]
         )
         self.xml.merge_multiple(
             dlorope, ["worldbody", "extension"]
@@ -289,6 +305,8 @@ class TestPluginEnv(gym.Env, utils.EzPickle):
         # t2 = time()
         self.sim.step()
         self.sim.forward()
+        # print(self.data.qfrc_passive.reshape((self.r_pieces-1,3)))
+        # input()
         # t3 = time()
         if self.do_render:
             if self.env_steps%self.rend_rate==0:
@@ -321,6 +339,10 @@ class TestPluginEnv(gym.Env, utils.EzPickle):
                 self.eef_site_idx
             ].copy()]
         ))
+        if self.test_type == 'lhb':
+            # id_0 ft is of ropeend. id_1 is top parent body.
+            self._get_ftworld(0)
+            self._get_ftworld(1)
         return None
     
     def reset(self, seed=None, options=None):
@@ -339,6 +361,8 @@ class TestPluginEnv(gym.Env, utils.EzPickle):
         # reset obs
         self.observations = dict(
             rope_pose=np.zeros((self.r_pieces,3)),
+            ft_world_0=np.zeros(6),
+            ft_world_1=np.zeros(6),
         )
 
         # reset time
@@ -489,7 +513,7 @@ class TestPluginEnv(gym.Env, utils.EzPickle):
         pos_move = np.array([step_len, 0., 0.])
         print('0')
         for i in range(n_steps-2):
-            sys.stdout.write(f"\033[{1}F")
+            # sys.stdout.write(f"\033[{1}F")
             print(f"init stage: {i+1}/{n_steps-2}")
             # self.reset_vel()
             # print(self.sitename2pos("r_joint0_site"))
@@ -497,7 +521,9 @@ class TestPluginEnv(gym.Env, utils.EzPickle):
             # print(self.sitename2pos("r_joint0_site")-self.sitename2pos("r_joint180_site"))
             self.ropeend_pos_all(pos_move=pos_move.copy())
             # self.ropeend_pos(pos_move=pos_move.copy())
-            
+            print(f"ft_world_0: {self.observations['ft_world_0']}")
+            print(f"ft_world_1: {self.observations['ft_world_1']}")
+
             # print(i)
             # if i % 1 == 0:
             #     self.reset_vel()
@@ -766,8 +792,6 @@ class TestPluginEnv(gym.Env, utils.EzPickle):
             # norm_force /= 5.0
             # self.apply_force_t(t=0.3,force_dir=np.array([0., 0., 1.]))
             self.apply_force_t(t=1.2,force_dir=norm_force)
-            print(norm_force)
-
             # self.hold_pos(100.)
             # create a for loop that checks PCA error at each iter
             max_e = 0.
@@ -895,6 +919,43 @@ class TestPluginEnv(gym.Env, utils.EzPickle):
         self.viewer.cam.azimuth = azi
         self.viewer.cam.elevation = elev
         self.viewer.cam.lookat = lookat
+
+    def _get_ftworld(self, eef_id):
+        eef_name = self.eefname_list[eef_id]
+        # eef_id either 0 or 1
+
+        eef_ft = get_sensor_force(
+            self.model,
+            self.data,
+            self.sensorids_list[eef_id],
+            eef_name,
+            # self.eef_name,
+            self.data.xpos[self.box_bodyids[eef_id]].copy(),
+            self.data.xquat[self.box_bodyids[eef_id]].copy(),
+        )
+        # eef_ft_filtered = self.lowpass_filter(eef_ft.reshape((-1, 6)))[0, :]
+        # eef_rotmat = T.quat2mat(self.observations['sensor'+str(eef_id)+'_pose'][3:])
+        # f_world = eef_rotmat.dot(eef_ft_filtered[:3])
+        # t_world = eef_rotmat.dot(eef_ft_filtered[3:])
+        # f_world = eef_ft_filtered[:3]
+        # t_world = eef_ft_filtered[3:]
+        f_world = eef_ft[:3]
+        t_world = eef_ft[3:] / 2.0
+        # t_world = fix_ftsensor_weld(
+        #     f_world,
+        #     eef_ft[3:],
+        #     (
+        #         self.observations['rope_pose'][eef_id-1]
+        #         - self.observations['sensor'+str(eef_id)+'_pose'][:3]
+        #     )
+        # )
+        self.observations['ft_world_'+str(eef_id)] = np.concatenate((f_world,t_world))
+        # print(self.observations['ft_world_'+eef_name])
+        # if self.env_steps%100==0:
+        #     print("==========================================================")
+        #     # print(f"force_{eef_id} = {self.data.sensordata.reshape((4,3))}")
+        #     print(f"force_{eef_id} = {self.observations['ft_world_'+str(eef_id)].reshape((2,3))}")
+        return None
 
     def reset_vel(self):
         self.data.qvel[:] = np.zeros(len(self.data.qvel[:]))

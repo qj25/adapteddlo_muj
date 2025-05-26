@@ -42,6 +42,11 @@ class GenKin_N:
         self.r_len = r_len
         self.r_thickness = r_thickness
         self.r_pieces = r_pieces
+        thickness_ratio = self.r_thickness/(self.r_len / self.r_pieces)
+        if thickness_ratio > 0.8:
+            print(f"Warning: thickness too large -ratio- {thickness_ratio}")
+            print("Consider reducing to prevent unwanted collisions")
+            input()
         self.stiff_vals = stiff_vals
         self.j_damp = j_damp
         self.r_mass = r_mass
@@ -72,6 +77,13 @@ class GenKin_N:
         with open(self.obj_path, "w+") as f:
             self._write_init(f)
         self._unpackcompositexml()
+        if self.plugin_name == "cable":
+            insert_pt = f'<joint name="J_last"'
+            insert_str = '<body name="B_last2" pos="1 0 0"/>'
+            self._add_strtoxml(
+                insert_pt=insert_pt,
+                insert_str=insert_str
+            )
         self._write_anchorbox()
         self._write_weldweight()
 
@@ -91,6 +103,37 @@ class GenKin_N:
         xml_string = self.xml.get_xml_string()
         model = mujoco.MjModel.from_xml_string(xml_string)
         mujoco.mj_saveLastXML(self.obj_path,model)
+
+    def _add_strtoxml(self, insert_pt, insert_str):
+        self.xml = XMLWrapper(self.obj_path)
+        xml_string = self.xml.get_xml_string()
+        xml_string = self.add_xmlstr(xml_string,insert_pt,insert_str)
+        with open(self.obj_path, "w+") as f:
+            f.write(xml_string)
+
+    def add_xmlstr(self,xml_str, tag_name, insert_str):
+        """
+        Inserts `insert_str` into the first occurrence of the specified `tag_name` in the MuJoCo XML.
+    
+        Args:
+            xml_str (str): Original MuJoCo XML as string.
+            tag_name (str): Tag (e.g. 'worldbody', 'sensor') where content should be added.
+            insert_str (str): XML snippet to insert inside the tag.
+    
+        Returns:
+            str: Modified XML string.
+        """
+        # open_tag = f"<{tag_name}>"
+        # close_tag = f"</{tag_name}>"
+        open_tag = tag_name
+
+        if open_tag not in xml_str:
+            raise ValueError(f"Tag <{tag_name}> not found in the XML.")
+    
+        # Insert before the closing tag
+        idx = xml_str.find(tag_name)
+        new_xml = xml_str[:idx] + insert_str + "\n" + xml_str[idx:]
+        return new_xml
 
     def _write_init(self, f):
         f.write('<mujoco model="stiff-rope">\n')

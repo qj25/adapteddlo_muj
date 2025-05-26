@@ -11,6 +11,21 @@ MJ_CYLINDER = 5
 MJ_BOX = 6
 MJ_MESH = 7
 
+"""
+Notes:
+- force sensor senses the forces on the body that it is defined on
+    INCLUDING its weight. 
+    - to bypass this issue, create a new body with 0 mass/geom. 
+        (works for both weld and fixed)
+- how does weld affect torque sensor:
+    A-A2 weld=0.3 B-0.2-B2
+    if 1N applied at B2, torq at B is 0.2Nm
+    torqueA2sensor = torqB*2 (doubled as torque felt at weld is double) 
+                    + torqaboutA2fromforceatB = 0.2Nm*2 + 0.3Nm
+    - to bypass this issue of double torq,
+        weld body at [0,0,0] relpos (so force at B has no contribution)
+        and divide measured torque by 2.
+"""
 
 def get_contact_force(mj_model, mj_data, body_name, frame_pos, frame_quat):
     """Get the force acting on a body, with respect to a frame.
@@ -57,7 +72,19 @@ def get_contact_force(mj_model, mj_data, body_name, frame_pos, frame_quat):
     # reverse order to get force:torque format
     return np.concatenate((trn_force[3:], trn_force[:3]))
 
-def get_sensor_force(mj_model, mj_data, body_name, frame_pos, frame_quat):
+def get_sensor_id(mj_model, body_name):
+    type_id = mujoco.mju_str2Type("body")
+    body_id = mujoco.mj_name2id(mj_model,type_id,body_name)
+    sensor_ids = []
+    for i in range(mj_model.nsensor):
+        if mj_model.sensor_objtype[i] == mujoco.mjtObj.mjOBJ_SITE:
+            site_id = mj_model.sensor_objid[i]
+            site_body_id = mj_model.site_bodyid[site_id]
+            if site_body_id == body_id:
+                sensor_ids.append(i)
+    return sensor_ids
+
+def get_sensor_force(mj_model, mj_data, sensor_id, body_name, frame_pos, frame_quat):
     ## IMPORTANT: sensordata give you the force wrt sensorsite.
     ## Section (A) in this function changes that to world frame.
     """Get the force acting on a body, with respect to a frame.
@@ -71,7 +98,17 @@ def get_sensor_force(mj_model, mj_data, body_name, frame_pos, frame_quat):
     """
     # In the XML, define torque, then force sensor
     bodyId = mujoco.mj_name2id(mj_model, MJ_BODY_OBJ, body_name)
-    force_com = mj_data.sensordata
+    force_com = np.array([])
+    for i in range(len(sensor_id)):
+        dim_sensor = mj_model.sensor_dim[sensor_id[i]]
+        force_com = np.concatenate((
+            force_com,
+            mj_data.sensordata[
+                mj_model.sensor_adr[sensor_id[i]]
+                :mj_model.sensor_adr[sensor_id[i]] + dim_sensor
+            ]
+        ))
+    # force_com = mj_data.sensordata[sensor_id*6:sensor_id*6+6]
     # print(f"force_com={force_com}")
     # contact force frame
     # orientation is aligned with world frame
@@ -112,6 +149,11 @@ def get_sensor_force(mj_model, mj_data, body_name, frame_pos, frame_quat):
     # reverse order to get force:torque format
     return np.concatenate((trn_force[3:], trn_force[:3]))
 
+def fix_ftsensor_weld(f_raw, t_raw, dist_weld):
+    # See notes above. fixes the error with doubled torque
+    # and non-zero weld distance (dist_weld is from A to B)
+    # print(np.cross(dist_weld,f_raw))
+    return (t_raw - np.cross(dist_weld,f_raw)) / 2.0
 
 class MjSimWrapper:
     """A simple wrapper to remove redundancy in forward() and step() calls
@@ -150,3 +192,14 @@ class MjSimWrapper:
     # @property
     # def data(self):
         # return self.sim.data
+
+# class MjSimPluginWrapper(MjSimWrapper):
+#     """A simple wrapper to remove redundancy in forward() and step() calls
+#     Typically, we call forward to update kinematic states of the simulation, then set the control
+#     sim.data.ctrl[:], finally call step
+#     """
+
+#     def __init__(self, xml) -> None:
+#         model = mujoco.MjModel.from_xml_string(xml)
+#         data = mujoco.MjData(model)
+#         super().__init__(model, data)

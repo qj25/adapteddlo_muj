@@ -19,11 +19,9 @@ from adapteddlo_muj.utils.argparse_utils import dtd_parse
 
 lopbal_dict = dict(
     native="cable",
-    adapt="wire_qst",
+    adapt="wire",
     xfrc="xfrc"
 )
-
-plugin_datafolder = "plgn"
 
 parser = dtd_parse()
 # Parse the arguments
@@ -31,11 +29,12 @@ args = parser.parse_args()
 
 lopbal_type = args.stiff
 test_type_g = args.test
-do_render_g = bool(args.render)
-new_start_g = bool(args.newstart)
+do_render_g = bool(int(args.render))
+new_start_g = bool(int(args.newstart))
 lfp_g = bool(args.loadresults)
 
 plugin_name = lopbal_dict[lopbal_type]
+plugin_datafolder = "plgn/" + plugin_name
 
 if test_type_g == 'mbi' and args.newstart == 2:
     new_start_g = False
@@ -159,10 +158,10 @@ def mbi_indivtest(
     return theta_crit
 
 def mbi_test(new_start=False, load_from_pickle=False, do_render=False):
-    mbi_picklename = lopbal_type + '/mbi1.pickle'
+    mbi_picklename = lopbal_type + '/' + plugin_datafolder + '/mbi1.pickle'
     mbi_picklename = os.path.join(
         os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-        "adapteddlo_muj/data/mbi/" + plugin_datafolder + '/' + mbi_picklename
+        "adapteddlo_muj/data/mbi/" + mbi_picklename
     )
     if load_from_pickle:
         print('Loading MBI test...')
@@ -214,10 +213,10 @@ def mbi_test(new_start=False, load_from_pickle=False, do_render=False):
     mbi_plot(b_a=b_a, theta_crit=theta_crit)
 
 def _pickle2data(ax, r_pieces):
-    pickledata_path = lopbal_type + '/lhb{}.pickle'.format(r_pieces)
+    pickledata_path = lopbal_type + '/' + plugin_datafolder + '/lhb{}.pickle'.format(r_pieces)
     pickledata_path = os.path.join(
         os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-        "adapteddlo_muj/data/lhb/" + plugin_datafolder + '/' + pickledata_path
+        "adapteddlo_muj/data/lhb/" + pickledata_path
     )
     # input(pickledata_path)
     with open(pickledata_path, 'rb') as f:
@@ -303,7 +302,7 @@ def lhb_indivtest(
     alpha_val = 1.345
     beta_val = 0.789
     overall_rot = 27. * (2*np.pi)
-    r_thickness = 0.05
+    r_thickness = 0.04
     # overall_rot = 0.0
     r_len = 9.29
     # r_mass = r_len/5
