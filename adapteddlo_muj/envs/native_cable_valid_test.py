@@ -426,6 +426,7 @@ class TestCableEnv(gym.Env, utils.EzPickle):
             self.model, self.data, p_state[1],
             spec=mujoco.mjtState.mjSTATE_PHYSICS
         )
+        print(p_state[2][0].shape)
         self.model.body_pos[:] = p_state[2][0]
         self.model.body_quat[:] = p_state[2][1]
         # self.dlo_sim.overall_rot = 27. * (2.*np.pi)

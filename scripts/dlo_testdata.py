@@ -289,7 +289,7 @@ def lhb_indivtest(
     alpha_val = 1.345
     beta_val = 0.789
     overall_rot = 27. * (2*np.pi)
-    r_thickness = 0.05
+    r_thickness = 0.04
     # overall_rot = 0.0
     r_len = 9.29
     # r_mass = r_len/5

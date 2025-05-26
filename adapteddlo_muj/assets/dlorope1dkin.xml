@@ -1,230 +1,176 @@
 <mujoco model="stiff-rope">
   <worldbody>
-    <body name="stiffrope" pos="3.204424506661589 0.0 0.5" quat="0.0 0.0 1.0 0.0">
-      <site name="ft_rope" pos="0 0 0" size="0.025 0.025 0.025" rgba="1 0 0 0" type="sphere" group="1" />
+    <body name="stiffrope" pos="4.645 0.0 0.5" quat="0.0 0.0 1.0 0.0">
+      <freejoint name="freejoint_A"/>
+      <site name="ft_rope" pos="0 0 0" size="0.04 0.02 0.02" rgba="1 0 0 0" type="sphere" group="1" />
       <body name="B_first">
-        <site name="S_first" pos="0 0 0" size="0.022500000000000003"/>
-        <geom name="G0" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-        <site name="S_0" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
+        <site name="S_first" pos="0 0 0" size="0.018000000000000002"/>
+        <geom name="G0" pos="0.11612499999999999 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0200 0.1161" rgba="0.1 0.05333333333333334 0.6733333333333333 1" conaffinity="0" contype="0" solref="0.001 1" condim="1"/>
+        <site name="S_0" pos="0 0 0" size="0.018000000000000002" rgba="0 0 0 0"/>
         <site name="twistcylx_1" pos="0 0 0.05" quat="0.707 0 0 -0.707" size="0.001 0.05" rgba="0 0 1 0.0" type="cylinder" group="1" />
         <site name="twistcyly_1" pos="0 0.05 0" quat="0.707 -0.707 0 0" size="0.001 0.05" rgba="1 1 0 0.0" type="cylinder" group="1" />
-        <body name="B_1" pos="0.12566370614359174 0 0">
+        <body name="B_1" pos="0.23224999999999998 0 0">
           <joint name="J_1" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-          <geom name="G1" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-          <site name="S_1" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-          <body name="B_2" pos="0.12566370614359174 0 0">
+          <geom name="G1" pos="0.11612499999999999 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0200 0.1161" rgba="0.1 0.05333333333333334 0.6733333333333333 1" conaffinity="0" contype="0" solref="0.001 1" condim="1"/>
+          <site name="S_1" pos="0 0 0" size="0.018000000000000002" rgba="0 0 0 0"/>
+          <body name="B_2" pos="0.23224999999999998 0 0">
             <joint name="J_2" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-            <geom name="G2" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-            <site name="S_2" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-            <body name="B_3" pos="0.12566370614359174 0 0">
+            <geom name="G2" pos="0.11612499999999999 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0200 0.1161" rgba="0.1 0.05333333333333334 0.6733333333333333 1" conaffinity="0" contype="0" solref="0.001 1" condim="1"/>
+            <site name="S_2" pos="0 0 0" size="0.018000000000000002" rgba="0 0 0 0"/>
+            <body name="B_3" pos="0.23224999999999998 0 0">
               <joint name="J_3" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-              <geom name="G3" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-              <site name="S_3" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-              <body name="B_4" pos="0.12566370614359174 0 0">
+              <geom name="G3" pos="0.11612499999999999 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0200 0.1161" rgba="0.1 0.05333333333333334 0.6733333333333333 1" conaffinity="0" contype="0" solref="0.001 1" condim="1"/>
+              <site name="S_3" pos="0 0 0" size="0.018000000000000002" rgba="0 0 0 0"/>
+              <body name="B_4" pos="0.23224999999999998 0 0">
                 <joint name="J_4" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-                <geom name="G4" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-                <site name="S_4" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-                <body name="B_5" pos="0.12566370614359174 0 0">
+                <geom name="G4" pos="0.11612499999999999 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0200 0.1161" rgba="0.1 0.05333333333333334 0.6733333333333333 1" conaffinity="0" contype="0" solref="0.001 1" condim="1"/>
+                <site name="S_4" pos="0 0 0" size="0.018000000000000002" rgba="0 0 0 0"/>
+                <body name="B_5" pos="0.23224999999999998 0 0">
                   <joint name="J_5" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-                  <geom name="G5" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-                  <site name="S_5" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-                  <body name="B_6" pos="0.12566370614359174 0 0">
+                  <geom name="G5" pos="0.11612499999999999 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0200 0.1161" rgba="0.1 0.05333333333333334 0.6733333333333333 1" conaffinity="0" contype="0" solref="0.001 1" condim="1"/>
+                  <site name="S_5" pos="0 0 0" size="0.018000000000000002" rgba="0 0 0 0"/>
+                  <body name="B_6" pos="0.23224999999999998 0 0">
                     <joint name="J_6" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-                    <geom name="G6" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-                    <site name="S_6" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-                    <body name="B_7" pos="0.12566370614359174 0 0">
+                    <geom name="G6" pos="0.11612499999999999 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0200 0.1161" rgba="0.1 0.05333333333333334 0.6733333333333333 1" conaffinity="0" contype="0" solref="0.001 1" condim="1"/>
+                    <site name="S_6" pos="0 0 0" size="0.018000000000000002" rgba="0 0 0 0"/>
+                    <body name="B_7" pos="0.23224999999999998 0 0">
                       <joint name="J_7" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-                      <geom name="G7" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-                      <site name="S_7" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-                      <body name="B_8" pos="0.12566370614359174 0 0">
+                      <geom name="G7" pos="0.11612499999999999 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0200 0.1161" rgba="0.1 0.05333333333333334 0.6733333333333333 1" conaffinity="0" contype="0" solref="0.001 1" condim="1"/>
+                      <site name="S_7" pos="0 0 0" size="0.018000000000000002" rgba="0 0 0 0"/>
+                      <body name="B_8" pos="0.23224999999999998 0 0">
                         <joint name="J_8" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-                        <geom name="G8" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-                        <site name="S_8" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-                        <body name="B_9" pos="0.12566370614359174 0 0">
+                        <geom name="G8" pos="0.11612499999999999 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0200 0.1161" rgba="0.1 0.05333333333333334 0.6733333333333333 1" conaffinity="0" contype="0" solref="0.001 1" condim="1"/>
+                        <site name="S_8" pos="0 0 0" size="0.018000000000000002" rgba="0 0 0 0"/>
+                        <body name="B_9" pos="0.23224999999999998 0 0">
                           <joint name="J_9" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-                          <geom name="G9" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-                          <site name="S_9" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-                          <body name="B_10" pos="0.12566370614359174 0 0">
+                          <geom name="G9" pos="0.11612499999999999 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0200 0.1161" rgba="0.1 0.05333333333333334 0.6733333333333333 1" conaffinity="0" contype="0" solref="0.001 1" condim="1"/>
+                          <site name="S_9" pos="0 0 0" size="0.018000000000000002" rgba="0 0 0 0"/>
+                          <body name="B_10" pos="0.23224999999999998 0 0">
                             <joint name="J_10" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-                            <geom name="G10" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-                            <site name="S_10" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-                            <body name="B_11" pos="0.12566370614359174 0 0">
+                            <geom name="G10" pos="0.11612499999999999 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0200 0.1161" rgba="0.1 0.05333333333333334 0.6733333333333333 1" conaffinity="0" contype="0" solref="0.001 1" condim="1"/>
+                            <site name="S_10" pos="0 0 0" size="0.018000000000000002" rgba="0 0 0 0"/>
+                            <body name="B_11" pos="0.23224999999999998 0 0">
                               <joint name="J_11" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-                              <geom name="G11" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-                              <site name="S_11" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-                              <body name="B_12" pos="0.12566370614359174 0 0">
+                              <geom name="G11" pos="0.11612499999999999 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0200 0.1161" rgba="0.1 0.05333333333333334 0.6733333333333333 1" conaffinity="0" contype="0" solref="0.001 1" condim="1"/>
+                              <site name="S_11" pos="0 0 0" size="0.018000000000000002" rgba="0 0 0 0"/>
+                              <body name="B_12" pos="0.23224999999999998 0 0">
                                 <joint name="J_12" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-                                <geom name="G12" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-                                <site name="S_12" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-                                <body name="B_13" pos="0.12566370614359174 0 0">
+                                <geom name="G12" pos="0.11612499999999999 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0200 0.1161" rgba="0.1 0.05333333333333334 0.6733333333333333 1" conaffinity="0" contype="0" solref="0.001 1" condim="1"/>
+                                <site name="S_12" pos="0 0 0" size="0.018000000000000002" rgba="0 0 0 0"/>
+                                <body name="B_13" pos="0.23224999999999998 0 0">
                                   <joint name="J_13" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-                                  <geom name="G13" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-                                  <site name="S_13" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-                                  <body name="B_14" pos="0.12566370614359174 0 0">
+                                  <geom name="G13" pos="0.11612499999999999 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0200 0.1161" rgba="0.1 0.05333333333333334 0.6733333333333333 1" conaffinity="0" contype="0" solref="0.001 1" condim="1"/>
+                                  <site name="S_13" pos="0 0 0" size="0.018000000000000002" rgba="0 0 0 0"/>
+                                  <body name="B_14" pos="0.23224999999999998 0 0">
                                     <joint name="J_14" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-                                    <geom name="G14" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-                                    <site name="S_14" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-                                    <body name="B_15" pos="0.12566370614359174 0 0">
+                                    <geom name="G14" pos="0.11612499999999999 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0200 0.1161" rgba="0.1 0.05333333333333334 0.6733333333333333 1" conaffinity="0" contype="0" solref="0.001 1" condim="1"/>
+                                    <site name="S_14" pos="0 0 0" size="0.018000000000000002" rgba="0 0 0 0"/>
+                                    <body name="B_15" pos="0.23224999999999998 0 0">
                                       <joint name="J_15" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-                                      <geom name="G15" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-                                      <site name="S_15" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-                                      <body name="B_16" pos="0.12566370614359174 0 0">
+                                      <geom name="G15" pos="0.11612499999999999 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0200 0.1161" rgba="0.1 0.05333333333333334 0.6733333333333333 1" conaffinity="0" contype="0" solref="0.001 1" condim="1"/>
+                                      <site name="S_15" pos="0 0 0" size="0.018000000000000002" rgba="0 0 0 0"/>
+                                      <body name="B_16" pos="0.23224999999999998 0 0">
                                         <joint name="J_16" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-                                        <geom name="G16" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-                                        <site name="S_16" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-                                        <body name="B_17" pos="0.12566370614359174 0 0">
+                                        <geom name="G16" pos="0.11612499999999999 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0200 0.1161" rgba="0.1 0.05333333333333334 0.6733333333333333 1" conaffinity="0" contype="0" solref="0.001 1" condim="1"/>
+                                        <site name="S_16" pos="0 0 0" size="0.018000000000000002" rgba="0 0 0 0"/>
+                                        <body name="B_17" pos="0.23224999999999998 0 0">
                                           <joint name="J_17" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-                                          <geom name="G17" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-                                          <site name="S_17" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-                                          <body name="B_18" pos="0.12566370614359174 0 0">
+                                          <geom name="G17" pos="0.11612499999999999 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0200 0.1161" rgba="0.1 0.05333333333333334 0.6733333333333333 1" conaffinity="0" contype="0" solref="0.001 1" condim="1"/>
+                                          <site name="S_17" pos="0 0 0" size="0.018000000000000002" rgba="0 0 0 0"/>
+                                          <body name="B_18" pos="0.23224999999999998 0 0">
                                             <joint name="J_18" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-                                            <geom name="G18" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-                                            <site name="S_18" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-                                            <body name="B_19" pos="0.12566370614359174 0 0">
+                                            <geom name="G18" pos="0.11612499999999999 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0200 0.1161" rgba="0.1 0.05333333333333334 0.6733333333333333 1" conaffinity="0" contype="0" solref="0.001 1" condim="1"/>
+                                            <site name="S_18" pos="0 0 0" size="0.018000000000000002" rgba="0 0 0 0"/>
+                                            <body name="B_19" pos="0.23224999999999998 0 0">
                                               <joint name="J_19" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-                                              <geom name="G19" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-                                              <site name="S_19" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-                                              <body name="B_20" pos="0.12566370614359174 0 0">
+                                              <geom name="G19" pos="0.11612499999999999 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0200 0.1161" rgba="0.1 0.05333333333333334 0.6733333333333333 1" conaffinity="0" contype="0" solref="0.001 1" condim="1"/>
+                                              <site name="S_19" pos="0 0 0" size="0.018000000000000002" rgba="0 0 0 0"/>
+                                              <body name="B_20" pos="0.23224999999999998 0 0">
                                                 <joint name="J_20" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-                                                <geom name="G20" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-                                                <site name="S_20" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-                                                <body name="B_21" pos="0.12566370614359174 0 0">
+                                                <geom name="G20" pos="0.11612499999999999 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0200 0.1161" rgba="0.1 0.05333333333333334 0.6733333333333333 1" conaffinity="0" contype="0" solref="0.001 1" condim="1"/>
+                                                <site name="S_20" pos="0 0 0" size="0.018000000000000002" rgba="0 0 0 0"/>
+                                                <site name="twistcylx_21" pos="0 0 0.05" quat="0.707 0 0 -0.707" size="0.001 0.05" rgba="0 0 1 0.0" type="cylinder" group="1" />
+                                                <site name="twistcyly_21" pos="0 0.05 0" quat="0.707 -0.707 0 0" size="0.001 0.05" rgba="1 1 0 0.0" type="cylinder" group="1" />
+                                                <body name="B_21" pos="0.23224999999999998 0 0">
                                                   <joint name="J_21" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-                                                  <geom name="G21" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-                                                  <site name="S_21" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-                                                  <body name="B_22" pos="0.12566370614359174 0 0">
+                                                  <geom name="G21" pos="0.11612499999999999 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0200 0.1161" rgba="0.1 0.05333333333333334 0.6733333333333333 1" conaffinity="0" contype="0" solref="0.001 1" condim="1"/>
+                                                  <site name="S_21" pos="0 0 0" size="0.018000000000000002" rgba="0 0 0 0"/>
+                                                  <body name="B_22" pos="0.23224999999999998 0 0">
                                                     <joint name="J_22" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-                                                    <geom name="G22" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-                                                    <site name="S_22" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-                                                    <body name="B_23" pos="0.12566370614359174 0 0">
+                                                    <geom name="G22" pos="0.11612499999999999 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0200 0.1161" rgba="0.1 0.05333333333333334 0.6733333333333333 1" conaffinity="0" contype="0" solref="0.001 1" condim="1"/>
+                                                    <site name="S_22" pos="0 0 0" size="0.018000000000000002" rgba="0 0 0 0"/>
+                                                    <body name="B_23" pos="0.23224999999999998 0 0">
                                                       <joint name="J_23" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-                                                      <geom name="G23" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-                                                      <site name="S_23" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-                                                      <body name="B_24" pos="0.12566370614359174 0 0">
+                                                      <geom name="G23" pos="0.11612499999999999 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0200 0.1161" rgba="0.1 0.05333333333333334 0.6733333333333333 1" conaffinity="0" contype="0" solref="0.001 1" condim="1"/>
+                                                      <site name="S_23" pos="0 0 0" size="0.018000000000000002" rgba="0 0 0 0"/>
+                                                      <body name="B_24" pos="0.23224999999999998 0 0">
                                                         <joint name="J_24" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-                                                        <geom name="G24" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-                                                        <site name="S_24" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-                                                        <body name="B_25" pos="0.12566370614359174 0 0">
+                                                        <geom name="G24" pos="0.11612499999999999 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0200 0.1161" rgba="0.1 0.05333333333333334 0.6733333333333333 1" conaffinity="0" contype="0" solref="0.001 1" condim="1"/>
+                                                        <site name="S_24" pos="0 0 0" size="0.018000000000000002" rgba="0 0 0 0"/>
+                                                        <body name="B_25" pos="0.23224999999999998 0 0">
                                                           <joint name="J_25" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-                                                          <geom name="G25" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-                                                          <site name="S_25" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-                                                          <site name="twistcylx_26" pos="0 0 0.05" quat="0.707 0 0 -0.707" size="0.001 0.05" rgba="0 0 1 0.0" type="cylinder" group="1" />
-                                                          <site name="twistcyly_26" pos="0 0.05 0" quat="0.707 -0.707 0 0" size="0.001 0.05" rgba="1 1 0 0.0" type="cylinder" group="1" />
-                                                          <body name="B_26" pos="0.12566370614359174 0 0">
+                                                          <geom name="G25" pos="0.11612499999999999 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0200 0.1161" rgba="0.1 0.05333333333333334 0.6733333333333333 1" conaffinity="0" contype="0" solref="0.001 1" condim="1"/>
+                                                          <site name="S_25" pos="0 0 0" size="0.018000000000000002" rgba="0 0 0 0"/>
+                                                          <body name="B_26" pos="0.23224999999999998 0 0">
                                                             <joint name="J_26" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-                                                            <geom name="G26" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-                                                            <site name="S_26" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-                                                            <body name="B_27" pos="0.12566370614359174 0 0">
+                                                            <geom name="G26" pos="0.11612499999999999 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0200 0.1161" rgba="0.1 0.05333333333333334 0.6733333333333333 1" conaffinity="0" contype="0" solref="0.001 1" condim="1"/>
+                                                            <site name="S_26" pos="0 0 0" size="0.018000000000000002" rgba="0 0 0 0"/>
+                                                            <body name="B_27" pos="0.23224999999999998 0 0">
                                                               <joint name="J_27" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-                                                              <geom name="G27" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-                                                              <site name="S_27" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-                                                              <body name="B_28" pos="0.12566370614359174 0 0">
+                                                              <geom name="G27" pos="0.11612499999999999 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0200 0.1161" rgba="0.1 0.05333333333333334 0.6733333333333333 1" conaffinity="0" contype="0" solref="0.001 1" condim="1"/>
+                                                              <site name="S_27" pos="0 0 0" size="0.018000000000000002" rgba="0 0 0 0"/>
+                                                              <body name="B_28" pos="0.23224999999999998 0 0">
                                                                 <joint name="J_28" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-                                                                <geom name="G28" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-                                                                <site name="S_28" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-                                                                <body name="B_29" pos="0.12566370614359174 0 0">
+                                                                <geom name="G28" pos="0.11612499999999999 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0200 0.1161" rgba="0.1 0.05333333333333334 0.6733333333333333 1" conaffinity="0" contype="0" solref="0.001 1" condim="1"/>
+                                                                <site name="S_28" pos="0 0 0" size="0.018000000000000002" rgba="0 0 0 0"/>
+                                                                <body name="B_29" pos="0.23224999999999998 0 0">
                                                                   <joint name="J_29" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-                                                                  <geom name="G29" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-                                                                  <site name="S_29" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-                                                                  <body name="B_30" pos="0.12566370614359174 0 0">
+                                                                  <geom name="G29" pos="0.11612499999999999 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0200 0.1161" rgba="0.1 0.05333333333333334 0.6733333333333333 1" conaffinity="0" contype="0" solref="0.001 1" condim="1"/>
+                                                                  <site name="S_29" pos="0 0 0" size="0.018000000000000002" rgba="0 0 0 0"/>
+                                                                  <body name="B_30" pos="0.23224999999999998 0 0">
                                                                     <joint name="J_30" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-                                                                    <geom name="G30" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-                                                                    <site name="S_30" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-                                                                    <body name="B_31" pos="0.12566370614359174 0 0">
+                                                                    <geom name="G30" pos="0.11612499999999999 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0200 0.1161" rgba="0.1 0.05333333333333334 0.6733333333333333 1" conaffinity="0" contype="0" solref="0.001 1" condim="1"/>
+                                                                    <site name="S_30" pos="0 0 0" size="0.018000000000000002" rgba="0 0 0 0"/>
+                                                                    <body name="B_31" pos="0.23224999999999998 0 0">
                                                                       <joint name="J_31" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-                                                                      <geom name="G31" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-                                                                      <site name="S_31" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-                                                                      <body name="B_32" pos="0.12566370614359174 0 0">
+                                                                      <geom name="G31" pos="0.11612499999999999 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0200 0.1161" rgba="0.1 0.05333333333333334 0.6733333333333333 1" conaffinity="0" contype="0" solref="0.001 1" condim="1"/>
+                                                                      <site name="S_31" pos="0 0 0" size="0.018000000000000002" rgba="0 0 0 0"/>
+                                                                      <body name="B_32" pos="0.23224999999999998 0 0">
                                                                         <joint name="J_32" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-                                                                        <geom name="G32" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-                                                                        <site name="S_32" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-                                                                        <body name="B_33" pos="0.12566370614359174 0 0">
+                                                                        <geom name="G32" pos="0.11612499999999999 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0200 0.1161" rgba="0.1 0.05333333333333334 0.6733333333333333 1" conaffinity="0" contype="0" solref="0.001 1" condim="1"/>
+                                                                        <site name="S_32" pos="0 0 0" size="0.018000000000000002" rgba="0 0 0 0"/>
+                                                                        <body name="B_33" pos="0.23224999999999998 0 0">
                                                                           <joint name="J_33" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-                                                                          <geom name="G33" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-                                                                          <site name="S_33" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-                                                                          <body name="B_34" pos="0.12566370614359174 0 0">
+                                                                          <geom name="G33" pos="0.11612499999999999 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0200 0.1161" rgba="0.1 0.05333333333333334 0.6733333333333333 1" conaffinity="0" contype="0" solref="0.001 1" condim="1"/>
+                                                                          <site name="S_33" pos="0 0 0" size="0.018000000000000002" rgba="0 0 0 0"/>
+                                                                          <body name="B_34" pos="0.23224999999999998 0 0">
                                                                             <joint name="J_34" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-                                                                            <geom name="G34" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-                                                                            <site name="S_34" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-                                                                            <body name="B_35" pos="0.12566370614359174 0 0">
+                                                                            <geom name="G34" pos="0.11612499999999999 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0200 0.1161" rgba="0.1 0.05333333333333334 0.6733333333333333 1" conaffinity="0" contype="0" solref="0.001 1" condim="1"/>
+                                                                            <site name="S_34" pos="0 0 0" size="0.018000000000000002" rgba="0 0 0 0"/>
+                                                                            <body name="B_35" pos="0.23224999999999998 0 0">
                                                                               <joint name="J_35" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-                                                                              <geom name="G35" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-                                                                              <site name="S_35" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-                                                                              <body name="B_36" pos="0.12566370614359174 0 0">
+                                                                              <geom name="G35" pos="0.11612499999999999 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0200 0.1161" rgba="0.1 0.05333333333333334 0.6733333333333333 1" conaffinity="0" contype="0" solref="0.001 1" condim="1"/>
+                                                                              <site name="S_35" pos="0 0 0" size="0.018000000000000002" rgba="0 0 0 0"/>
+                                                                              <body name="B_36" pos="0.23224999999999998 0 0">
                                                                                 <joint name="J_36" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-                                                                                <geom name="G36" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-                                                                                <site name="S_36" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-                                                                                <body name="B_37" pos="0.12566370614359174 0 0">
+                                                                                <geom name="G36" pos="0.11612499999999999 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0200 0.1161" rgba="0.1 0.05333333333333334 0.6733333333333333 1" conaffinity="0" contype="0" solref="0.001 1" condim="1"/>
+                                                                                <site name="S_36" pos="0 0 0" size="0.018000000000000002" rgba="0 0 0 0"/>
+                                                                                <body name="B_37" pos="0.23224999999999998 0 0">
                                                                                   <joint name="J_37" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-                                                                                  <geom name="G37" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-                                                                                  <site name="S_37" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-                                                                                  <body name="B_38" pos="0.12566370614359174 0 0">
+                                                                                  <geom name="G37" pos="0.11612499999999999 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0200 0.1161" rgba="0.1 0.05333333333333334 0.6733333333333333 1" conaffinity="0" contype="0" solref="0.001 1" condim="1"/>
+                                                                                  <site name="S_37" pos="0 0 0" size="0.018000000000000002" rgba="0 0 0 0"/>
+                                                                                  <body name="B_38" pos="0.23224999999999998 0 0">
                                                                                     <joint name="J_38" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-                                                                                    <geom name="G38" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-                                                                                    <site name="S_38" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-                                                                                    <body name="B_39" pos="0.12566370614359174 0 0">
-                                                                                      <joint name="J_39" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-                                                                                      <geom name="G39" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-                                                                                      <site name="S_39" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-                                                                                      <body name="B_40" pos="0.12566370614359174 0 0">
-                                                                                        <joint name="J_40" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-                                                                                        <geom name="G40" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-                                                                                        <site name="S_40" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-                                                                                        <body name="B_41" pos="0.12566370614359174 0 0">
-                                                                                          <joint name="J_41" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-                                                                                          <geom name="G41" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-                                                                                          <site name="S_41" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-                                                                                          <body name="B_42" pos="0.12566370614359174 0 0">
-                                                                                            <joint name="J_42" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-                                                                                            <geom name="G42" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-                                                                                            <site name="S_42" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-                                                                                            <body name="B_43" pos="0.12566370614359174 0 0">
-                                                                                              <joint name="J_43" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-                                                                                              <geom name="G43" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-                                                                                              <site name="S_43" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-                                                                                              <body name="B_44" pos="0.12566370614359174 0 0">
-                                                                                                <joint name="J_44" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-                                                                                                <geom name="G44" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-                                                                                                <site name="S_44" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-                                                                                                <body name="B_45" pos="0.12566370614359174 0 0">
-                                                                                                  <joint name="J_45" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-                                                                                                  <geom name="G45" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-                                                                                                  <site name="S_45" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-                                                                                                  <body name="B_46" pos="0.12566370614359174 0 0">
-                                                                                                    <joint name="J_46" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-                                                                                                    <geom name="G46" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-                                                                                                    <site name="S_46" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-                                                                                                    <body name="B_47" pos="0.12566370614359174 0 0">
-                                                                                                      <joint name="J_47" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-                                                                                                      <geom name="G47" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-                                                                                                      <site name="S_47" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-                                                                                                      <body name="B_48" pos="0.12566370614359174 0 0">
-                                                                                                        <joint name="J_48" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-                                                                                                        <geom name="G48" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-                                                                                                        <site name="S_48" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-                                                                                                        <body name="B_49" pos="0.12566370614359174 0 0">
-                                                                                                          <joint name="J_49" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-                                                                                                          <geom name="G49" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-                                                                                                          <site name="S_49" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-                                                                                                          <body name="B_last" pos="0.12566370614359174 0 0">
-                                                                                                            <joint name="J_last" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
-                                                                                                            <geom name="G50" pos="0.06283185307179587 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0250 0.0628" rgba="0.1 0.05333333333333334 0.6733333333333333 1.0" conaffinity="1" contype="1" solref="0.001 1" condim="1"/>
-                                                                                                            <site name="S_50" pos="0 0 0" size="0.022500000000000003" rgba="0 0 0 0"/>
-                                                                                                            <site name="twistcylx_51" pos="0 0 0.05" quat="0.707 0 0 -0.707" size="0.001 0.05" rgba="0 0 1 0.0" type="cylinder" group="1" />
-                                                                                                            <site name="twistcyly_51" pos="0 0.05 0" quat="0.707 -0.707 0 0" size="0.001 0.05" rgba="1 1 0 0.0" type="cylinder" group="1" />
-                                                                                                            <site name="S_last" pos="0.12566370614359174 0 0" size="0.022500000000000003"/>
-                                                                                                            <body name="B_last2" pos="0.12566370614359174 0 0">
-                                                                                                            </body>
-                                                                                                          </body>
-                                                                                                        </body>
-                                                                                                      </body>
-                                                                                                    </body>
-                                                                                                  </body>
-                                                                                                </body>
-                                                                                              </body>
-                                                                                            </body>
-                                                                                          </body>
-                                                                                        </body>
+                                                                                    <geom name="G38" pos="0.11612499999999999 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0200 0.1161" rgba="0.1 0.05333333333333334 0.6733333333333333 1" conaffinity="0" contype="0" solref="0.001 1" condim="1"/>
+                                                                                    <site name="S_38" pos="0 0 0" size="0.018000000000000002" rgba="0 0 0 0"/>
+                                                                                    <body name="B_last" pos="0.23224999999999998 0 0">
+                                                                                      <joint name="J_last" type="ball" pos="0 0 0" stiffness="0.0" damping="0.5" actuatorfrclimited="false"/>
+                                                                                      <geom name="G39" pos="0.11612499999999999 0 0" quat="0.707107 0 -0.707107 0" type="capsule" size="0.0200 0.1161" rgba="0.1 0.05333333333333334 0.6733333333333333 1" conaffinity="0" contype="0" solref="0.001 1" condim="1"/>
+                                                                                      <site name="S_39" pos="0 0 0" size="0.018000000000000002" rgba="0 0 0 0"/>
+                                                                                      <site name="twistcylx_40" pos="0 0 0.05" quat="0.707 0 0 -0.707" size="0.001 0.05" rgba="0 0 1 0.0" type="cylinder" group="1" />
+                                                                                      <site name="twistcyly_40" pos="0 0.05 0" quat="0.707 -0.707 0 0" size="0.001 0.05" rgba="1 1 0 0.0" type="cylinder" group="1" />
+                                                                                      <site name="S_last" pos="0.23224999999999998 0 0" size="0.018000000000000002"/>
+                                                                                      <body name="B_last2" pos="0.23224999999999998 0 0">
                                                                                       </body>
                                                                                     </body>
                                                                                   </body>
@@ -272,14 +218,53 @@
   </sensor>
   <equality>
     <weld body1='B_last' body2='eef_body' solref='0.001 1'/>
+     <weld body1='B_first' body2='eef_body2' solref='0.001 1'/>
   </equality>
   <contact>
-    <exclude body1="B_first" body2="B_1"/>
     <exclude body1="B_first" body2="B_last"/>
     <exclude body1="B_1" body2="B_last"/>
-    <exclude body1="B_first" body2="B_49"/>
+    <exclude body1="B_first" body2="B_38"/>
+    <exclude body1="B_first" body2="B_1"/>
+    <exclude body1="B_1" body2="B_2"/>
+    <exclude body1="B_2" body2="B_3"/>
+    <exclude body1="B_3" body2="B_4"/>
+    <exclude body1="B_4" body2="B_5"/>
+    <exclude body1="B_5" body2="B_6"/>
+    <exclude body1="B_6" body2="B_7"/>
+    <exclude body1="B_7" body2="B_8"/>
+    <exclude body1="B_8" body2="B_9"/>
+    <exclude body1="B_9" body2="B_10"/>
+    <exclude body1="B_10" body2="B_11"/>
+    <exclude body1="B_11" body2="B_12"/>
+    <exclude body1="B_12" body2="B_13"/>
+    <exclude body1="B_13" body2="B_14"/>
+    <exclude body1="B_14" body2="B_15"/>
+    <exclude body1="B_15" body2="B_16"/>
+    <exclude body1="B_16" body2="B_17"/>
+    <exclude body1="B_17" body2="B_18"/>
+    <exclude body1="B_18" body2="B_19"/>
+    <exclude body1="B_19" body2="B_20"/>
+    <exclude body1="B_20" body2="B_21"/>
+    <exclude body1="B_21" body2="B_22"/>
+    <exclude body1="B_22" body2="B_23"/>
+    <exclude body1="B_23" body2="B_24"/>
+    <exclude body1="B_24" body2="B_25"/>
+    <exclude body1="B_25" body2="B_26"/>
+    <exclude body1="B_26" body2="B_27"/>
+    <exclude body1="B_27" body2="B_28"/>
+    <exclude body1="B_28" body2="B_29"/>
+    <exclude body1="B_29" body2="B_30"/>
+    <exclude body1="B_30" body2="B_31"/>
+    <exclude body1="B_31" body2="B_32"/>
+    <exclude body1="B_32" body2="B_33"/>
+    <exclude body1="B_33" body2="B_34"/>
+    <exclude body1="B_34" body2="B_35"/>
+    <exclude body1="B_35" body2="B_36"/>
+    <exclude body1="B_36" body2="B_37"/>
+    <exclude body1="B_37" body2="B_38"/>
+    <exclude body1="B_38" body2="B_last"/>
     <exclude body1="eef_body" body2="B_first"/>
     <exclude body1="eef_body" body2="B_last"/>
-    <exclude body1="eef_body" body2="B_49"/>
+    <exclude body1="eef_body" body2="B_38"/>
   </contact>
 </mujoco>

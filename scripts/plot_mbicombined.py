@@ -32,7 +32,7 @@ def mbi_plot(b_a, theta_crit, c='k'):
     if not base_plotted:
         plt.plot(b_a_base, theta_crit_base, c='k', linewidth="2", alpha=0.5, zorder=5)
     else:
-        next(ax._get_lines.prop_cycler) 
+        next(iter(plt.rcParams['axes.prop_cycle']))
     plt.plot(b_a, theta_crit, alpha=0.7)
     
 

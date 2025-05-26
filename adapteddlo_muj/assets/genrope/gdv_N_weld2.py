@@ -43,6 +43,11 @@ class GenKin_N_weld2:
         self.r_len = r_len
         self.r_thickness = r_thickness
         self.r_pieces = r_pieces
+        thickness_ratio = self.r_thickness/(self.r_len / self.r_pieces)
+        if thickness_ratio > 0.8:
+            print(f"Warning: thickness too large -ratio- {thickness_ratio}")
+            print("Consider reducing to prevent unwanted collisions")
+            input()
         self.stiff_vals = stiff_vals
         self.j_damp = j_damp
         self.r_mass = r_mass
