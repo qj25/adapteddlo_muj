@@ -200,7 +200,7 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
                 r_pieces=self.r_pieces,
                 # r_mass=self.r_mass,
                 j_stiff=0.0,
-                j_damp=0.5,
+                j_damp=1.0,
                 init_pos=self.rope_initpose[:3],
                 init_quat=self.rope_initpose[3:],
                 d_small=0.,
