@@ -11,6 +11,7 @@ args = parser.parse_args()
 wire_color = args.wirecolor
 new_ptselect = bool(args.newptselect)
 testid = args.testid
+testid = 'crit'
 
 # Global list to store points
 points = []
@@ -45,6 +46,7 @@ realdata_picklename = os.path.join(
 )
 # Load the image
 image_name = wire_color + '0.jpg'  # Replace with the path to your image
+image_name = 'whitecrit.jpg'  # Replace with the path to your image
 # image_name = wire_color + testid + '.jpg'  # Replace with the path to your image
 image_path = os.path.join(
     os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
@@ -53,7 +55,7 @@ image_path = os.path.join(
 
 clamp_realdist = 0.12
 total_reallen = 1.5
-r_pieces = 50
+r_pieces = 200
 # r_pieces -= 1 # to account for the 2 half-pieces at the end at beginning for the sim 
 if new_ptselect:
     img = cv2.imread(image_path)
