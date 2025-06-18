@@ -779,7 +779,7 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
             # # get and apply force normal to the circle
             norm_force = self.get_rope_normal()
             # self.apply_force_t(t=0.3,force_dir=np.array([0., 0., 1.]))
-            self.apply_force_t(t=1.2,force_dir=norm_force)
+            self.apply_force_t(t=0.5,force_dir=norm_force)
 
             # self.hold_pos(100.)
             # create a for loop that checks PCA error at each iter
