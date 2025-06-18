@@ -346,6 +346,7 @@ def lhb_test(new_start=True, load_from_pickle=False, do_render=False):
     print('Starting LHB test.')
     # n_pieces = [40, 60, 80, 110, 140]
     # n_pieces = [180]
+    # n_pieces = [40,60]
     # n_pieces = [80]
     n_pieces = [40, 60, 80, 110, 140, 180]
     if not load_from_pickle:
