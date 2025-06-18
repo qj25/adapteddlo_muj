@@ -193,7 +193,7 @@ class TestCableEnv(gym.Env, utils.EzPickle):
                 r_pieces=self.r_pieces,
                 # r_mass=self.r_mass,
                 stiff_vals=self.stiff_vals,
-                j_damp=0.5,
+                j_damp=1.0,
                 init_pos=self.rope_initpose[:3],
                 init_quat=self.rope_initpose[3:],
                 rope_type="capsule",
