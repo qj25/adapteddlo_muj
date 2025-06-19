@@ -68,6 +68,7 @@ real_pos_arr = real_pos_arr_all.copy()
 
 n_points = len(node_pos_arr[0][0][0])
 error_arr = np.zeros((n_testtypes,n_wirecolors,n_pos))
+rms_error_arr = np.zeros((n_testtypes, n_wirecolors, n_pos))
 for i in range(n_testtypes):
     print(f"Test type: {test_types[i]}| =======================================")
     for j in range(n_wirecolors):
@@ -100,9 +101,12 @@ for i in range(n_testtypes):
                 # startend_axis=se_axis.copy(),
             # )
 
-            error_arr[i,j,pos_id] = np.sum(np.linalg.norm(
-                node_pos_arr[i,j,pos_id]-real_pos_arr[j,pos_id],axis=1
-            ))/n_points/r_len
+            # Calculate per-point distances
+            print(len(real_pos_arr[j,pos_id]))
+            diff = node_pos_arr[i,j,pos_id] - real_pos_arr[j,pos_id]
+            dists = np.linalg.norm(diff, axis=1)
+            error_arr[i,j,pos_id] = np.sum(dists) / n_points / r_len
+            rms_error_arr[i,j,pos_id] = np.sqrt(np.mean(dists**2)) / r_len
 
             # print(f"pos{pos_id} error = {error_arr[i,j,pos_id]}")
 
@@ -111,23 +115,23 @@ for i in range(n_testtypes):
             #     [old_node_pos,real_pos_arr[j,pos_id]]
             # )
 
-# posid_excl = [0,1,3]
-for j in range(n_wirecolors):
-    if wc is not None:
-        if wire_colors[j] != wc:
-            continue
-    print(f"wirecolor: {wire_colors[j]}")
-    for pos_id in range(n_pos):
-        if mi is not None:
-            if pos_id != mi:
-                continue
-        # if pos_id in posid_excl: continue
-        err1 = np.sum(np.linalg.norm(
-            node_pos_arr[0,j,pos_id]-node_pos_arr[1,j,pos_id],axis=1
-        ))/n_points
-        # print(real_pos_arr[j,pos_id])
-        # print(f"pos{pos_id} error = {err1}")
-        plot3d(real_pos_arr[j,pos_id],[node_pos_arr[0,j,pos_id],node_pos_arr[1,j,pos_id]])
+# # posid_excl = [0,1,3]
+# for j in range(n_wirecolors):
+#     if wc is not None:
+#         if wire_colors[j] != wc:
+#             continue
+#     print(f"wirecolor: {wire_colors[j]}")
+#     for pos_id in range(n_pos):
+#         if mi is not None:
+#             if pos_id != mi:
+#                 continue
+#         # if pos_id in posid_excl: continue
+#         err1 = np.sum(np.linalg.norm(
+#             node_pos_arr[0,j,pos_id]-node_pos_arr[1,j,pos_id],axis=1
+#         ))/n_points
+#         # print(real_pos_arr[j,pos_id])
+#         # print(f"pos{pos_id} error = {err1}")
+#         plot3d(real_pos_arr[j,pos_id],[node_pos_arr[0,j,pos_id],node_pos_arr[1,j,pos_id]])
 
 # for j in range(n_wirecolors):
 #     for pos_id in range(n_pos):
