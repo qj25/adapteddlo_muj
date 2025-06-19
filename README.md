@@ -1,6 +1,9 @@
 # Adapted Discrete Elastic Rod model for MuJoCo
 An adaptation of the Cartesian stiffness forces in Discrete Elastic Rods ([Bergou2008](http://www.cs.columbia.edu/cg/pdfs/143-rods.pdf)) into generalized coordinates for use in a joint-based simulator, [MuJoCo](https://mujoco.readthedocs.io/en/latest/overview.html).
 
+## C++ plugin
+To use with C++ API of MuJoCo, see folder 'wire_plugin' for instructions.
+
 ## Requires
 On Ubuntu, make sure you have the packages
 
