@@ -1,0 +1,18 @@
+<mujoco model="stiff-rope">
+  <extension>
+    <plugin plugin="mujoco.elasticity.wire_qst"/>
+  </extension>
+  <worldbody>
+    <body name="stiffrope" pos="0.0 0.0 0.38" quat="0.0 0.0 1.0 0.0">
+      <composite type="wire_qst" curve="s" count="31 1 1" size="1.2" offset="0 0 0" initial="none">
+        <plugin plugin="mujoco.elasticity.wire_qst">
+          <config key="twist" value="500000.0"/>
+          <config key="bend" value="1000000.0"/>
+          <config key="vmax" value="0.05"/>
+        </plugin>
+        <joint kind="main" damping="0.001"/>
+        <geom type="capsule" size="0.005" rgba=".8 .2 .1 1" condim="1" conaffinity="0" contype="0"/>
+      </composite>
+    </body>
+  </worldbody>
+</mujoco>
