@@ -64,7 +64,7 @@ def plot_bars(error):
     wire_colors = ['grey','black','red']
     model_types = ['adapted', 'native']
     # model_edgecolors = ['lightgreen', 'lightpink']
-    model_hatch = [None, '\\\\\\']
+    model_hatch = [None, '\\\\']
 
     bar_adapt = []
     bar_native = []
@@ -87,6 +87,13 @@ def plot_bars(error):
         #     # bar_native[-1][j].set_edgecolor(wire_colors[i])
         #     bar_native[-1][j].set_edgecolor(model_edgecolors[1])
         #     bar_native[-1][j].set_linewidth(5)
+
+    # Make hatching visible on black bars by setting edgecolor to white
+    for bars, color in zip(bar_native, wire_colors):
+        if color == 'black':
+            for bar in bars:
+                bar.set_edgecolor('white')
+                bar.set_linewidth(1.5)  # Optional: make hatch lines thicker
 
     for i in range(len(model_types)):
         t1 = ax.bar(index + (2*i * bar_width), np.zeros_like(error[0,i,]), bar_width-0.04,
