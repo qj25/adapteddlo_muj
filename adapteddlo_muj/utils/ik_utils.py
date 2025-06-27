@@ -1,9 +1,9 @@
 import os
 import mujoco
 import numpy as np
-from der_muj4.utils.xml_utils import XMLWrapper
-import der_muj4.utils.mjc2_utils as mjc2
-import der_muj4.utils.transform_utils as T
+from adapteddlo_muj.utils.xml_utils import XMLWrapper
+import adapteddlo_muj.utils.mjc2_utils as mjc2
+import adapteddlo_muj.utils.transform_utils as T
 
 class ik_denso:
     def __init__(self, eef_site_name="eef_site", init_qpos=np.zeros(6)):

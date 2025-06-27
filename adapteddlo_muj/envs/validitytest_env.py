@@ -521,8 +521,8 @@ class TestPluginEnv(gym.Env, utils.EzPickle):
             # print(self.sitename2pos("r_joint0_site")-self.sitename2pos("r_joint180_site"))
             self.ropeend_pos_all(pos_move=pos_move.copy())
             # self.ropeend_pos(pos_move=pos_move.copy())
-            print(f"ft_world_0: {self.observations['ft_world_0']}")
-            print(f"ft_world_1: {self.observations['ft_world_1']}")
+            # print(f"ft_world_0: {self.observations['ft_world_0']}")
+            # print(f"ft_world_1: {self.observations['ft_world_1']}")
 
             # print(i)
             # if i % 1 == 0:

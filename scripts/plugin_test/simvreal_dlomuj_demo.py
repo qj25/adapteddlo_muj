@@ -2,7 +2,7 @@ import os
 import pickle
 import numpy as np
 import adapteddlo_muj.utils.finddepth as fd1
-from adapteddlo_muj.utils.plotter import plot3d, plot_bars
+from adapteddlo_muj.utils.plotter import plot3d, plot_bars_more
 from adapteddlo_muj.utils.argparse_utils import svr_parse
 
 parser = svr_parse()
@@ -11,7 +11,7 @@ args = parser.parse_args()
 wc = args.wirecolor
 mi = args.moveid
 
-test_types = ['adapt','native']
+test_types = ['adapt2','adapt','native']
 wire_colors = ['black','red','white']
 pos_type = ['0','1','2','3']
 n_testtypes = len(test_types)
@@ -24,7 +24,7 @@ n_pos = len(pos_type)
     # 1.34089981e+00,  3.14161037e+00
 # ])
 data_file = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
     "adapteddlo_muj/data/"
 )
 data_file = data_file + 'pts_all.pickle'
@@ -39,7 +39,7 @@ for i in range(n_testtypes):
     for j in range(n_wirecolors):
         for pos_id in range(n_pos):
             simdata_picklename = os.path.join(
-                os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
                 "adapteddlo_muj/data/simdata/plugin/" + f"simdata_{wire_colors[j]}{pos_id}_{test_types[i]}.pickle"
             )
             with open(simdata_picklename, 'rb') as f:
@@ -136,4 +136,5 @@ for i in range(n_testtypes):
 # for j in range(n_wirecolors):
 #     for pos_id in range(n_pos):
 #         plot3d(real_pos_arr[j,pos_id],node_pos_arr[:,j,pos_id])
-plot_bars(error_arr[:,[2,0,1]])
+model_types = ['j-DER','adapted','native']
+plot_bars_more(error_arr[:,[2,0,1]], model_types=model_types)

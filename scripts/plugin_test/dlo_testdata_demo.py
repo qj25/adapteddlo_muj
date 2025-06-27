@@ -19,7 +19,7 @@ from adapteddlo_muj.utils.argparse_utils import dtd_parse
 
 lopbal_dict = dict(
     native="cable",
-    adapt="wire",
+    adapt="wire_qst",
     xfrc="xfrc"
 )
 
@@ -160,7 +160,7 @@ def mbi_indivtest(
 def mbi_test(new_start=False, load_from_pickle=False, do_render=False):
     mbi_picklename = lopbal_type + '/' + plugin_datafolder + '/mbi1.pickle'
     mbi_picklename = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
         "adapteddlo_muj/data/mbi/" + mbi_picklename
     )
     if load_from_pickle:
@@ -215,7 +215,7 @@ def mbi_test(new_start=False, load_from_pickle=False, do_render=False):
 def _pickle2data(ax, r_pieces):
     pickledata_path = lopbal_type + '/' + plugin_datafolder + '/lhb{}.pickle'.format(r_pieces)
     pickledata_path = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
         "adapteddlo_muj/data/lhb/" + pickledata_path
     )
     # input(pickledata_path)
@@ -267,7 +267,7 @@ def lhb_plot(r_pieces_list):
     # plt.style.use('ggplot')
     plt.style.use('seaborn-v0_8')
     fig_dir = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
         "adapteddlo_muj/data/figs/" + plugin_datafolder + '/' + 'lhb_adapted.pdf'
     )
     fig = plt.figure("Localized Helical Buckling for " + lopbal_type, figsize=(6,4))
@@ -359,8 +359,8 @@ def lhb_test(new_start=True, load_from_pickle=False, do_render=False):
     print('Starting LHB test.')
     # n_pieces = [40, 60, 80, 110, 140]
     # n_pieces = [180]
-    # n_pieces = [80]
-    n_pieces = [40, 60, 80, 110, 140, 180]
+    n_pieces = [40]
+    # n_pieces = [40, 60, 80, 110, 140, 180]
     if not load_from_pickle:
         for i in n_pieces:
             print(f"LHB test for {i} pieces.. ..")

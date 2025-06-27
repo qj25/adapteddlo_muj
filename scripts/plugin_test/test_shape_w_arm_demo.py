@@ -4,8 +4,9 @@ import pickle
 import os
 from time import time
 import adapteddlo_muj.utils.transform_utils as T
-from adapteddlo_muj.envs.rnrvalid import ValidRnREnv
-from adapteddlo_muj.envs.rnrvalid2 import ValidRnR2Env
+# from adapteddlo_muj.envs.rnrvalid import ValidRnREnv
+# from adapteddlo_muj.envs.rnrvalid2 import ValidRnR2Env
+from adapteddlo_muj.envs.rnrvalid3_plugin import ValidRnR3Env
 from adapteddlo_muj.utils.argparse_utils import tswa_parse
 
 # from adapteddlo_muj.utils.transform_utils import IDENTITY_QUATERNION
@@ -55,13 +56,19 @@ do_render = args.render
 # note: for red3native, must reset vel every 100 steps to ensure final pos reachable (due to robot control)
 
 if stest_types is None:
-    stest_types = ['adapt','native']
+    stest_types = ['adapt','native','adapt2']
 else:
     stest_types = [stest_types]
 if wire_colors is None:
     wire_colors = ['black','red','white']
 else:
     wire_colors = [wire_colors]
+
+lopbal_dict = dict(
+    native="cable",
+    adapt="wire_qst",
+    adapt2="wire"
+)
 
 n_testtypes = len(stest_types)
 n_wirecolors = len(wire_colors)
@@ -158,9 +165,12 @@ class manip_rope_seq:
     ):
         # self.env = gym.make("adapteddlo_muj:Test-v0")
         # self.env = FlingLRRLRandEnv()
-        stiff_picklename = wire_color + '_' + stest_type + '_stiff.pickle'
+        stest_name = stest_type
+        if stest_type == 'adapt2':
+            stest_name = 'adapt'
+        stiff_picklename = wire_color + '_' + stest_name + '_stiff.pickle'
         stiff_picklename = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
             "adapteddlo_muj/data/dlo_muj_real/stiff_vals/" + stiff_picklename
         )
         with open(stiff_picklename, 'rb') as f:
@@ -193,7 +203,8 @@ class manip_rope_seq:
             massperlen = 0.043/2.0
             # alpha_glob = alpha_glob_arr[model_type2id[stest_type],2]
             # beta_glob = alpha_glob * b_a_glob_arr[model_type2id[stest_type],2]
-        self.env = ValidRnR2Env(
+        plugin_name = lopbal_dict[stest_type]
+        self.env = ValidRnR3Env(
             alpha_bar=alpha_glob,
             beta_bar=beta_glob,
             r_len=r_len,
@@ -201,7 +212,7 @@ class manip_rope_seq:
             r_thickness=0.006,
             r_pieces=r_pieces,
             overall_rot=overall_rot,
-            rope_type=stest_type,
+            plugin_name=plugin_name,
             rgba_vals=rgba_vals,
             do_render=do_render
         )
@@ -267,31 +278,33 @@ for i in range(n_testtypes):
                 env1.env.hold_pos(10.)
                 print("held_pos")
             
-            j_pos = env1.env._jd.copy()
-            if do_render:
-                env1.env.viewer._paused = True
-                env1.env.hold_pos(1.)
-            # env1.env.hold_pos(10.)
-
-            # env1.runabit()
-            joint_pos_arr[i,j,pos_id] = j_pos
-            # print(repr(env1.env._jd))
-            
-            rob_qpos = env1.env.observations['qpos']
-            # nodes_pos = np.zeros((11,3))
-            # node_id = np.array(np.array(range(11))*piece_multi,dtype='int')
-            # nodes_pos = env1.env.observations['rope_pose'][node_id]
-            nodes_pos = env1.env.observations['rope_pose']
-            node_pos_arr[i,j,pos_id] = nodes_pos
-            # print(nodes_pos)
-
-            simdata_picklename = os.path.join(
-                os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                "adapteddlo_muj/data/simdata/" + f"simdata_{wire_colors[j]}{i_move}_{stest_types[i]}.pickle"
-            )
-            # pickle_simdata = [init_qpos, z_rot[pos_id], nodes_pos,j_pos]
-            # with open(simdata_picklename, 'wb') as f:
-            #     pickle.dump(pickle_simdata,f)
+            while True:
+                j_pos = env1.env._jd.copy()
+                if do_render:
+                    env1.env.viewer._paused = True
+                    env1.env.hold_pos(1.)
+                # env1.env.hold_pos(10.)
+    
+                # env1.runabit()
+                # j_pos = env1.env._jd.copy()
+                joint_pos_arr[i,j,pos_id] = j_pos
+                # print(repr(env1.env._jd))
+                
+                rob_qpos = env1.env.observations['qpos']
+                # nodes_pos = np.zeros((11,3))
+                # node_id = np.array(np.array(range(11))*piece_multi,dtype='int')
+                # nodes_pos = env1.env.observations['rope_pose'][node_id]
+                nodes_pos = env1.env.observations['rope_pose']
+                node_pos_arr[i,j,pos_id] = nodes_pos
+                # print(nodes_pos)
+    
+                simdata_picklename = os.path.join(
+                    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+                    "adapteddlo_muj/data/simdata/plugin/" + f"simdata_{wire_colors[j]}{i_move}_{stest_types[i]}.pickle"
+                )
+                pickle_simdata = [init_qpos, z_rot[pos_id], nodes_pos,j_pos]
+                with open(simdata_picklename, 'wb') as f:
+                    pickle.dump(pickle_simdata,f)
 
             # excel_dir = os.path.join(
             #     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
@@ -306,5 +319,5 @@ for i in range(n_testtypes):
 
 if move_id is None:
     move_id = 999
-init_qpos = env1.env.init_qpos.copy()
+# init_qpos = env1.env.init_qpos.copy()
 print('sim test csvdata saved!')

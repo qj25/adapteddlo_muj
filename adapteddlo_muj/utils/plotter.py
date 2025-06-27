@@ -121,6 +121,69 @@ def plot_bars(error):
     plt.savefig(img_path + "valid_bars.pdf",bbox_inches='tight')
     plt.show()
 
+def plot_bars_more(error, model_types):
+    index = np.arange(len(error[0,0]))*2
+    bar_width = 0.2
+    # colors_model1 = ['lightblue', 'lightgreen', 'lightcoral']
+    rope_positions = [1,2,3,4]
+    wire_colors = ['grey','black','red']
+    # model_edgecolors = ['lightgreen', 'lightpink']
+    model_hatch = [None, 'xxx', '\\\\']
+
+    bar_models = [[],[],[]]
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    for i, rope in enumerate(wire_colors):
+        for j in range(len(model_types)):
+            bar_models[j].append(ax.bar(index + (3*i * bar_width) + j*bar_width, error[j,i,], bar_width-0.04,
+                color=wire_colors[i], capsize=5, alpha=0.7, hatch=model_hatch[j]))
+        ax.bar(index + (2*i * bar_width), np.zeros_like(error[0,i,]), bar_width-0.04,
+            label=f'{rope}', color=wire_colors[i], capsize=5, alpha=0.7)
+        # for j in range(len(rope_positions)):
+        #     # bar_adapt[-1][j].set_color('lightgreen')
+        #     # bar_adapt[-1][j].set_edgecolor(wire_colors[i])
+        #     bar_adapt[-1][j].set_edgecolor(model_edgecolors[0])
+        #     bar_adapt[-1][j].set_linewidth(5)
+        #     # bar_native[-1][j].set_color('lightpink')
+        #     # bar_native[-1][j].set_edgecolor(wire_colors[i])
+        #     bar_native[-1][j].set_edgecolor(model_edgecolors[1])
+        #     bar_native[-1][j].set_linewidth(5)
+
+    # Make hatching visible on black bars by setting edgecolor to white
+    for j in bar_models:
+        for bars, color in zip(j, wire_colors):
+            if color == 'black':
+                for bar in bars:
+                    bar.set_edgecolor('white')
+                    bar.set_linewidth(1.5)  # Optional: make hatch lines thicker
+
+    for i in range(len(model_types)):
+        t1 = ax.bar(index + (2*i * bar_width), np.zeros_like(error[0,i,]), bar_width-0.04,
+            label=f'{model_types[i]}', color='white', capsize=5, alpha=0.7, hatch=model_hatch[i], zorder = 10)
+        t1[0].set_edgecolor('black')
+        # t1[0].set_linewidth(5)
+
+    ax.set_xlabel('Robot Pose',fontsize=14)
+    ax.set_ylabel('Normalized Position Error',fontsize=14)
+    # ax.set_title('Comparison of Simulation Models and Real-world Data with Error Bars')
+    ax.set_xticks(index + bar_width)
+    ax.set_xticklabels(rope_positions)
+    # ax.legend(title='')
+    # Remove the top and right borders (spines)
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+
+    ax.set_axisbelow(True)
+    ax.yaxis.grid(color='gray', linestyle='dashed')
+    plt.tick_params(axis='both', which='major', labelsize=14)
+    
+    # Position the legend at the center top
+    ax.legend(loc='upper center', bbox_to_anchor=(0.5, 1.05), ncol=2, fontsize=14)
+    plt.tight_layout()
+    plt.savefig(img_path + "valid_bars.pdf",bbox_inches='tight')
+    plt.show()
+
 def plot_computetime(pieces_list, data_list):
     plt.style.use('seaborn-v0_8')
     # Sample data for 4 different results
@@ -163,6 +226,83 @@ def plot_computetime(pieces_list, data_list):
     twin1.plot(x, y_percent[3], alpha=0.7, linewidth=2,linestyle='--')
     twin1.plot(x, y_percent[2], alpha=0.7, linewidth=2,linestyle='--')
     twin1.plot(x, y_percent[1], alpha=0.7, linewidth=2,linestyle='--')
+
+    ax.set_ylim(0, 50)
+    ax.set_xlim(40, 180)
+    twin1.set_ylim(0, 15)
+    ax.set_yticks(np.linspace(0., 50., 6))
+    ax.set_xticks(x)
+    twin1.set_yticks(np.linspace(0., 15., 6))
+    tkw = dict(size=4, width=1.5)
+    ax.tick_params(axis='y', **tkw)
+    twin1.tick_params(axis='y', **tkw)
+
+    # Add labels and title
+    ax.set_ylabel('Computational Time to Simulate 1s (seconds)', fontsize=14)
+    twin1.set_xlabel('Number of Discrete Pieces', fontsize=14)
+    twin1.set_ylabel("Percentage Increase from plain", fontsize=14)
+    # plt.title('Speed test', fontsize=14)
+
+    # Add a legend
+    ax.legend(fontsize=14, loc='upper left', bbox_to_anchor=(0.21, 0.98),ncol=1)
+    twin1.legend(fontsize=14, loc='upper left', bbox_to_anchor=(0.39, 0.98),ncol=1)
+
+    # Grid for better readability
+    # plt.grid(True, which='both', linestyle='--', linewidth=0.5)
+    ax.tick_params(axis='both', which='major', labelsize=12)
+    twin1.tick_params(axis='both', which='major', labelsize=12)
+    # # Set x and y axis limits for better visualization
+    # plt.xlim([0, 100])
+    # plt.ylim([0, 120])
+
+    plt.tight_layout()
+    # Save the plot if needed
+    plt.savefig(img_path + "compute_time.pdf",bbox_inches='tight')
+
+    # Show the plot
+    plt.show()
+
+def plot_computetime_all(pieces_list, data_list, plot_labels=None):
+    plt.style.use('seaborn-v0_8')
+    # Sample data for 4 different results
+    x = np.array(pieces_list)  # Number of discrete pieces simulated (from 1 to 100)
+    y = np.array(data_list)
+
+    # compute percentage difference
+    y_percent = (y[:] - y[0]) / y[0] * 100.0
+
+    # Create the plot
+    fig, twin1 = plt.subplots(figsize=(10, 6))
+    fig.subplots_adjust(right=0.75)
+    ax = twin1.twinx()
+    twin1.set_facecolor('white')
+    twin1.grid(color='#DDDDDD', linewidth=0.8, zorder=0)
+    ax.grid(False)
+    ax.yaxis.tick_left()
+    ax.yaxis.set_label_position("left")
+    twin1.yaxis.tick_right()
+    twin1.yaxis.set_label_position("right")
+
+    ax.spines['top'].set_visible(False)
+    twin1.spines['top'].set_visible(False)
+    for spine_str in [
+        'bottom',
+        'left',
+        'right'    
+    ]:
+        ax.spines[spine_str].set_linewidth(1)
+        ax.spines[spine_str].set_edgecolor('k')
+
+    if plot_labels is None:
+        plot_labels = ['plain', 'native', 'direct', 'adapted']
+
+    # Plot each line with a label
+    ax.plot(x, y[0], label='plain', alpha=0.7, color='k', linewidth=2,zorder=3)
+    twin1.plot(0,0, label='raw time', alpha=1.0, color='k', linewidth=2)
+    twin1.plot(0,0, label='percent increase', alpha=1.0, color='k', linewidth=2, linestyle='--')
+    for i in range(len(plot_labels)-1,0,-1):
+        ax.plot(x, y[i], label=plot_labels[i], alpha=0.7, linewidth=2)
+        twin1.plot(x, y_percent[i], alpha=0.7, linewidth=2,linestyle='--')
 
     ax.set_ylim(0, 50)
     ax.set_xlim(40, 180)
