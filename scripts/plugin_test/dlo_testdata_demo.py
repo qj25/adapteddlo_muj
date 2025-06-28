@@ -20,6 +20,7 @@ from adapteddlo_muj.utils.argparse_utils import dtd_parse
 lopbal_dict = dict(
     native="cable",
     adapt="wire_qst",
+    adapt2="wire",
     xfrc="xfrc"
 )
 
@@ -34,6 +35,9 @@ new_start_g = bool(int(args.newstart))
 lfp_g = bool(args.loadresults)
 
 plugin_name = lopbal_dict[lopbal_type]
+lopbal_name = lopbal_type
+if lopbal_name == 'adapt2':
+    lopbal_name = 'adapt'
 plugin_datafolder = "plgn/" + plugin_name
 
 if test_type_g == 'mbi' and args.newstart == 2:
@@ -83,7 +87,7 @@ def mbi_plot(b_a, theta_crit):
     print(f"max_devi_theta_crit = {max_devi_theta_crit}")
     print(f"avg_deviation = {avg_deviation}")
 
-    plt.figure(f"Michell's Buckling Instability for {lopbal_type}")
+    plt.figure(f"Michell's Buckling Instability for {plugin_name}")
     plt.xlabel(r"$\beta/\alpha$")
     plt.ylabel(r'$\theta^n$')
     plt.plot(b_a_base, theta_crit_base)
@@ -158,7 +162,7 @@ def mbi_indivtest(
     return theta_crit
 
 def mbi_test(new_start=False, load_from_pickle=False, do_render=False):
-    mbi_picklename = lopbal_type + '/' + plugin_datafolder + '/mbi1.pickle'
+    mbi_picklename = lopbal_name + '/' + plugin_datafolder + '/mbi1.pickle'
     mbi_picklename = os.path.join(
         os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
         "adapteddlo_muj/data/mbi/" + mbi_picklename
@@ -213,7 +217,7 @@ def mbi_test(new_start=False, load_from_pickle=False, do_render=False):
     mbi_plot(b_a=b_a, theta_crit=theta_crit)
 
 def _pickle2data(ax, r_pieces):
-    pickledata_path = lopbal_type + '/' + plugin_datafolder + '/lhb{}.pickle'.format(r_pieces)
+    pickledata_path = lopbal_name + '/' + plugin_datafolder + '/lhb{}.pickle'.format(r_pieces)
     pickledata_path = os.path.join(
         os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
         "adapteddlo_muj/data/lhb/" + pickledata_path
@@ -270,7 +274,7 @@ def lhb_plot(r_pieces_list):
         os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
         "adapteddlo_muj/data/figs/" + plugin_datafolder + '/' + 'lhb_adapted.pdf'
     )
-    fig = plt.figure("Localized Helical Buckling for " + lopbal_type, figsize=(6,4))
+    fig = plt.figure("Localized Helical Buckling for " + plugin_name, figsize=(6,4))
     ax = fig.add_subplot(111)
     ax.set_xlabel("s/s*")
     ax.set_ylabel(r'$f(\varphi)$')
@@ -357,9 +361,9 @@ def lhb_indivtest(
 
 def lhb_test(new_start=True, load_from_pickle=False, do_render=False):
     print('Starting LHB test.')
-    # n_pieces = [40, 60, 80, 110, 140]
-    # n_pieces = [180]
-    n_pieces = [40]
+    n_pieces = [40, 60, 80, 110, 140]
+    n_pieces = [180]
+    # n_pieces = [40]
     # n_pieces = [40, 60, 80, 110, 140, 180]
     if not load_from_pickle:
         for i in n_pieces:

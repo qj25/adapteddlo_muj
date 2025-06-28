@@ -225,7 +225,7 @@ class TestPluginEnv(gym.Env, utils.EzPickle):
                 r_pieces=self.r_pieces,
                 # r_mass=self.r_mass,
                 stiff_vals=self.stiff_vals,
-                j_damp=0.5,
+                j_damp=0.1,
                 init_pos=self.rope_initpose[:3],
                 init_quat=self.rope_initpose[3:],
                 rope_type="capsule",
@@ -513,7 +513,7 @@ class TestPluginEnv(gym.Env, utils.EzPickle):
         pos_move = np.array([step_len, 0., 0.])
         print('0')
         for i in range(n_steps-2):
-            # sys.stdout.write(f"\033[{1}F")
+            sys.stdout.write(f"\033[{1}F")
             print(f"init stage: {i+1}/{n_steps-2}")
             # self.reset_vel()
             # print(self.sitename2pos("r_joint0_site"))
@@ -791,7 +791,7 @@ class TestPluginEnv(gym.Env, utils.EzPickle):
             norm_force = self.get_rope_normal()
             # norm_force /= 5.0
             # self.apply_force_t(t=0.3,force_dir=np.array([0., 0., 1.]))
-            self.apply_force_t(t=0.5,force_dir=norm_force)
+            self.apply_force_t(t=1.0,force_dir=norm_force)
             # self.hold_pos(100.)
             # create a for loop that checks PCA error at each iter
             max_e = 0.

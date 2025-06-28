@@ -24,7 +24,7 @@ new_start = bool(args.newstart)
 test_type = 'speedtest2'
 
 r_len = 9.29
-r_thickness = 0.05
+r_thickness = 0.03
 alpha_val = 1.345
 beta_val = 0.789
 if test_type == 'speedtest1':
@@ -108,7 +108,6 @@ if new_start:
             test_type=test_type,
             alpha_bar=alpha_val,
             beta_bar=beta_val,
-            stifftorqtype='bal'
         )
         if test_type == 'speedtest1':
             t_list[i,3] = env_our.run_speedtest1()
@@ -126,7 +125,7 @@ else:
     with open(speedtest_picklename, 'rb') as f:
         r_pieces_list, t_list = pickle.load(f)
     print("Pickle loaded!")
-
+    print(t_list)
     plot_computetime(
         r_pieces_list, 
         [
