@@ -71,7 +71,7 @@ if new_start:
         else:
             t_list_new[i,0] = env_native.run_speedtest2()
 
-        print("j-DER_plugin:")
+        print("jpQ-DER_plugin:")
         env_native = TestPluginEnv(
             overall_rot=0.0,
             do_render=False,
@@ -100,7 +100,7 @@ else:
         r_pieces_list, t_list = pickle.load(f)
     print("Pickle loaded!")
 
-plot_labels = ['plain', 'native', 'direct', 'adapted', 'adapted_plgn', 'j-DER_plgn']
+plot_labels = ['plain', 'native', 'direct', 'adapted', 'adapted_plgn', 'jpQ-DER_plgn']
 plot_computetime_all(
     r_pieces_list, 
     [
@@ -108,7 +108,10 @@ plot_computetime_all(
         t_list[:,1],
         t_list[:,2],
         t_list[:,3],
-    ]
+        t_list[:,4],
+        t_list[:,5],
+    ],
+    plot_labels=plot_labels,
 )
 
     # plt.figure("Speed Tests")

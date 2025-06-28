@@ -67,7 +67,7 @@ class GenKin_N_weld2:
         self.obj_path = obj_path
 
         if self.vis_subcyl:
-            self.subcyl_alpha = 0.3
+            self.subcyl_alpha = 0.7
         else:
             self.subcyl_alpha = 0.0
         rgb_vals = np.array([30,16,202])/300
@@ -320,15 +320,15 @@ class GenKin_N_weld2:
                 self.init_pos[1],
                 self.init_pos[2]
             ))
-            f.write((self.curr_tab+1)*self.t + '<site name="eef_body2_site" pos="0 0 0" size="0.01 0.01 0.01" rgba="0 0 0 0" type="sphere" group="1"/>\n')
-            f.write((self.curr_tab+1)*self.t + '<geom name="eef_geom2" type="box" mass="1" size="{} {} {}" contype="0" conaffinity="0" rgba=".8 .2 .1 {}" friction="1 0.005 0.0001"/>\n'.format(
+            f.write((self.curr_tab+1)*self.t + '<site name="eef_body2_site" pos="0 0 0" size="0.01 0.01 0.01" rgba="0 0 0 0" type="sphere" group="2"/>\n')
+            f.write((self.curr_tab+1)*self.t + '<geom name="eef_geom2" type="box" mass="1" size="{} {} {}" contype="0" conaffinity="0" rgba=".8 .2 .1 {}" friction="1 0.005 0.0001" group="2"/>\n'.format(
                 self.r_thickness,
                 self.r_thickness,
                 self.r_thickness*2.0,
                 self.subcyl_alpha
             ))
             f.write((self.curr_tab+1)*self.t + '<body name="eef_body2_sensor" pos="0 0 0" quat="1.0 0.0 0.0 0.0">\n')
-            f.write((self.curr_tab+2)*self.t + '<site name="sensor_site2" pos="0 0 0" size="0.01 0.01 0.01" rgba="0 0 0 0" type="sphere" group="1"/>\n')
+            f.write((self.curr_tab+2)*self.t + '<site name="sensor_site2" pos="0 0 0" size="0.01 0.01 0.01" rgba="0 0 0 0" type="sphere" group="2"/>\n')
             f.write((self.curr_tab+1)*self.t + '</body>')
             f.write(self.curr_tab*self.t + '</body>')
 
@@ -390,7 +390,7 @@ class GenKin_N_weld2:
             # self.t + "   <connect body1='B_last' body2='{}' solref='{}' anchor='{} 0 0'/>\n".format(
             # self.t + "   <connect body1='{}' body2='r_joint{}_body' anchor='0 0 0'/>\n".format(
             # self.t + "   <weld body1='B_last' body2='{}' solref='{}' relpose='0.0 0 0 0 0 -1 0'/>\n".format(
-            self.t + "   <weld body1='B_last' body2='{}' solref='{}'/>\n".format(
+            self.t + "   <weld name='weld_end' body1='B_last' body2='{}' solref='{}'/>\n".format(
                 # 25,
                 # self.attach_sitename,
                 'eef_body_sensor',
@@ -403,7 +403,7 @@ class GenKin_N_weld2:
             # self.t + "   <connect body1='B_last' body2='{}' solref='{}' anchor='{} 0 0'/>\n".format(
             # self.t + "   <connect body1='{}' body2='r_joint{}_body' anchor='0 0 0'/>\n".format(
             # self.t + "   <weld body1='B_last' body2='{}' solref='{}' relpose='0.0 0 0 0 0 -1 0'/>\n".format(
-            self.t + "   <weld body1='B_first' body2='{}' solref='{}'/>\n".format(
+            self.t + "   <weld name='weld_start' body1='B_first' body2='{}' solref='{}'/>\n".format(
                 # 25,
                 'eef_body2_sensor',
                 self.solref_val,

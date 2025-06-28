@@ -33,12 +33,17 @@ def mbi_plot(b_a, theta_crit, c='k'):
         plt.plot(b_a_base, theta_crit_base, c='k', linewidth="2", alpha=0.5, zorder=5)
     else:
         next(iter(plt.rcParams['axes.prop_cycle']))
-    plt.plot(b_a, theta_crit, alpha=0.7)
+    plt.plot(b_a, theta_crit, alpha=0.7, c=c)
     
 
 lopbal_type_list = ['adapt','native']
 legend_type_list = ['adapted','native']
-c_list = ['steelblue', 'sienna']
+# c_list = ['steelblue', 'sienna']
+color_cycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
+c_list = [
+    color_cycle[0],
+    color_cycle[2],
+]
 
 fig = plt.figure("Michell's Buckling Instability", figsize=(6,4))
 ax = fig.add_subplot(111)

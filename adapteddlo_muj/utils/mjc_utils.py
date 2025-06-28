@@ -1,5 +1,6 @@
 import numpy as np
 import mujoco
+import adapteddlo_muj.utils.transform_utils as T
 
 # object indicator in mujoco
 MJ_SITE_OBJ = 6  # `site` objec
@@ -72,21 +73,23 @@ def get_contact_force(mj_model, mj_data, body_name, frame_pos, frame_quat):
     # reverse order to get force:torque format
     return np.concatenate((trn_force[3:], trn_force[:3]))
 
-def get_sensor_id(mj_model, body_name):
-    type_id = mujoco.mju_str2Type("body")
-    body_id = mujoco.mj_name2id(mj_model,type_id,body_name)
+def get_sensor_id(mj_model, site_name):
+    type_id = mujoco.mju_str2Type("site")
+    sensorsite_id = mujoco.mj_name2id(mj_model,type_id,site_name)
     sensor_ids = []
     for i in range(mj_model.nsensor):
         if mj_model.sensor_objtype[i] == mujoco.mjtObj.mjOBJ_SITE:
             site_id = mj_model.sensor_objid[i]
-            site_body_id = mj_model.site_bodyid[site_id]
-            if site_body_id == body_id:
+            if sensorsite_id == site_id:
                 sensor_ids.append(i)
     return sensor_ids
 
 def get_sensor_force(mj_model, mj_data, sensor_id, body_name, frame_pos, frame_quat):
     ## IMPORTANT: sensordata give you the force wrt sensorsite.
     ## Section (A) in this function changes that to world frame.
+
+    ## DOESNT WORK! takes subtree for finding CoM but is not necessary!
+    ## use get_sensor_force2 instead
     """Get the force acting on a body, with respect to a frame.
     Note that mj_rnePostConstraint should be called before this function
     to update the simulator state.
@@ -142,6 +145,7 @@ def get_sensor_force(mj_model, mj_data, sensor_id, body_name, frame_pos, frame_q
 
     # transform to desired frame
     trn_force = force_com.copy()
+    # print(f"trn_force = {p_ct_n}")
     mujoco.mju_transformSpatial(
         trn_force, force_com, 1, p_ct_n, np.zeros(3), mat_ct
     )
@@ -154,6 +158,70 @@ def fix_ftsensor_weld(f_raw, t_raw, dist_weld):
     # and non-zero weld distance (dist_weld is from A to B)
     # print(np.cross(dist_weld,f_raw))
     return (t_raw - np.cross(dist_weld,f_raw)) / 2.0
+
+def get_sensor_force2(mj_model, mj_data, sensor_id, sensor_site_name):
+    """Get the force and torque in world frame from a sensor site.
+    
+    Args:
+        mj_model: MuJoCo model
+        mj_data: MuJoCo data
+        sensor_id: List of sensor IDs to read from
+        sensor_site_name: Name of the sensor site in the XML model
+    
+    Returns:
+        np.array(6): Force and torque in world frame [force_x, force_y, force_z, torque_x, torque_y, torque_z]
+    """
+    # Get sensor site ID and its pose in world frame
+    site_id = mujoco.mj_name2id(mj_model, mujoco.mjtObj.mjOBJ_SITE, sensor_site_name)
+    if site_id == -1:
+        raise ValueError(f"Site {sensor_site_name} not found in model")
+    body_id = mj_model.site_bodyid[site_id]
+
+    # Get sensor site pose in world frame
+    site_pos = mj_data.site_xpos[site_id].copy()  # Position in world frame
+    site_pos = np.zeros(3)
+    site_quat = T.mat2quat(mj_data.site_xmat[site_id].copy())  # Orientation in world frame
+    body_pos = mj_data.xpos[body_id].copy()  # Position in world frame
+    body_quat = mj_data.xquat[body_id].copy()  # Position in world frame
+    body_pos = np.zeros(3)
+
+    # Get raw sensor data
+    force_com = np.array([])
+    for i in range(len(sensor_id)):
+        dim_sensor = mj_model.sensor_dim[sensor_id[i]]
+        force_com = np.concatenate((
+            force_com,
+            mj_data.sensordata[
+                mj_model.sensor_adr[sensor_id[i]]
+                :mj_model.sensor_adr[sensor_id[i]] + dim_sensor
+            ]
+        ))
+    # print(f"bodyquat = {mj_data.xquat[body_id]}")
+    # print(f"bodymat = {mj_data.xmat[body_id]}")
+    # Transform force and torque to world frame
+    p_ct_n, q_ct_n = np.zeros(3), np.zeros(4)
+    mujoco.mju_negPose(p_ct_n, q_ct_n, body_pos, body_quat)
+    
+    # print(f"{sensor_site_name}_val_pre = {force_com}")
+    # Convert quaternion to rotation matrix
+    invmat = np.zeros(9)
+    mujoco.mju_quat2Mat(invmat, q_ct_n)
+    # print(p_ct_n)
+    # print(body_quat)
+    # input()
+    trn_force = force_com.copy()
+    mujoco.mju_transformSpatial(
+        trn_force, 
+        force_com, 
+        1,  # 1 for force, 0 for velocity
+        p_ct_n,  # Position of the frame
+        np.zeros(3),  # Velocity of the frame (zero for static frame)
+        invmat  # Rotation matrix
+    )
+    # print(f"{sensor_site_name}_val_post = {trn_force}")
+    
+    # Return in force:torque format
+    return np.concatenate((trn_force[3:], trn_force[:3]))
 
 class MjSimWrapper:
     """A simple wrapper to remove redundancy in forward() and step() calls
