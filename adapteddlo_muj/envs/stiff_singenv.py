@@ -32,7 +32,7 @@ class TestStiffSingEnv(gym.Env, utils.EzPickle):
         r_mass=0.58,
         r_len = 2*np.pi,
         r_thickness=0.03,
-        j_damp=0.5,
+        j_damp=0.1,
         overall_rot=None,
         rope_initpose=None,
         new_start=True,
@@ -788,7 +788,7 @@ class TestStiffSingEnv(gym.Env, utils.EzPickle):
         pos_move = np.array([step_len, -step_len, -step_len])
         for i in range(1):
             self.ropeend_pos_all(pos_move=pos_move.copy())
-            self.print_nativeinfo()
+            # self.print_nativeinfo()
         pos_move = np.array([step_len, step_len, step_len])
         for i in range(1):
             self.ropeend_pos_all(pos_move=pos_move.copy())
@@ -802,7 +802,7 @@ class TestStiffSingEnv(gym.Env, utils.EzPickle):
             # print(self.sitename2pos("r_joint180_site"))
             # print(self.sitename2pos("r_joint0_site")-self.sitename2pos("r_joint180_site"))
             self.ropeend_pos_all(pos_move=pos_move.copy())
-            self.print_nativeinfo()
+            # self.print_nativeinfo()
 
     def test_force_curvature2(self,om_val):
         self.model.opt.gravity[-1] = 0.0
@@ -834,7 +834,7 @@ class TestStiffSingEnv(gym.Env, utils.EzPickle):
         # self.data.eq_active[0] = 0
         # print("Released eq_weld.")
         # self.hold_pos(10.)
-        self.print_nativeinfo()
+        # self.print_nativeinfo()
 
     def test_restoringbend(self):
         # remove one connect eq

@@ -31,7 +31,7 @@ test_part = 0
 
 loadfrompickle = False
 
-stiff_type = 'wire_qst'
+stiff_type = 'wire'
 
 use_specified_s2f = False
 
@@ -40,13 +40,16 @@ if use_specified_s2f:
 else:
     import adapteddlo_muj.utils.dlo_s2f.Dlo_s2f as Dlo_s2f
 
+"""
+set damping and stiffness when changing length and number of pieces
+"""
 
-r_len = 1.0
-r_thickness = 0.02
+r_len = 0.707
+r_thickness = 0.0141
 r_mass = 1
 alpha_val = 1.345/10
-beta_val = 0.789
-r_pieces = 23
+beta_val = 0.789/10
+r_pieces = 30
 overall_rot = 0.0
 
 # r_len = r_pieces*1.0
@@ -130,10 +133,10 @@ if not loadfrompickle:
             # env_native.ropemass*(9.81)
         )
     env_native.set_viewer_details(
-        dist=3.5,
+        dist=1.5,
         azi=52.5,
         elev=-31.0,
-        lookat=np.array([1.0, 0.0, 1.5])
+        lookat=np.array([0.5, 0.0, 0.707])
     )
 
     env_native.test_force_curvature2(om_val=om_list[0])
@@ -141,20 +144,13 @@ if not loadfrompickle:
     # input(env_native.data.xquat)
     if test_part == 0:
         # turn off geom vis 2 and turn on geom frames
+        # turning an offcentered object will move its weld by a radius offset to welded object
         env_native.viewer.vopt.geomgroup[2] ^= 1
         env_native.viewer.vopt.frame = 2
         # rotate bottom end by pi
         for i in range(90):
             env_native.ropeend_rot(rot_axis=2)
-        while True:
-            env_native.step()
-
-        """
-        why cant for more than 23 pieces??
-        /home/qj/git/deformanip/adapteddlo_muj/adapteddlo_muj/envs/stiff_singenv.py:762: RuntimeWarning: invalid value encountered in scalar divide
-        print(f"ratio1 = {qfrc_jnt[1]/omega_curve[1]}")
-        ratio1 = nan
-        """
+        """ WHY CANT I ROTATE 180 FOR WIRE_QST"""
         # when ready
         input("Press 'Enter' to start experiment part 1.. ..")
         # remove weld on box2
