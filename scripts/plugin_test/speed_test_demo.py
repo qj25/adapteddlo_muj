@@ -23,7 +23,7 @@ new_start = bool(args.newstart)
 test_type = 'speedtest2'
 
 r_len = 9.29
-r_thickness = 0.05
+r_thickness = 0.03
 alpha_val = 1.345
 beta_val = 0.789
 if test_type == 'speedtest1':

@@ -42,7 +42,7 @@ class TestPlainRopeEnv(gym.Env, utils.EzPickle):
         self.test_type = test_type
         self.limit_f = limit_f
 
-        self.picklefolder = 'bal'
+        self.picklefolder = 'adapt'
 
         # rope init
         self.r_len = r_len
@@ -791,7 +791,7 @@ class TestPlainRopeEnv(gym.Env, utils.EzPickle):
         lhb_picklename = 'lhbtest{}.pickle'.format(self.r_pieces)
         lhb_picklename = os.path.join(
             os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            "data/lhb/bal/" + lhb_picklename
+            "data/lhb/adapt/" + lhb_picklename
         )
         with open(lhb_picklename, 'rb') as f:
             self.init_pickle = pickle.load(f)
