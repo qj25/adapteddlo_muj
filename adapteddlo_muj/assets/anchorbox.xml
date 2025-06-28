@@ -1,18 +1,30 @@
 <mujoco model="anchor-box">
   <worldbody>
-    <body name="eef_body" pos="-3.204424506661589 0.0 0.5" quat="1.0 0.0 0.0 0.0">
-      <geom name="eef_geom" type="box" mass="1" size="0.05 0.05 0.1" contype="0" conaffinity="0" rgba=".8 .2 .1 0.0" friction="1 0.005 0.0001"/>
-    </body>  </worldbody>
+    <body name="eef_body" pos="-0.5 0.0 0.5" quat="1.0 0.0 0.0 0.0">
+      <site name="eef_body_site" pos="0 0 0" size="0.01 0.01 0.01" rgba="0 0 0 0" type="sphere" group="1"/>
+      <geom name="eef_geom" type="box" mass="1" size="0.02 0.02 0.04" contype="0" conaffinity="0" rgba=".8 .2 .1 0.7" friction="1 0.005 0.0001"/>
+      <body name="eef_body_sensor" pos="0 0 0" quat="1.0 0.0 0.0 0.0">
+        <site name="sensor_site1" pos="0 0 0" size="0.01 0.01 0.01" rgba="0 0 0 0" type="sphere" group="1"/>
+      </body>    </body>    <body name="eef_body2" pos="0.5 0.0 0.5" quat="1.0 0.0 0.0 0.0">
+      <site name="eef_body2_site" pos="0 0 0" size="0.01 0.01 0.01" rgba="0 0 0 0" type="sphere" group="2"/>
+      <geom name="eef_geom2" type="box" mass="1" size="0.02 0.02 0.04" contype="0" conaffinity="0" rgba=".8 .2 .1 0.7" friction="1 0.005 0.0001" group="2"/>
+      <body name="eef_body2_sensor" pos="0 0 0" quat="1.0 0.0 0.0 0.0">
+        <site name="sensor_site2" pos="0 0 0" size="0.01 0.01 0.01" rgba="0 0 0 0" type="sphere" group="2"/>
+      </body>    </body>  </worldbody>
   <equality>
-     <weld body1='B_last' body2='eef_body' solref='0.001 1'/>
+     <weld name='weld_end' body1='B_last' body2='eef_body_sensor' solref='0.001 1'/>
+     <weld name='weld_start' body1='B_first' body2='eef_body2_sensor' solref='0.001 1'/>
   </equality>
   <contact>
-    <exclude body1="B_first" body2="B_1"/>
-    <exclude body1="B_first" body2="B_last"/>
-    <exclude body1="B_1" body2="B_last"/>
-    <exclude body1="B_first" body2="B_49"/>
-    <exclude body1="eef_body" body2="B_first"/>
-    <exclude body1="eef_body" body2="B_last"/>
-    <exclude body1="eef_body" body2="B_49"/>
   </contact>
+  <sensor>
+    <torque name="torque_A" site="sensor_site1"/>
+    <force name="force_A" site="sensor_site1"/>
+    <torque name="torque_B" site="sensor_site2"/>
+    <force name="force_B" site="sensor_site2"/>
+    <torque name="torque_C" site="S_8"/>
+    <force name="force_C" site="S_8"/>
+    <torque name="torque_D" site="S_10"/>
+    <force name="force_D" site="S_10"/>
+  </sensor>
 </mujoco>

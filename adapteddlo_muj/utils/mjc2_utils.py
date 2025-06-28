@@ -56,6 +56,58 @@ def change_eq_pos(model, pos1, pos2, obj1_name):
             break
     model.eq_data[eq_id][:6] = np.concatenate((pos1,pos2))
 
+def update_weld_relpose(model, data, weld_name):
+    """Update the relative pose of a weld constraint to match current body positions.
+    
+    Args:
+        model: MuJoCo model
+        data: MuJoCo data
+        weld_name (str): Name of the weld constraint in the XML model
+    """
+    # Update latest position
+    mujoco.mj_fwdPosition(model, data)
+    # Get weld constraint ID
+    weld_id = obj_name2id(model, "equality", weld_name)
+    if weld_id == -1:
+        raise ValueError(f"Weld constraint {weld_name} not found in model")
+    
+    # Get the two bodies involved in the weld
+    body1_id = model.eq_obj1id[weld_id]
+    body2_id = model.eq_obj2id[weld_id]
+    
+    # Get current positions and orientations
+    body1_pos = data.xpos[body1_id].copy()
+    body1_quat = data.xquat[body1_id].copy()
+    body2_pos = data.xpos[body2_id].copy()
+    body2_quat = data.xquat[body2_id].copy()
+    inv_body1_quat = np.zeros(4)
+
+    mujoco.mju_negQuat(inv_body1_quat, body1_quat)
+    
+    # Compute relative position in body1's frame
+    rel_pos = np.zeros(3)
+    mujoco.mju_rotVecQuat(
+        rel_pos,
+        body2_pos - body1_pos,
+        inv_body1_quat
+    )
+    # input(rel_pos)
+    # if abs(rel_pos[0] + 10.5) < 1e-6: 
+        # rel_pos[0] -= 0.02
+    # input(rel_pos)
+    
+    # Compute relative orientation (body2 relative to body1)
+    rel_quat = np.zeros(4)
+    mujoco.mju_mulQuat(
+        rel_quat,
+        inv_body1_quat,
+        body2_quat
+    )
+    # Update the weld constraint data
+    model.eq_data[weld_id][6:10] = rel_quat  # Update quaternion
+    model.eq_data[weld_id][3:6] = rel_pos   # Update position
+    # model.eq_data[weld_id][0:3] = np.array([[0.5,0,0.5]])
+
 def pause_sim(viewer, run_t):
     viewer._paused = True
     pt_start = time.time()

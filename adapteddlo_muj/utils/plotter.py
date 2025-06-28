@@ -229,10 +229,10 @@ def plot_computetime(pieces_list, data_list):
 
     ax.set_ylim(0, 50)
     ax.set_xlim(40, 180)
-    twin1.set_ylim(0, 15)
+    twin1.set_ylim(-5, 20)
     ax.set_yticks(np.linspace(0., 50., 6))
     ax.set_xticks(x)
-    twin1.set_yticks(np.linspace(0., 15., 6))
+    twin1.set_yticks(np.linspace(-5, 20., 6))
     tkw = dict(size=4, width=1.5)
     ax.tick_params(axis='y', **tkw)
     twin1.tick_params(axis='y', **tkw)
@@ -297,7 +297,7 @@ def plot_computetime_all(pieces_list, data_list, plot_labels=None):
         plot_labels = ['plain', 'native', 'direct', 'adapted']
 
     # Plot each line with a label
-    ax.plot(x, y[0], label='plain', alpha=0.7, color='k', linewidth=2,zorder=3)
+    ax.plot(x, y[0], label='plain', alpha=0.5, color='k', linewidth=2,zorder=3)
     twin1.plot(0,0, label='raw time', alpha=1.0, color='k', linewidth=2)
     twin1.plot(0,0, label='percent increase', alpha=1.0, color='k', linewidth=2, linestyle='--')
     for i in range(len(plot_labels)-1,0,-1):
@@ -306,10 +306,10 @@ def plot_computetime_all(pieces_list, data_list, plot_labels=None):
 
     ax.set_ylim(0, 50)
     ax.set_xlim(40, 180)
-    twin1.set_ylim(0, 15)
+    twin1.set_ylim(-5, 20)
     ax.set_yticks(np.linspace(0., 50., 6))
     ax.set_xticks(x)
-    twin1.set_yticks(np.linspace(0., 15., 6))
+    twin1.set_yticks(np.linspace(-5, 20., 6))
     tkw = dict(size=4, width=1.5)
     ax.tick_params(axis='y', **tkw)
     twin1.tick_params(axis='y', **tkw)
@@ -321,8 +321,8 @@ def plot_computetime_all(pieces_list, data_list, plot_labels=None):
     # plt.title('Speed test', fontsize=14)
 
     # Add a legend
-    ax.legend(fontsize=14, loc='upper left', bbox_to_anchor=(0.21, 0.98),ncol=1)
-    twin1.legend(fontsize=14, loc='upper left', bbox_to_anchor=(0.39, 0.98),ncol=1)
+    ax.legend(fontsize=14, loc='upper left', bbox_to_anchor=(0.19, 0.98),ncol=1)
+    twin1.legend(fontsize=14, loc='upper left', bbox_to_anchor=(0.43, 0.98),ncol=1)
 
     # Grid for better readability
     # plt.grid(True, which='both', linestyle='--', linewidth=0.5)
@@ -334,7 +334,7 @@ def plot_computetime_all(pieces_list, data_list, plot_labels=None):
 
     plt.tight_layout()
     # Save the plot if needed
-    plt.savefig(img_path + "compute_time.pdf",bbox_inches='tight')
+    plt.savefig(img_path + "plgn/compute_time.pdf",bbox_inches='tight')
 
     # Show the plot
     plt.show()

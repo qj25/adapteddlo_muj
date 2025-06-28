@@ -15,7 +15,7 @@ import adapteddlo_muj.utils.transform_utils as T
 from adapteddlo_muj.utils.mjc_utils import MjSimWrapper
 from adapteddlo_muj.utils.xml_utils import XMLWrapper
 import adapteddlo_muj.utils.mjc2_utils as mjc2
-from adapteddlo_muj.utils.mjc_utils import get_sensor_id, get_sensor_force, fix_ftsensor_weld
+from adapteddlo_muj.utils.mjc_utils import get_sensor_id, get_sensor_force2, fix_ftsensor_weld
 
 from adapteddlo_muj.assets.genrope.gdv_N import GenKin_N
 from adapteddlo_muj.assets.genrope.gdv_N_weld2 import GenKin_N_weld2
@@ -143,9 +143,10 @@ class TestPluginEnv(gym.Env, utils.EzPickle):
         if self.test_type == 'lhb':
             # # body_names of attached sensors A and B, respectively.
             self.eefname_list = ['eef_body_sensor', 'eef_body2_sensor']
+            self.senssitename_list = ['sensor_site1', 'sensor_site2']
             self.sensorids_list = [
-                get_sensor_id(self.model, self.eefname_list[0]),
-                get_sensor_id(self.model, self.eefname_list[1])
+                get_sensor_id(self.model, self.senssitename_list[0]),
+                get_sensor_id(self.model, self.senssitename_list[1])
             ]
             # box body ids
             self.box_bodyids = [
@@ -921,17 +922,17 @@ class TestPluginEnv(gym.Env, utils.EzPickle):
         self.viewer.cam.lookat = lookat
 
     def _get_ftworld(self, eef_id):
-        eef_name = self.eefname_list[eef_id]
+        site_name = self.senssitename_list[eef_id]
         # eef_id either 0 or 1
 
-        eef_ft = get_sensor_force(
+        eef_ft = get_sensor_force2(
             self.model,
             self.data,
             self.sensorids_list[eef_id],
-            eef_name,
+            site_name,
             # self.eef_name,
-            self.data.xpos[self.box_bodyids[eef_id]].copy(),
-            self.data.xquat[self.box_bodyids[eef_id]].copy(),
+            # self.data.xpos[self.box_bodyids[eef_id]].copy(),
+            # self.data.xquat[self.box_bodyids[eef_id]].copy(),
         )
         # eef_ft_filtered = self.lowpass_filter(eef_ft.reshape((-1, 6)))[0, :]
         # eef_rotmat = T.quat2mat(self.observations['sensor'+str(eef_id)+'_pose'][3:])
