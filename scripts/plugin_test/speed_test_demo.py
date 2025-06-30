@@ -100,7 +100,7 @@ else:
         r_pieces_list, t_list = pickle.load(f)
     print("Pickle loaded!")
 
-plot_labels = ['plain', 'native', 'direct', 'adapted', 'adapted_plgn', 'jpQ-DER_plgn']
+plot_labels = ['plain', 'native', 'direct', 'adapted', 'jpQ-DER']
 plot_computetime_all(
     r_pieces_list, 
     [
@@ -108,7 +108,7 @@ plot_computetime_all(
         t_list[:,1],
         t_list[:,2],
         t_list[:,3],
-        t_list[:,4],
+        # t_list[:,4],
         t_list[:,5],
     ],
     plot_labels=plot_labels,
