@@ -408,6 +408,7 @@ class TestStiffSingEnv(gym.Env, utils.EzPickle):
         dof_adr = self.model.jnt_dofadr[jnt_id]
         dof_count = 3
         dof_ids = slice(dof_adr,dof_adr + dof_count)
+        # print(f"qfrc_passive = {self.data.qfrc_passive}")
         if self.env_steps%100==0:
             # b8_ft = self._get_abi_ftsensor("S_8")
             # print(f"B_8_ft = {b8_ft}")
