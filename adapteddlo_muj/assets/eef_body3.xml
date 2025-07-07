@@ -1,0 +1,14 @@
+<mujoco model="eef_body3">
+  <worldbody>
+    <body name="eef_body3" pos="0.3535 0 0.5">
+      <geom name="eef_geom3" size="0.0141 0.0141 0.0282" type="box" contype="0" conaffinity="0" group="2" mass="1" rgba="0.1 0.8 0.2 0.7"/>
+      <site name="eef_body3_site" pos="0 0 0" size="0.01" group="2" rgba="0 0 0 0"/>
+      <body name="eef_body3_sensor">
+        <site name="sensor_site3" pos="0 0 0" size="0.01" group="2" rgba="0 0 0 0"/>
+      </body>
+    </body>
+  </worldbody>
+  <equality>
+    <weld name="weld_mid" body1="B_25" body2="eef_body3_sensor" anchor="0 0 0" relpose="0 0 0 0 0 -1 0" torquescale="1" solref="0.001"/>
+  </equality>
+</mujoco> 
