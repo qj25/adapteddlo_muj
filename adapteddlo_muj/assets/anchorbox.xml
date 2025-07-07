@@ -1,11 +1,11 @@
 <mujoco model="anchor-box">
   <worldbody>
-    <body name="eef_body" pos="-0.3535 0.0 0.5" quat="1.0 0.0 0.0 0.0">
+    <body name="eef_body" pos="-0.8 0.0 0.5" quat="1.0 0.0 0.0 0.0">
       <site name="eef_body_site" pos="0 0 0" size="0.01 0.01 0.01" rgba="0 0 0 0" type="sphere" group="1"/>
       <geom name="eef_geom" type="box" mass="1" size="0.0141 0.0141 0.0282" contype="0" conaffinity="0" rgba=".8 .2 .1 0.7" friction="1 0.005 0.0001"/>
       <body name="eef_body_sensor" pos="0 0 0" quat="1.0 0.0 0.0 0.0">
         <site name="sensor_site1" pos="0 0 0" size="0.01 0.01 0.01" rgba="0 0 0 0" type="sphere" group="1"/>
-      </body>    </body>    <body name="eef_body2" pos="0.3535 0.0 0.5" quat="1.0 0.0 0.0 0.0">
+      </body>    </body>    <body name="eef_body2" pos="0.8 0.0 0.5" quat="1.0 0.0 0.0 0.0">
       <site name="eef_body2_site" pos="0 0 0" size="0.01 0.01 0.01" rgba="0 0 0 0" type="sphere" group="2"/>
       <geom name="eef_geom2" type="box" mass="1" size="0.0141 0.0141 0.0282" contype="0" conaffinity="0" rgba=".8 .2 .1 0.7" friction="1 0.005 0.0001" group="2"/>
       <body name="eef_body2_sensor" pos="0 0 0" quat="1.0 0.0 0.0 0.0">

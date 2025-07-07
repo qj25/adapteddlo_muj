@@ -4,7 +4,6 @@ To-do:
 import mujoco
 import adapteddlo_muj.utils.mjc2_utils as mjc2
 
-import glfw
 import os
 import numpy as np
 import matplotlib.pyplot as plt
