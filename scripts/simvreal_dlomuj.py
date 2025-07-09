@@ -136,4 +136,4 @@ for i in range(n_testtypes):
 # for j in range(n_wirecolors):
 #     for pos_id in range(n_pos):
 #         plot3d(real_pos_arr[j,pos_id],node_pos_arr[:,j,pos_id])
-plot_bars(error_arr[:,[2,0,1]])
+plot_bars(error_arr[:,[2,0,1]], add_markers=True)
