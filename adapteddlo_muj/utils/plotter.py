@@ -56,13 +56,15 @@ def plot3d(nodes,nodes2=None):
     plt.tight_layout()
     plt.show()
 
-def plot_bars(error):
-    index = np.arange(len(error[0,0]))*2
-    bar_width = 0.2
+def plot_bars(error, add_markers=False):
+    index = np.arange(len(error[0,0]))+1
+    bar_width = 0.1
+    midbarsep = 0.03
     # colors_model1 = ['lightblue', 'lightgreen', 'lightcoral']
     rope_positions = [1,2,3,4]
+    wire_names = ['white wire','black wire','red wire']
     wire_colors = ['grey','black','red']
-    model_types = ['adapted', 'native']
+    model_types = ['adapted model', 'native model']
     # model_edgecolors = ['lightgreen', 'lightpink']
     model_hatch = [None, '\\\\']
 
@@ -72,12 +74,12 @@ def plot_bars(error):
     fig, ax = plt.subplots(figsize=(10, 6))
 
     for i, rope in enumerate(wire_colors):
-        bar_adapt.append(ax.bar(index + (2*i * bar_width), error[0,i,], bar_width-0.04,
+        bar_adapt.append(ax.bar(index + (2*(i-1) * (bar_width+midbarsep)) - bar_width/2, error[0,i,], bar_width-0.01,
             color=wire_colors[i], capsize=5, alpha=0.7, hatch=model_hatch[0]))
-        bar_native.append(ax.bar(index + (2*i * bar_width) + bar_width, error[1,i,], bar_width,
+        bar_native.append(ax.bar(index + (2*(i-1) * (bar_width+midbarsep)) + bar_width/2, error[1,i,], bar_width-0.01,
             color=wire_colors[i], capsize=5, alpha=0.7, hatch=model_hatch[1]))
         ax.bar(index + (2*i * bar_width), np.zeros_like(error[0,i,]), bar_width-0.04,
-            label=f'{rope}', color=wire_colors[i], capsize=5, alpha=0.7)
+            label=f'{wire_names[i]}', color=wire_colors[i], capsize=5, alpha=0.7, edgecolor='none')
         # for j in range(len(rope_positions)):
         #     # bar_adapt[-1][j].set_color('lightgreen')
         #     # bar_adapt[-1][j].set_edgecolor(wire_colors[i])
@@ -88,23 +90,24 @@ def plot_bars(error):
         #     bar_native[-1][j].set_edgecolor(model_edgecolors[1])
         #     bar_native[-1][j].set_linewidth(5)
 
-    # Make hatching visible on black bars by setting edgecolor to white
+    # Make hatching visible on black bars by setting edgecolor to white (very thin)
     for bars, color in zip(bar_native, wire_colors):
         if color == 'black':
             for bar in bars:
                 bar.set_edgecolor('white')
-                bar.set_linewidth(1.5)  # Optional: make hatch lines thicker
+                bar.set_linewidth(0.7)  # Thinner outline for hatch visibility
 
     for i in range(len(model_types)):
         t1 = ax.bar(index + (2*i * bar_width), np.zeros_like(error[0,i,]), bar_width-0.04,
-            label=f'{model_types[i]}', color='white', capsize=5, alpha=0.7, hatch=model_hatch[i], zorder = 10)
+            label=f'{model_types[i]}', color='white', capsize=5, alpha=0.7, hatch=model_hatch[i], zorder = 10, edgecolor='none')
         t1[0].set_edgecolor('black')
         # t1[0].set_linewidth(5)
 
-    ax.set_xlabel('Robot Pose',fontsize=14)
+    ax.set_xlabel('Robot Pose', fontsize=14, labelpad=20)
+    ax.tick_params(axis='x', pad=15)
     ax.set_ylabel('Normalized Position Error',fontsize=14)
     # ax.set_title('Comparison of Simulation Models and Real-world Data with Error Bars')
-    ax.set_xticks(index + bar_width)
+    ax.set_xticks(index)
     ax.set_xticklabels(rope_positions)
     # ax.legend(title='')
     # Remove the top and right borders (spines)
@@ -114,18 +117,66 @@ def plot_bars(error):
     ax.set_axisbelow(True)
     ax.yaxis.grid(color='gray', linestyle='dashed')
     plt.tick_params(axis='both', which='major', labelsize=14)
-    
     # Position the legend at the center top
     ax.legend(loc='upper center', bbox_to_anchor=(0.5, 1.05), ncol=2, fontsize=14)
+
+    # Add a custom marker: two vertical lines at x=0.75 and x=1.5, connected by a horizontal line
+    def draw_marker(ax, x0, x1, label=None, marker_lw=2, cmark = 'grey', marker_alpha=1.0, y_base=None):
+        offset = 0.001  # how far below x-axis to draw
+        if y_base is None:
+            y_base = -offset  # below x-axis
+        marker_height = 0.001  # height of the vertical lines
+        # Draw left vertical line
+        ax.plot([x0, x0], [y_base, y_base + marker_height], color=cmark, lw=marker_lw, zorder=20, alpha=marker_alpha)
+        # Draw right vertical line
+        ax.plot([x1, x1], [y_base, y_base + marker_height], color=cmark, lw=marker_lw, zorder=20, alpha=marker_alpha)
+        # Draw horizontal line connecting the tops
+        ax.plot([x0, x1], [y_base, y_base], color=cmark, lw=marker_lw, zorder=20, alpha=marker_alpha)
+        # Optionally, add a label above the marker
+        # if label is not None:
+        #     ax.text((x0 + x1) / 2, y_base + marker_height * 1.2, label, ha='center', va='bottom', fontsize=13)
+
+    disp_marker = 0.07
+    base_loc0 = 1 + (-2 * (bar_width+midbarsep)) - bar_width/2
+    base_loc1 = 1 + (2 * (bar_width+midbarsep)) + bar_width/2
+    for i in range(4):
+        draw_marker(ax, i+base_loc0-disp_marker, i+base_loc1+disp_marker, label='Group', cmark='lightgrey', marker_lw=5, marker_alpha=1.0)
+
+    if add_markers:
+        ybase_addmark = -0.002
+        base_loc0 = 1 + (0 * (bar_width+midbarsep)) - bar_width/2
+        base_loc1 = 1 + (0 * (bar_width+midbarsep)) + bar_width/2
+        draw_marker(
+            ax, 1+base_loc0-disp_marker, 1+base_loc1+disp_marker,
+            y_base=ybase_addmark,
+            cmark='#444444', label='Group', marker_lw=5, marker_alpha=1.0
+        )
+
+        base_loc0 = 1 + (2 * (bar_width+midbarsep)) - bar_width/2
+        base_loc1 = 1 + (2 * (bar_width+midbarsep)) + bar_width/2
+        draw_marker(
+            ax, 3+base_loc0-disp_marker, 3+base_loc1+disp_marker,
+            y_base=ybase_addmark,
+            cmark='#ff9999', label='Group', marker_lw=5, marker_alpha=1.0
+        )
+
+    # After plotting bars and markers, expand y-limits to show markers below x-axis
+    ymin, ymax = ax.get_ylim()
+    ax.set_ylim(-0.004,0.1)
+    ax.set_yticks(np.arange(0, 0.12, 0.02))
+    ax.spines['bottom'].set_position('zero')
+
     plt.tight_layout()
     plt.savefig(img_path + "valid_bars.pdf",bbox_inches='tight')
     plt.show()
 
-def plot_bars_more(error, model_types):
-    index = np.arange(len(error[0,0]))*2
-    bar_width = 0.2
+def plot_bars_more(error, model_types, add_markers=False):
+    index = np.arange(len(error[0,0]))+1
+    bar_width = 0.075
+    midbarsep = 0.018
     # colors_model1 = ['lightblue', 'lightgreen', 'lightcoral']
     rope_positions = [1,2,3,4]
+    wire_names = ['white wire','black wire','red wire']
     wire_colors = ['grey','black','red']
     # model_edgecolors = ['lightgreen', 'lightpink']
     model_hatch = [None, 'xxx', '\\\\']
@@ -136,10 +187,12 @@ def plot_bars_more(error, model_types):
 
     for i, rope in enumerate(wire_colors):
         for j in range(len(model_types)):
-            bar_models[j].append(ax.bar(index + (3*i * bar_width) + j*bar_width, error[j,i,], bar_width-0.04,
-                color=wire_colors[i], capsize=5, alpha=0.7, hatch=model_hatch[j]))
+            # print(index+ (3*(i-1) * (bar_width+midbarsep)))
+            print(index + (3*(i-1) * (bar_width+midbarsep)) + (j-1)*bar_width)
+            bar_models[j].append(ax.bar(index + (3*(i-1) * (bar_width+midbarsep)) + (j-1)*bar_width, error[j,i,], bar_width-0.01,
+                color=wire_colors[i], capsize=5, alpha=0.7, hatch=model_hatch[j], edgecolor='none'))
         ax.bar(index + (2*i * bar_width), np.zeros_like(error[0,i,]), bar_width-0.04,
-            label=f'{rope}', color=wire_colors[i], capsize=5, alpha=0.7)
+            label=f'{wire_names[i]}', color=wire_colors[i], capsize=5, alpha=0.7, edgecolor='none')
         # for j in range(len(rope_positions)):
         #     # bar_adapt[-1][j].set_color('lightgreen')
         #     # bar_adapt[-1][j].set_edgecolor(wire_colors[i])
@@ -160,14 +213,15 @@ def plot_bars_more(error, model_types):
 
     for i in range(len(model_types)):
         t1 = ax.bar(index + (2*i * bar_width), np.zeros_like(error[0,i,]), bar_width-0.04,
-            label=f'{model_types[i]}', color='white', capsize=5, alpha=0.7, hatch=model_hatch[i], zorder = 10)
+            label=f'{model_types[i]} model', color='white', capsize=5, alpha=0.7, hatch=model_hatch[i], zorder = 10, edgecolor='none')
         t1[0].set_edgecolor('black')
         # t1[0].set_linewidth(5)
 
-    ax.set_xlabel('Robot Pose',fontsize=14)
+    ax.set_xlabel('Robot Pose',fontsize=14, labelpad=20)
+    ax.tick_params(axis='x', pad=15)
     ax.set_ylabel('Normalized Position Error',fontsize=14)
     # ax.set_title('Comparison of Simulation Models and Real-world Data with Error Bars')
-    ax.set_xticks(index + bar_width)
+    ax.set_xticks(index)
     ax.set_xticklabels(rope_positions)
     # ax.legend(title='')
     # Remove the top and right borders (spines)
@@ -177,11 +231,58 @@ def plot_bars_more(error, model_types):
     ax.set_axisbelow(True)
     ax.yaxis.grid(color='gray', linestyle='dashed')
     plt.tick_params(axis='both', which='major', labelsize=14)
-    
     # Position the legend at the center top
     ax.legend(loc='upper center', bbox_to_anchor=(0.5, 1.05), ncol=2, fontsize=14)
+
+    # Add a custom marker: two vertical lines at x0 and x1, connected by a horizontal line
+    def draw_marker(ax, x0, x1, label=None, marker_lw=2, cmark = '#444444', marker_alpha=1.0, y_base=None):
+        offset = 0.001  # how far below x-axis to draw
+        if y_base is None:
+            y_base = -offset  # below x-axis
+        marker_height = 0.001  # height of the vertical lines
+        # Draw left vertical line
+        ax.plot([x0, x0], [y_base, y_base + marker_height], color=cmark, lw=marker_lw, zorder=20, alpha=marker_alpha)
+        # Draw right vertical line
+        ax.plot([x1, x1], [y_base, y_base + marker_height], color=cmark, lw=marker_lw, zorder=20, alpha=marker_alpha)
+        # Draw horizontal line connecting the tops
+        ax.plot([x0, x1], [y_base, y_base], color=cmark, lw=marker_lw, zorder=20, alpha=marker_alpha)
+        # Optionally, add a label above the marker
+        # if label is not None:
+        #     ax.text((x0 + x1) / 2, y_base + marker_height * 1.2, label, ha='center', va='bottom', fontsize=13)
+
+    # Example marker usage (customize as needed):
+    disp_marker = 0.07
+    base_loc0 = 1 + (-3 * (bar_width+midbarsep)) - bar_width
+    base_loc1 = 1 + (3 * (bar_width+midbarsep)) + bar_width
+    for i in range(4):
+        draw_marker(ax, i+base_loc0-disp_marker, i+base_loc1+disp_marker, label='Group', cmark='lightgrey', marker_lw=5, marker_alpha=1.0)
+
+    if add_markers:
+        # Example: add colored markers as in plot_bars
+        ybase_addmark = -0.002
+        base_loc0 = 1 + (0 * (bar_width+midbarsep)) - bar_width
+        base_loc1 = 1 + (0 * (bar_width+midbarsep)) + bar_width
+        draw_marker(
+            ax, 1+base_loc0-disp_marker, 1+base_loc1+disp_marker,
+            y_base=ybase_addmark,
+            cmark='#444444', label='Group', marker_lw=5, marker_alpha=1.0
+        )
+
+        base_loc0 = 0 + (3 * (bar_width+midbarsep)) - bar_width/2
+        base_loc1 = 0 + (3 * (bar_width+midbarsep)) + bar_width/2
+        draw_marker(
+            ax, 3+base_loc0-disp_marker, 3+base_loc1+disp_marker,
+            y_base=ybase_addmark,
+            cmark='#ff9999', label='Group', marker_lw=5, marker_alpha=1.0
+        )
+
+    # Set y-limits and y-ticks as in plot_bars
+    ax.set_ylim(-0.004,0.1)
+    ax.set_yticks(np.arange(0, 0.12, 0.02))
+    ax.spines['bottom'].set_position('zero')
+
     plt.tight_layout()
-    plt.savefig(img_path + "valid_bars.pdf",bbox_inches='tight')
+    plt.savefig(img_path + "plgn/valid_bars_more.pdf",bbox_inches='tight')
     plt.show()
 
 def plot_computetime(pieces_list, data_list):
