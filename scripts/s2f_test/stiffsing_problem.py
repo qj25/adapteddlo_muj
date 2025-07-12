@@ -175,13 +175,14 @@ def rotate_and_record_torque_multi(env_list, env_names, total_steps=360, record_
 #======================| Main |======================
 miscdata_picklename = 'jointtorq_data.pickle'
 miscdata_picklename = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-    "dlo_check/data/misc/" + miscdata_picklename
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+    "adapteddlo_muj/data/misc/" + miscdata_picklename
 )
+input(miscdata_picklename)
 img_path = 'jointtorq_data.pickle'
 img_path = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-    "dlo_check/data/img/"
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+    "adapteddlo_muj/data/img/"
 )
 
 def make_env(plugin_name):
