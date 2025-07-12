@@ -188,7 +188,7 @@ class TestRopeXfrcEnv(gym.Env, utils.EzPickle):
             "dlorope1dkin.xml"
         )
 
-        if (self.test_type == 'lhb') or (self.test_type == 'speedtest2'):
+        if (self.test_type == 'jointtest') or (self.test_type == 'lhb') or (self.test_type == 'speedtest2'):
             self.bothweld = True
             GenKin_O_weld2_xfrc(
                 r_len=self.r_len,

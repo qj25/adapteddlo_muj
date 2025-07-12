@@ -2,15 +2,15 @@
 To-do:
 """
 import mujoco
-import dlo_check.utils.mjc2_utils as mjc2
+import adapteddlo_muj.utils.mjc2_utils as mjc2
 
 import os
 import numpy as np
 import matplotlib.pyplot as plt
 from time import time
 
-from dlo_check.envs.mix_testenv import TestCableEnv
-from dlo_check.envs.our_xfrc_rope_valid_test import TestRopeXfrcEnv
+from adapteddlo_muj.envs.mix_testenv import TestCableEnv
+from adapteddlo_muj.envs.our_xfrc_rope_valid_test import TestRopeXfrcEnv
 
             # 
 """
@@ -36,9 +36,9 @@ stiff_type = 'native'
 use_specified_s2f = False
 
 if use_specified_s2f:
-    import dlo_check.utils.dlo_s2f_specified.Dlo_s2f as Dlo_s2f
+    import adapteddlo_muj.utils.dlo_s2f_specified.Dlo_s2f as Dlo_s2f
 else:
-    import dlo_check.utils.dlo_s2f.Dlo_s2f as Dlo_s2f
+    import adapteddlo_muj.utils.dlo_s2f.Dlo_s2f as Dlo_s2f
 
 
 r_len = 2.0
@@ -86,12 +86,12 @@ if test_one:
 miscdata_picklename = 'jointtorq_data.pickle'
 miscdata_picklename = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-    "dlo_check/data/misc/" + miscdata_picklename
+    "adapteddlo_muj/data/misc/" + miscdata_picklename
 )
 img_path = 'jointtorq_data.pickle'
 img_path = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-    "dlo_check/data/img/"
+    "adapteddlo_muj/data/img/"
 )
 # # exclude first free joint (6 indexes) 
 # # from double welded-ends rope/cable.
@@ -108,26 +108,26 @@ if not loadfrompickle:
         beta_bar=beta_val,
         stiff_type=stiff_type
     )
-    env_xfrc = TestRopeXfrcEnv(
-        overall_rot=0.0,
-        do_render=False,
-        r_pieces=r_pieces,
-        r_len=r_len,
-        r_thickness=r_thickness,
-        r_mass=r_mass,
-        alpha_bar=alpha_val,
-        beta_bar=beta_val,
-        test_type='jointtest',
-        # stiff_type='bal'
-    )
+    # env_xfrc = TestRopeXfrcEnv(
+    #     overall_rot=0.0,
+    #     do_render=False,
+    #     r_pieces=r_pieces,
+    #     r_len=r_len,
+    #     r_thickness=r_thickness,
+    #     r_mass=r_mass,
+    #     alpha_bar=alpha_val,
+    #     beta_bar=beta_val,
+    #     test_type='jointtest',
+    #     # stiff_type='bal'
+    # )
     if test_one:
-        env_xfrc.test_force_curvature2(om_val=om_list[0])
+        # env_xfrc.test_force_curvature2(om_val=om_list[0])
         env_native.test_force_curvature2(om_val=om_list[0])
         # print(env_native.data.qfrc_passive[:].copy().reshape((r_pieces+1,3)))
         # print(env_xfrc.der_sim.qfrc_our[:].copy().reshape((r_pieces+1,3)))
         # print(env_native.der_sim.qfrc_our2[:].copy().reshape((r_pieces+1,3)))
         native_f_data = env_native.data.qfrc_passive[3:].copy().reshape((r_pieces,3))
-        our_f_data = env_xfrc.der_sim.qfrc_our[3:].copy().reshape((r_pieces,3))
+        # our_f_data = env_xfrc.der_sim.qfrc_our[3:].copy().reshape((r_pieces,3))
         our2_f_data = env_native.der_sim.qfrc_our2[3:].copy().reshape((r_pieces,3))
     else:
         for i in range(len(om_list)):
@@ -242,7 +242,7 @@ if not loadfrompickle:
             # nquat = env_native.der_sim.body_quats_flat.copy()
             ntorq = np.zeros_like(env_native.data.qfrc_passive.flatten())
             ntorq[:-3] = env_native.data.qfrc_passive.flatten()[3:]
-            ntorq[:-3] = env_native.stored_torques.flatten()[3:]
+            # ntorq[:-3] = env_native.stored_torques.flatten()[3:]
             npos = env_native.observations['rope_pose'].flatten()
             nquat = env_native.data.xquat[
                 env_native.vec_bodyid[:env_native.r_pieces]
