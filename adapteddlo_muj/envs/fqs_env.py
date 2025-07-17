@@ -74,7 +74,7 @@ class TestFQSEnv(gym.Env, utils.EzPickle):
         # self.alpha_bar /=2
         # self.beta_bar /=2
 
-        self._init_plugins()
+        mjc2.init_plugins()
         xml, arm_xml = self._get_xmlstr()
 
         self.model = mujoco.MjModel.from_xml_string(xml)
@@ -147,18 +147,6 @@ class TestFQSEnv(gym.Env, utils.EzPickle):
         # self._save_initpickle()
         if not new_start:
             self._load_initpickle()
-
-    def _init_plugins(self):
-        # print('HI')
-        plugin_path = os.environ.get("MJPLUGIN_PATH")
-        if plugin_path:
-            plugin_file = os.path.join(plugin_path, "libelasticity.so")
-            try:
-                mujoco.mj_loadPluginLibrary(plugin_file)
-            except Exception as e:
-                print(f"Failed to load plugin: {e}")
-        else:
-            print("MJPLUGIN_PATH is not set.")
 
     def _init_ids(self):
         # # body_names of attached sensors A and B, respectively.

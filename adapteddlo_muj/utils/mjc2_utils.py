@@ -5,7 +5,18 @@ import time
 
 # for i in range(26):
 #     print(f"id={i}:  type={mujoco.mju_type2Str(i)}")
-    
+def init_plugins():
+    import os
+    plugin_path = os.environ.get("MJPLUGIN_PATH")
+    if plugin_path:
+        plugin_file = os.path.join(plugin_path, "libelasticity.so")
+        try:
+            mujoco.mj_loadPluginLibrary(plugin_file)
+        except Exception as e:
+            print(f"Failed to load plugin: {e}")
+    else:
+        print("MJPLUGIN_PATH is not set.")
+        
 def obj_id2name(model, type_str, obj_id):
     type_id = mujoco.mju_str2Type(type_str)
     return mujoco.mj_id2name(model,type_id,obj_id)
