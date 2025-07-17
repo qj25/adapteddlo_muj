@@ -180,10 +180,10 @@ class GenKin_N:
         f.write(self.curr_tab*self.t + '<config key="bend" value="{}"/>\n'.format(
             self.stiff_vals[1]
         ))
-        if self.plugin_name != "cable":
-            f.write(self.curr_tab*self.t + '<config key="twist_displace" value="{}"/>\n'.format(
-                self.twist_displace
-            ))
+        # if self.plugin_name != "cable":
+        #     f.write(self.curr_tab*self.t + '<config key="twist_displace" value="{}"/>\n'.format(
+        #         self.twist_displace
+        #     ))
         # f.write(self.curr_tab*self.t + '<config key="vmax" value="0.05"/>\n')
         self.curr_tab -= 1
         f.write(self.curr_tab*self.t + '</plugin>\n')
