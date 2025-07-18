@@ -38,6 +38,7 @@ class TestCableEnv(gym.Env, utils.EzPickle):
         rope_initpose=None,
         new_start=True,
         limit_f=False,
+        plugin_name='wire',
         stiff_type='native',
     ):
         utils.EzPickle.__init__(self)
@@ -50,6 +51,7 @@ class TestCableEnv(gym.Env, utils.EzPickle):
             bal=2,
         )
         self.stiff_type = stiff_choices[stiff_type] 
+        self.plugin_name = plugin_name
 
         # rope init
         self.r_len = r_len
@@ -350,6 +352,7 @@ class TestCableEnv(gym.Env, utils.EzPickle):
             rope_type="capsule",
             vis_subcyl=True,
             obj_path=rope_path,
+            plugin_name=self.plugin_name,
             twist_displace=self.overall_rot
         )
 

@@ -32,6 +32,7 @@ test_one = True
 loadfrompickle = False
 
 stiff_type = 'native'
+plugin_name = 'wire'  # 'wire', 'wire_qst', 'cable'
 
 use_specified_s2f = False
 
@@ -106,6 +107,7 @@ if not loadfrompickle:
         r_mass=r_mass,
         alpha_bar=alpha_val,
         beta_bar=beta_val,
+        plugin_name=plugin_name,
         stiff_type=stiff_type
     )
     # env_xfrc = TestRopeXfrcEnv(
@@ -214,6 +216,7 @@ if not loadfrompickle:
                 # ))
             # input()
             f_usr = np.array([0., 0., 0., 0.1, 0.1, 0.])
+            f_usr = np.array([0., 0., 0., 0., 0., 0.])
             ## fails for the below f_usr 
             ## due to quasi-static treatment of twist
             # f_usr = np.array([0., 0.1, 0., 0.3, 0., 0.])
@@ -241,8 +244,8 @@ if not loadfrompickle:
             # npos = env_native.der_sim.x.flatten()
             # nquat = env_native.der_sim.body_quats_flat.copy()
             ntorq = np.zeros_like(env_native.data.qfrc_passive.flatten())
-            ntorq[:-3] = env_native.data.qfrc_passive.flatten()[3:]
-            # ntorq[:-3] = env_native.stored_torques.flatten()[3:]
+            # ntorq[:-3] = env_native.data.qfrc_passive.flatten()[3:]
+            ntorq[:-3] = env_native.stored_torques.flatten()[3:]
             npos = env_native.observations['rope_pose'].flatten()
             nquat = env_native.data.xquat[
                 env_native.vec_bodyid[:env_native.r_pieces]
@@ -280,6 +283,7 @@ if not loadfrompickle:
 
             n_force = int(len(efp)/3)
             print(f"efp = {efp}")
+            print(f"ntorq = {env_native.stored_torques}")
             print(f"ntorq = {ntorq.reshape((r_pieces+1,3))}")
             print(f"npos = {npos}")
             print(f"nquat = {nquat}")
