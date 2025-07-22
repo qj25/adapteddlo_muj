@@ -24,7 +24,10 @@ DLO_s2f::DLO_s2f(
     const int rpieces,
     const double r_weight,  // note: in weight, not mass
     const bool boolErrs,
-    const bool boolSolveTorq
+    const bool boolSolveTorq,
+    const double torque_tolerance_,
+    const double tolC2_,
+    const double tolC3_
 )
 {
     // init variables
@@ -33,7 +36,9 @@ DLO_s2f::DLO_s2f(
     w_perpiece << 0.0, 0.0, -r_weight / rpieces;
     raiseErrs = boolErrs;
     bSolveTorq = boolSolveTorq;
-
+    torque_tolerance = torque_tolerance_;
+    tolC2 = tolC2_;
+    tolC3 = tolC3_;
     nodeposMat.resize(nv+2, 3);
     nodetorqMat.resize(nv+2, 3);
 }
@@ -55,10 +60,17 @@ bool DLO_s2f::calculateExternalForces(
     
     // Part A.
     // solving for forces while splitting sections
-    std::cout << "Entering checks =============================" << std::endl;
+    if (raiseErrs) {
+        std::cout << "Entering checks =============================" << std::endl;
+    }
     bool consistPass = checkConsistency();
-    std::cout << "End checks" << std::endl;
+    if (raiseErrs) {
+        std::cout << "\nEnd checks" << std::endl;
+    }
     if (!consistPass) {return false;}
+    if (raiseErrs) {
+        std::cout << "Solving torqs" << std::endl;
+    }
     // Part B.
     // directly solving for torques
     n_force = disturbed_sections_.size();
@@ -99,6 +111,7 @@ void DLO_s2f::updateState(
         ).transpose();
         // Update pos
         nodeposMat.row(i) << node_pos[3*i], node_pos[3*i+1], node_pos[3*i+2];
+        // std::cout << "globalizedTorq= " << nodetorqMat.row(i) << std::endl;
     }
 }
 
@@ -170,8 +183,6 @@ void DLO_s2f::checkUDEndSections()
     undistStart = -1;
     undistEnd = -1;
 
-    const double torque_tolerance = 1e-8;  // Tolerance for torque norm
-
     // Check end of wire
     // Continue checking until we find non-zero force-torque piece
     for (int i = 0; i < nv+1; i++) {
@@ -182,7 +193,7 @@ void DLO_s2f::checkUDEndSections()
             int nLeft = i;
             Ctorq += (distVec.cross((nLeft+0.5)*w_perpiece));
         }
-        
+        // std::cout << "ctorq= " << Ctorq << std::endl;
         // Check if torque norm exceeds tolerance
         if (Ctorq.norm() > torque_tolerance) {
             undistStart = i;
@@ -200,7 +211,7 @@ void DLO_s2f::checkUDEndSections()
             int nRight = nv-i;
             Ctorq += (distVec.cross((nRight+0.5)*w_perpiece));
         }
-        
+        // std::cout << "ctorq= " << Ctorq << std::endl;
         // Check if torque norm exceeds tolerance
         if (Ctorq.norm() > torque_tolerance) {
             undistEnd = i;
@@ -216,9 +227,6 @@ void DLO_s2f::checkUDEndSections()
 
 bool DLO_s2f::checkConsistency()
 {
-    const double tolC2 = 1e-3;
-    const double tolC3 = 1e-3;
-
     Eigen::Vector3d avg_F;
     avg_F.setZero();
     int force_count = 0;
@@ -242,7 +250,9 @@ bool DLO_s2f::checkConsistency()
     // Check consistency for each consecutive pair of vectors
     // from 0 to nv-2 (id of 3rd last piece) because of triple piece checks
     for (int i = undistStart; i < undistEnd-1; i++) {
-        std::cout << "i = " << i << std::endl;
+        if (raiseErrs) {
+            std::cout << "i = " << i << std::endl;
+        }
         Eigen::Vector3d distVec1 = (nodeposMat.row(i+1) - nodeposMat.row(i));
         Eigen::Vector3d distVec2 = (nodeposMat.row(i+2) - nodeposMat.row(i+1));
         
@@ -261,7 +271,9 @@ bool DLO_s2f::checkConsistency()
         // Check consistency condition: distVec1.C2 + distVec2.C1 < tolerance
         if (!in_undisturbed_section) {
             double consistency_value = distVec1.dot(C2) + distVec2.dot(C1);
-            std::cout << "consist_val2 = " << consistency_value << std::endl;
+            if (raiseErrs) {
+                std::cout << "consist_val2 = " << consistency_value << std::endl;
+            }
             if (std::abs(consistency_value) > tolC2) {
                 // Only have to test if !in_undisturbed_section:
                 // - if in_undisturbed_section, C3consist would pass for 1 2 3
@@ -276,9 +288,39 @@ bool DLO_s2f::checkConsistency()
         // if consistent, do checks for 3 pieces consistency
         // Calculate A1 and A2 matrices
         Eigen::Vector3d distVec3 = (nodeposMat.row(i+3) - nodeposMat.row(i+2));
-        if (hasParallelVectors(distVec1, distVec2, distVec3)) {
+        if (hasParallelVectors(distVec1, distVec2, distVec3, parllThreshold)) {
             // Parallel vectors condition
+            if (raiseErrs) {
+                std::cout << "is parallel!" << std::endl;
+            }
+            // if parallel, assume end of UD
+            if (in_undisturbed_section) {
+                // End current undisturbed section
+                if (force_count > 0) {
+                    avg_F /= force_count;
+                }
+                Section new_section(current_undisturbed_start, current_undisturbed_end);
+                new_section.avg_force = avg_F;
+                undisturbed_sections.push_back(new_section);
+                in_undisturbed_section = false;
+                if (raiseErrs) {
+                    std::cout << "end UD" << std::endl;
+                }
+            }
             continue;
+
+            // WRONG:
+            // if parallel, cant solve 
+            // but can determine if they belong to same section/
+            // if 2 and 3 parll, test if they are same section
+            // else, just continue assuming continued UD/D
+            // (if e0 and e1 of whole rod is parll, assume different section)
+            // Eigen::Vector3d n2 = distVec2.normalized();
+            // Eigen::Vector3d n3 = distVec3.normalized();
+            // double dot23 = std::abs(n2.dot(n3));
+            // if (dot23 < parllThreshold) {
+            // }
+            // continue;
         }
         Eigen::Matrix3d A1 = Ds2fUtils::createSkewSym(distVec1);
         Eigen::Matrix3d A2 = Ds2fUtils::createSkewSym(distVec2);
@@ -307,11 +349,14 @@ bool DLO_s2f::checkConsistency()
         // Compute least squares solution and check residual
         std::pair<Eigen::Vector3d, double> result = Ds2fUtils::computeLeastSquares(A, c);
         passConsist3 = result.second < tolC3;
-        std::cout << "consist_val3 = " << result.second << std::endl;
+        if (raiseErrs) {
+            std::cout << "consist_val3 = " << result.second << std::endl;
+        }
 
         if (passConsist3) {
             if (!in_undisturbed_section) {
                 current_undisturbed_start = i;
+                current_undisturbed_end = i + 2;
                 in_undisturbed_section = true;
                 avg_F.setZero();
                 force_count = 0;
@@ -320,6 +365,9 @@ bool DLO_s2f::checkConsistency()
             current_undisturbed_end = i + 2;
             avg_F += result.first;
             force_count++;
+            if (raiseErrs) {
+                std::cout << "added to UD" << std::endl;
+            }
         } else {
             if (in_undisturbed_section) {
                 // End current undisturbed section
@@ -328,14 +376,35 @@ bool DLO_s2f::checkConsistency()
                 }
                 Section new_section(current_undisturbed_start, current_undisturbed_end);
                 new_section.avg_force = avg_F;
-                undisturbed_sections.push_back(new_section);
+
+                if (undisturbed_sections.size()>0) {
+                    if (new_section.start_idx <= undisturbed_sections.back().end_idx) {
+                        new_section.start_idx = undisturbed_sections.back().start_idx;
+                        int force_count_prev = (
+                            undisturbed_sections.back().end_idx - undisturbed_sections.back().start_idx
+                        ) + 1 - 2;
+                        new_section.avg_force = (
+                            new_section.avg_force*force_count
+                            + undisturbed_sections.back().avg_force*force_count_prev
+                        ) / (force_count + force_count_prev);
+                        undisturbed_sections.back() = new_section;
+                    } else {
+                        undisturbed_sections.push_back(new_section);
+                    }
+                } else {
+                    undisturbed_sections.push_back(new_section);
+                }
                 in_undisturbed_section = false;
+                if (raiseErrs) {
+                    std::cout << "end UD" << std::endl;
+                }
             }
         }
     }
 
     // Handle the last section if still in progress
     if (in_undisturbed_section) {
+        std::cout << "HI" << std::endl;
         if (force_count > 0) {
             avg_F /= force_count;
         }
@@ -344,15 +413,21 @@ bool DLO_s2f::checkConsistency()
         undisturbed_sections.push_back(new_section);
     }
     if (undisturbed_sections.empty()) {return false;}
-
+    // std::cout << "H1" << std::endl;
+    
     // Derive disturbed sections from undisturbed sections
     std::vector<Section> disturbed_sections;
     int last_end = -1;
     
-    for (const auto& section : undisturbed_sections) {
+    for (auto& section : undisturbed_sections) {
         // If there's a gap between the last end and this section's start
         if (section.start_idx > last_end + 1) {
             disturbed_sections.emplace_back(last_end + 1, section.start_idx - 1);
+        }
+        else if (section.start_idx > last_end)
+        {
+            disturbed_sections.emplace_back(last_end + 1, section.start_idx);
+            section.start_idx += 1;
         }
         last_end = section.end_idx;
     }
@@ -362,6 +437,22 @@ bool DLO_s2f::checkConsistency()
         disturbed_sections.emplace_back(last_end + 1, undistEnd);
     }
 
+    if (raiseErrs) {
+        // Print undisturbed and disturbed sections
+        std::cout << "\nUndisturbed Sections:" << std::endl;
+        for (const auto& section : undisturbed_sections) {
+            std::cout << "start_idx: " << section.start_idx << ", end_idx: " << section.end_idx << std::endl;
+        }
+        std::cout << "\nDisturbed Sections:" << std::endl;
+        for (const auto& section : disturbed_sections) {
+            std::cout << "start_idx: " << section.start_idx << ", end_idx: " << section.end_idx << std::endl;
+        }
+    }
+    // std::cout << disturbed_sections.size() <<  std::endl;
+    // std::cout << undisturbed_sections.size() <<  std::endl;
+    // std::cout << std::endl;
+    // std::cout << "H2" << std::endl;
+    
     // Check more disturbed sections than undisturbed
     if (disturbed_sections.size() - undisturbed_sections.size() != 1) {
         if (raiseErrs) {
@@ -369,27 +460,29 @@ bool DLO_s2f::checkConsistency()
         }
         return false;
     }
-
-    // // Print undisturbed and disturbed sections
-    // std::cout << "\nUndisturbed Sections:" << std::endl;
-    // for (const auto& section : undisturbed_sections) {
-    //     std::cout << "start_idx: " << section.start_idx << ", end_idx: " << section.end_idx << std::endl;
-    // }
-    // std::cout << "\nDisturbed Sections:" << std::endl;
-    // for (const auto& section : disturbed_sections) {
-    //     std::cout << "start_idx: " << section.start_idx << ", end_idx: " << section.end_idx << std::endl;
-    // }
-    // std::cout << std::endl;
+    // std::cout << "H3" << std::endl;
 
     // Iterate through undisturbed sections from end to beginning
+    // logic for nUD is that ultimately, all sections should be considered
     int idStart = disturbed_sections.size()-1;
     disturbed_sections[idStart].avg_force = undisturbed_sections[idStart-1].avg_force;
     for (int i = idStart-1; i > 0; i--) {
         disturbed_sections[i].avg_force = undisturbed_sections[i-1].avg_force;
         disturbed_sections[i].avg_force -= undisturbed_sections[i].avg_force;
+        // nUD for the usual avg_force calc includes two sections (UD, D)
+        int nUD = undisturbed_sections[i].end_idx - undisturbed_sections[i].start_idx + 1;
+        nUD += disturbed_sections[i+1].end_idx - disturbed_sections[i+1].start_idx + 1;
+        disturbed_sections[i].avg_force -= w_perpiece * nUD;
     }
     // calculate last DS.avg_force using sum(F) = 0
     disturbed_sections[0].avg_force = -undisturbed_sections[0].avg_force;
+    // nUD for the last avg_force calc includes all three sections (D, UD, D)
+    int nUD = undisturbed_sections[0].end_idx - undisturbed_sections[0].start_idx + 1;
+    nUD += disturbed_sections[0].end_idx - disturbed_sections[0].start_idx + 1;
+    nUD += disturbed_sections[1].end_idx - disturbed_sections[1].start_idx + 1;
+    disturbed_sections[0].avg_force -= w_perpiece * nUD;
+    // std::cout << "disturbed_sections[0].avg_force = " << disturbed_sections[0].avg_force << std::endl;
+    // std::cout << "disturbed_sections[n].avg_force = " << disturbed_sections[idStart].avg_force << std::endl;
 
     // Store the sections in class members for later use
     undisturbed_sections_ = undisturbed_sections;
@@ -528,6 +621,17 @@ void DLO_s2f::solveForcePos()
         fVec = disturbed_sections_[i].avg_force;
         force_pos = findTorqueBalancePoint(startId, endId, fVec, -torqueImbal);
 
+        // std::cout << " " << std::endl;
+        // std::cout << startId << std::endl;
+        // std::cout << endId << std::endl;
+        // Eigen::Vector3d startPos = nodeposMat.row(startId);
+        // std::cout << startPos << std::endl;
+        // std::cout << force_pos << std::endl;
+        // std::cout << "torqstart = " << nodetorqMat.row(startId) << std::endl;
+        // std::cout << "torqend = " << nodetorqMat.row(endId) << std::endl;
+        // std::cout << "torqImbal = " << torqueImbal << std::endl;
+        // std::cout << "f_torq = " << (force_pos-startPos).cross(fVec) << std::endl;
+
         // set to force_sections
         force_sections[i].force_pos = force_pos;
         force_sections[i].force = disturbed_sections_[i].avg_force;
@@ -549,6 +653,9 @@ bool DLO_s2f::hasParallelVectors(const Eigen::Vector3d& v1, const Eigen::Vector3
     double dot23 = std::abs(n2.dot(n3));
 
     // Return true if any pair is parallel (dot product close to 1)
+    // std::cout << "dot12" << dot12 << std::endl;
+    // std::cout << "dot13" << dot13 << std::endl;
+    // std::cout << "dot23" << dot23 << std::endl;
     return (dot12 > threshold || dot13 > threshold || dot23 > threshold);
 }
 

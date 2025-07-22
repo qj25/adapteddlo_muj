@@ -66,14 +66,14 @@ const Eigen::VectorXd Ds2fUtils::solveUTBig(const Eigen::MatrixXd &A, const Eige
         if (A.block(i*3,i*3,3,3).determinant() == 0) {
             throw std::runtime_error("Matrix is singular and cannot be solved.");
         }
-        rhsTmp = C(Eigen::seqN(i*3,3));
+        rhsTmp = C.segment(i*3, 3);
         for (int j = i + 1; j < n; ++j) {
-            rhsTmp -= A.block(i*3,j*3,3,3) * x_sol(Eigen::seqN(j*3,3));
+            rhsTmp -= A.block(i*3,j*3,3,3) * x_sol.segment(j*3, 3);
         }
         // Solve 3x3 lu here
         // at each section pieces, coordinates for torque is 3x1
         // therefore a need to solve a 3x3 simult linear eqn
-        x_sol(Eigen::seqN(i*3,3)) = A.block(i*3,i*3,3,3).lu().solve(rhsTmp);
+        x_sol.segment(i*3, 3) = A.block(i*3,i*3,3,3).lu().solve(rhsTmp);
         // x(i) /= A(i, i);
     }
     return x_sol;
@@ -110,13 +110,13 @@ const Eigen::VectorXd Ds2fUtils::solveUTXBig(const Eigen::MatrixXd &A, const Eig
         idx = i*2*3;
         A1 = A.block(idx,i*3,3,3);
         A2 = A.block(idx+3,i*3,3,3);
-        C1 = C(Eigen::seqN(idx,3));
-        C2 = C(Eigen::seqN(idx+3,3));
+        C1 = C.segment(idx, 3);
+        C2 = C.segment(idx+3, 3);
         for (int j = i + 1; j < n; ++j) {
             // std::cout << 'j' << std::endl;
             // std::cout << j << std::endl;
-            C1 -= A.block(idx,j*3,3,3) * x_sol(Eigen::seqN(j*3,3));
-            C2 -= A.block(idx+3,j*3,3,3) * x_sol(Eigen::seqN(j*3,3));
+            C1 -= A.block(idx,j*3,3,3) * x_sol.segment(j*3, 3);
+            C2 -= A.block(idx+3,j*3,3,3) * x_sol.segment(j*3, 3);
         }
 
         // check condition 3: consistency condition
@@ -156,7 +156,7 @@ const Eigen::VectorXd Ds2fUtils::solveUTXBig(const Eigen::MatrixXd &A, const Eig
         C_stacked.head<3>() = C1;
         C_stacked.tail<3>() = C2;
 
-        x_sol(Eigen::seqN(i*3,3)) = A_stacked.colPivHouseholderQr().solve(C_stacked);
+        x_sol.segment(i*3, 3) = A_stacked.colPivHouseholderQr().solve(C_stacked);
     }
     for (int i = 0; i < 3; i++) {
         double Csingle = C(i);

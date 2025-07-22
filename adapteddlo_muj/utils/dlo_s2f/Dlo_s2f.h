@@ -30,10 +30,18 @@ public:
         const int r_pieces,
         const double r_weight = 0.0,
         const bool boolErrs = false,
-        const bool boolSolveTorq = false
+        const bool boolSolveTorq = false,
+        const double torque_tolerance_ = 1e-8,
+        const double tolC2_ = 1e-4,
+        const double tolC3_ = 1e-4
     );
 
     // ~DLO_s2f();
+
+    double torque_tolerance;  // Tolerance for torque norm
+    double tolC2;
+    double tolC3;
+    double parllThreshold = 0.9999;
     
     int nv;
     double length;

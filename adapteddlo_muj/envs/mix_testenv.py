@@ -855,7 +855,7 @@ class TestCableEnv(gym.Env, utils.EzPickle):
 
     def test_force_curvature2(self,om_val):
         self.model.opt.gravity[-1] = 0.0
-        # self.model.opt.gravity[-1] = -9.81
+        self.model.opt.gravity[-1] = -9.81
         print(f"om_val = {om_val}")
         quat_move = T.axisangle2quat(np.array([0.,-om_val/2,0.]))
         # bodystart_id = mjc2.obj_name2id(self.model,"body","stiffrope")

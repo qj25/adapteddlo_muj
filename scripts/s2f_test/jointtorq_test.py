@@ -155,6 +155,7 @@ if not loadfrompickle:
             # env_native.ropemass*(9.81)
         )
     else:
+        input(env_native.ropemass*(-env_native.model.opt.gravity[-1]))
         ds2f = Dlo_s2f.DLO_s2f(
             env_native.r_len,
             env_native.r_pieces,
