@@ -199,8 +199,12 @@ class DLO_s2f(object):
     thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
     __repr__ = _swig_repr
 
-    def __init__(self, r_length, r_pieces, r_weight=0.0, boolErrs=False, boolSolveTorq=False):
-        _Dlo_s2f.DLO_s2f_swiginit(self, _Dlo_s2f.new_DLO_s2f(r_length, r_pieces, r_weight, boolErrs, boolSolveTorq))
+    def __init__(self, r_length, r_pieces, r_weight=0.0, boolErrs=False, boolSolveTorq=False, torque_tolerance_=1e-8, tolC2_=1e-4, tolC3_=1e-4):
+        _Dlo_s2f.DLO_s2f_swiginit(self, _Dlo_s2f.new_DLO_s2f(r_length, r_pieces, r_weight, boolErrs, boolSolveTorq, torque_tolerance_, tolC2_, tolC3_))
+    torque_tolerance = property(_Dlo_s2f.DLO_s2f_torque_tolerance_get, _Dlo_s2f.DLO_s2f_torque_tolerance_set)
+    tolC2 = property(_Dlo_s2f.DLO_s2f_tolC2_get, _Dlo_s2f.DLO_s2f_tolC2_set)
+    tolC3 = property(_Dlo_s2f.DLO_s2f_tolC3_get, _Dlo_s2f.DLO_s2f_tolC3_set)
+    parllThreshold = property(_Dlo_s2f.DLO_s2f_parllThreshold_get, _Dlo_s2f.DLO_s2f_parllThreshold_set)
     nv = property(_Dlo_s2f.DLO_s2f_nv_get, _Dlo_s2f.DLO_s2f_nv_set)
     length = property(_Dlo_s2f.DLO_s2f_length_get, _Dlo_s2f.DLO_s2f_length_set)
     w_perpiece = property(_Dlo_s2f.DLO_s2f_w_perpiece_get, _Dlo_s2f.DLO_s2f_w_perpiece_set)
