@@ -563,10 +563,13 @@ class TestFQSEnv(gym.Env, utils.EzPickle):
         start = self.model.plugin_stateadr[self.plgn_instance]
         if self.plgn_instance == self.model.nplugin - 1:
             # Last plugin - use remaining state
-            self.stored_torques = self.data.plugin_state[start:]
+            self.stored_torques = self.data.plugin_state[start:start+self.model.nv]
+            E_total = self.data.plugin_state[-1]
+
         else:
             # Not last plugin - use next plugin's start as end
-            self.stored_torques = self.data.plugin_state[start:self.model.plugin_stateadr[self.plgn_instance+1]]
+            self.stored_torques = self.data.plugin_state[start:start+self.model.nv]
+            E_total = self.data.plugin_state[start+self.model.nv]
 
     def _get_abi_ftsensor(self, sensor_sitename):
         sensorsite_id = mjc2.obj_name2id(self.model, "site", sensor_sitename)
