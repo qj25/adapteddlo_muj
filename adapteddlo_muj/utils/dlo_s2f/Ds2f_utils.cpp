@@ -178,6 +178,44 @@ bool Ds2fUtils::checkLinearCorrelation(const Eigen::Vector3d& vec1, const Eigen:
     return ((vec1.cross(vec2)).norm() < 1e-5);
 }
 
+bool Ds2fUtils::remove_from_back(Section& section) {
+    // remove an element from back of section and recompute
+    // returns False if n_force == 0
+    section.end_idx -= 1;
+
+    section.indiv_forces.pop_back();
+    section.c3.pop_back();
+
+    // Recompute avg_force
+    Eigen::Vector3d sum = Eigen::Vector3d::Zero();
+    for (const auto& f : section.indiv_forces) {
+        sum += f;
+    }
+    section.n_force = section.indiv_forces.size();
+    if (section.n_force == 0) {return false;}
+    section.avg_force = sum / section.n_force;
+    return true;
+}
+
+bool Ds2fUtils::remove_from_front(Section& section) {
+    // remove an element from start of section and recompute
+    // returns False if n_force == 0
+    section.start_idx += 1;
+
+    section.indiv_forces.erase(section.indiv_forces.begin());
+    section.c3.erase(section.c3.begin());
+
+    // Recompute avg_force
+    Eigen::Vector3d sum = Eigen::Vector3d::Zero();
+    for (const auto& f : section.indiv_forces) {
+        sum += f;
+    }
+    section.n_force = section.indiv_forces.size();
+    if (section.n_force == 0) {return false;}
+    section.avg_force = sum / section.n_force;
+    return true;
+}
+
 
 // old utils
 const Eigen::Vector3d Ds2fUtils::rotateVector3(const Eigen::Vector3d &v, const Eigen::Vector3d &u, const double a)

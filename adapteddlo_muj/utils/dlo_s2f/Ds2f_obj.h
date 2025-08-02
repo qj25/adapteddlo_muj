@@ -16,7 +16,10 @@
 struct Section {
     int start_idx;
     int end_idx;
+    int n_force;
     Eigen::Vector3d avg_force;
+    std::vector<Eigen::Vector3d> indiv_forces;
+    std::vector<double> c3;
     Section(int start, int end) : start_idx(start), end_idx(end), avg_force(Eigen::Vector3d::Zero()) {}
 };
 

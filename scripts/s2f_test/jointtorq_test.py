@@ -45,7 +45,7 @@ else:
 r_len = 2.0
 r_thickness = 0.03
 r_mass = 1
-alpha_val = 1.345/10
+alpha_val = 1.345
 beta_val = 0.789
 r_pieces = 13
 overall_rot = 0.0
@@ -155,13 +155,14 @@ if not loadfrompickle:
             # env_native.ropemass*(9.81)
         )
     else:
-        input(env_native.ropemass*(-env_native.model.opt.gravity[-1]))
+        # input(env_native.ropemass*(-env_native.model.opt.gravity[-1]))
         ds2f = Dlo_s2f.DLO_s2f(
             env_native.r_len,
             env_native.r_pieces,
             env_native.ropemass*(-env_native.model.opt.gravity[-1]),
             boolErrs=False,
-            boolSolveTorq=True
+            boolSolveTorq=True,
+            # tolC3_= 1e-8
             # env_native.ropemass*(9.81)
         )
     for i in range(10000000):
@@ -204,7 +205,7 @@ if not loadfrompickle:
             # as each render call zeros current xfrc_applied
             objid = mjc2.obj_name2id(
                 env_native.model,
-                "body", "B_6"
+                "body", "B_5"
             )
             objid2 = mjc2.obj_name2id(
                 env_native.model,
@@ -216,8 +217,10 @@ if not loadfrompickle:
                     # "body", i
                 # ))
             # input()
-            f_usr = np.array([0., 0., 0., 0.1, 0.1, 0.])
-            f_usr = np.array([0., 0., 0., 0., 0., 0.])
+            f_usr = np.array([0., 1., 0., 0.1, 0.1, 0.])
+            f_usr = np.array([0., 1., 0., 0., 0., 0.])
+            # f_usr = np.array([0., 0., -5., 0., 0., 0.])
+            # f_usr = np.array([0., 0., 0., 0., 0., 0.])
             ## fails for the below f_usr 
             ## due to quasi-static treatment of twist
             # f_usr = np.array([0., 0.1, 0., 0.3, 0., 0.])
@@ -377,7 +380,7 @@ if test_one:
         axs[i].set_xticks(pieces_list)
         axs[i].set(xlabel='Index of Piece', ylabel='Torque (Nm)')
         axs[i].plot(pieces_list, native_f_data[:,i], color='g', alpha=0.5)
-        axs[i].plot(pieces_list, our_f_data[:,i], color='b', alpha=0.5)
+        # axs[i].plot(pieces_list, our_f_data[:,i], color='b', alpha=0.5)
         # axs[i].plot(pieces_list, our_f_data1a[:,i], color='b', alpha=0.3, linestyle=':')
         axs[i].plot(pieces_list, our2_f_data[:,i], color='r', alpha=0.5)
         # axs[i].plot(pieces_list, our3_f_data[:,i], color='r', alpha=0.5, linestyle=':')

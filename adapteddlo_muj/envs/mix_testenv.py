@@ -33,7 +33,7 @@ class TestCableEnv(gym.Env, utils.EzPickle):
         r_mass=0.58,
         r_len = 2*np.pi,
         r_thickness=0.03,
-        j_damp=0.5,
+        j_damp=1.0,
         overall_rot=None,
         rope_initpose=None,
         new_start=True,
