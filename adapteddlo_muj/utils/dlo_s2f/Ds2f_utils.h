@@ -3,6 +3,7 @@
 
 #include <vector>
 #include "Eigen/Core"
+#include "Ds2f_obj.h"
 
 class Ds2fUtils
 {
@@ -12,6 +13,9 @@ public:
     static const Eigen::VectorXd solveUTXBig(const Eigen::MatrixXd& A, const Eigen::VectorXd& B);
 
     bool checkLinearCorrelation(const Eigen::Vector3d& vec1, const Eigen::Vector3d& vec2);
+
+    static bool remove_from_back(Section& section);
+    static bool remove_from_front(Section& section);
 
     static const Eigen::Vector3d rotateVector3(const Eigen::Vector3d &v, const Eigen::Vector3d &u, const double a);
     /* 

@@ -229,7 +229,11 @@ bool DLO_s2f::checkConsistency()
 {
     Eigen::Vector3d avg_F;
     avg_F.setZero();
+    std::vector<Eigen::Vector3d> indiv_F;
+    indiv_F.clear();
     int force_count = 0;
+    std::vector<double> c3_vec;
+    c3_vec.clear();
 
     // Clear previous sections and forces
     undisturbed_sections_.clear();
@@ -350,7 +354,11 @@ bool DLO_s2f::checkConsistency()
         std::pair<Eigen::Vector3d, double> result = Ds2fUtils::computeLeastSquares(A, c);
         passConsist3 = result.second < tolC3;
         if (raiseErrs) {
+            Eigen::Vector3d tmpres = result.first;
             std::cout << "consist_val3 = " << result.second << std::endl;
+            // std::cout << "checkres1: A.F = " << A1*(tmpres) << " || C = " << C1 << std::endl;
+            // std::cout << "checkres2: A.F = " << A2*(tmpres) << " || C = " << C2 << std::endl;
+            // std::cout << "checkres3: A.F = " << A3*(tmpres) << " || C = " << C3 << std::endl;
         }
 
         if (passConsist3) {
@@ -359,13 +367,18 @@ bool DLO_s2f::checkConsistency()
                 current_undisturbed_end = i + 2;
                 in_undisturbed_section = true;
                 avg_F.setZero();
+                indiv_F.clear();
+                c3_vec.clear();
                 force_count = 0;
             }
             // Update the end index to include all three pieces
             current_undisturbed_end = i + 2;
             avg_F += result.first;
+            indiv_F.push_back(result.first);
+            c3_vec.push_back(result.second);
             force_count++;
             if (raiseErrs) {
+                // std::cout << "force_calc = " << result.first << std::endl;
                 std::cout << "added to UD" << std::endl;
             }
         } else {
@@ -376,6 +389,8 @@ bool DLO_s2f::checkConsistency()
                 }
                 Section new_section(current_undisturbed_start, current_undisturbed_end);
                 new_section.avg_force = avg_F;
+                new_section.c3 = c3_vec;
+                new_section.indiv_forces = indiv_F;
 
                 if (undisturbed_sections.size()>0) {
                     if (new_section.start_idx <= undisturbed_sections.back().end_idx) {
@@ -387,6 +402,18 @@ bool DLO_s2f::checkConsistency()
                             new_section.avg_force*force_count
                             + undisturbed_sections.back().avg_force*force_count_prev
                         ) / (force_count + force_count_prev);
+                        undisturbed_sections.back().indiv_forces.insert(
+                            undisturbed_sections.back().indiv_forces.end(),
+                            new_section.indiv_forces.begin(),
+                            new_section.indiv_forces.end()
+                        );
+                        undisturbed_sections.back().c3.insert(
+                            undisturbed_sections.back().c3.end(),
+                            new_section.c3.begin(),
+                            new_section.c3.end()
+                        );
+                        new_section.indiv_forces = undisturbed_sections.back().indiv_forces;
+                        new_section.c3 = undisturbed_sections.back().c3;
                         undisturbed_sections.back() = new_section;
                     } else {
                         undisturbed_sections.push_back(new_section);
@@ -402,35 +429,124 @@ bool DLO_s2f::checkConsistency()
         }
     }
 
-    // Handle the last section if still in progress
+    // Handle the last section if UDS still in progress
     if (in_undisturbed_section) {
-        std::cout << "HI" << std::endl;
         if (force_count > 0) {
             avg_F /= force_count;
         }
         Section new_section(current_undisturbed_start, undistEnd);
         new_section.avg_force = avg_F;
-        undisturbed_sections.push_back(new_section);
+        new_section.c3 = c3_vec;
+        new_section.indiv_forces = indiv_F;
+
+        if (undisturbed_sections.size()>0) {
+            if (new_section.start_idx <= undisturbed_sections.back().end_idx) {
+                new_section.start_idx = undisturbed_sections.back().start_idx;
+                int force_count_prev = (
+                    undisturbed_sections.back().end_idx - undisturbed_sections.back().start_idx
+                ) + 1 - 2;
+                new_section.avg_force = (
+                    new_section.avg_force*force_count
+                    + undisturbed_sections.back().avg_force*force_count_prev
+                ) / (force_count + force_count_prev);
+                undisturbed_sections.back().indiv_forces.insert(
+                    undisturbed_sections.back().indiv_forces.end(),
+                    new_section.indiv_forces.begin(),
+                    new_section.indiv_forces.end()
+                );
+                undisturbed_sections.back().c3.insert(
+                    undisturbed_sections.back().c3.end(),
+                    new_section.c3.begin(),
+                    new_section.c3.end()
+                );
+                new_section.indiv_forces = undisturbed_sections.back().indiv_forces;
+                new_section.c3 = undisturbed_sections.back().c3;
+                undisturbed_sections.back() = new_section;
+            } else {
+                undisturbed_sections.push_back(new_section);
+            }
+        } else {
+            undisturbed_sections.push_back(new_section);
+        }
     }
     if (undisturbed_sections.empty()) {return false;}
     // std::cout << "H1" << std::endl;
-    
+    // std::cout << "\nUndisturbed Sections:" << std::endl;
+    for (const auto& section : undisturbed_sections) {
+        // std::cout << "start_idx: " << section.start_idx << ", end_idx: " << section.end_idx << std::endl;
+    }
+
+
     // Derive disturbed sections from undisturbed sections
     std::vector<Section> disturbed_sections;
     int last_end = -1;
     
-    for (auto& section : undisturbed_sections) {
-        // If there's a gap between the last end and this section's start
+    for (size_t i = 0; i < undisturbed_sections.size(); ++i) {
+        Section& section = undisturbed_sections[i];
+    
+        // Case 1: Gap between last_end and section.start_idx
         if (section.start_idx > last_end + 1) {
             disturbed_sections.emplace_back(last_end + 1, section.start_idx - 1);
         }
-        else if (section.start_idx > last_end)
-        {
-            disturbed_sections.emplace_back(last_end + 1, section.start_idx);
-            section.start_idx += 1;
+        // Case 2: No gap, but overlapping or touching — push undisturbed section forward
+        else if (section.start_idx > last_end) {
+            if (i > 0 && (undisturbed_sections[i-1].c3.back() > section.c3[0])) {
+                // std::cout << 'a' << undisturbed_sections[i-1].c3.back() << std::endl;
+                // std::cout << 'b' << section.c3[0] << std::endl;
+                // for (int jj = 0; jj < section.c3.size(); ++jj) {
+                //     std::cout << 'c' << section.c3[jj] << std::endl;
+                // }
+                // push back prev section
+                disturbed_sections.emplace_back(last_end, section.start_idx-1);
+                Ds2fUtils::remove_from_back(undisturbed_sections[i-1]);
+            }
+            else {
+                // push forward curr section
+                disturbed_sections.emplace_back(last_end + 1, section.start_idx);
+                if (i > 0) {Ds2fUtils::remove_from_front(section);}
+            }
         }
         last_end = section.end_idx;
     }
+
+    for (auto it = undisturbed_sections.begin(); it != undisturbed_sections.end(); ) {
+        if (it->n_force == 0) {
+            int ud_start = it->start_idx;
+            int ud_end = it->end_idx;
+
+            // Find the two adjacent disturbed sections
+            auto d1_it = disturbed_sections.end();
+            auto d2_it = disturbed_sections.end();
+
+            for (auto dit = disturbed_sections.begin(); dit != disturbed_sections.end(); ++dit) {
+                if (dit->end_idx == ud_start - 1) {
+                    d1_it = dit;
+                } else if (dit->start_idx == ud_end + 1) {
+                    d2_it = dit;
+                }
+            }
+
+            // Merge d1 and d2 if both are found
+            if (d1_it != disturbed_sections.end() && d2_it != disturbed_sections.end()) {
+                d1_it->end_idx = d2_it->end_idx;
+
+                // // Not required as force has not been calculated yet.
+                // // Optional: merge other contents like forces, etc. if needed
+                // d1_it->indiv_forces.insert(d1_it->indiv_forces.end(),
+                //                         d2_it->indiv_forces.begin(), d2_it->indiv_forces.end());
+                // d1_it->c3.insert(d1_it->c3.end(), d2_it->c3.begin(), d2_it->c3.end());
+                // d1_it->n_force += d2_it->n_force;
+
+                // Remove d2
+                disturbed_sections.erase(d2_it);
+            }
+
+            // Remove the undisturbed section
+            it = undisturbed_sections.erase(it);
+        } else {
+            ++it;
+    }
+}
     
     // Handle any remaining section after the last undisturbed section
     if (last_end < undistEnd) {
@@ -442,6 +558,7 @@ bool DLO_s2f::checkConsistency()
         std::cout << "\nUndisturbed Sections:" << std::endl;
         for (const auto& section : undisturbed_sections) {
             std::cout << "start_idx: " << section.start_idx << ", end_idx: " << section.end_idx << std::endl;
+            std::cout << "avg_F: " << section.avg_force << std::endl;
         }
         std::cout << "\nDisturbed Sections:" << std::endl;
         for (const auto& section : disturbed_sections) {
@@ -456,7 +573,8 @@ bool DLO_s2f::checkConsistency()
     // Check more disturbed sections than undisturbed
     if (disturbed_sections.size() - undisturbed_sections.size() != 1) {
         if (raiseErrs) {
-            throw std::runtime_error("DS-UDS != 1");
+            std::cout << "DS-UDS != 1" << std::endl;
+            // throw std::runtime_error("DS-UDS != 1");
         }
         return false;
     }
@@ -472,7 +590,11 @@ bool DLO_s2f::checkConsistency()
         // nUD for the usual avg_force calc includes two sections (UD, D)
         int nUD = undisturbed_sections[i].end_idx - undisturbed_sections[i].start_idx + 1;
         nUD += disturbed_sections[i+1].end_idx - disturbed_sections[i+1].start_idx + 1;
-        disturbed_sections[i].avg_force -= w_perpiece * nUD;
+        // disturbed_sections[i].avg_force -= w_perpiece * nUD;
+        // std::cout << "weight = " << w_perpiece * nUD << std::endl;
+        // std::cout << "undisturbed_sections[" << i << "].avg_force = " << undisturbed_sections[i].avg_force << std::endl;
+        // std::cout << "undisturbed_sections[" << i-1 << "].avg_force = " << undisturbed_sections[i-1].avg_force << std::endl;
+        // std::cout << "disturbed_sections[" << i << "].avg_force = " << disturbed_sections[i].avg_force << std::endl;
     }
     // calculate last DS.avg_force using sum(F) = 0
     disturbed_sections[0].avg_force = -undisturbed_sections[0].avg_force;
@@ -481,6 +603,13 @@ bool DLO_s2f::checkConsistency()
     nUD += disturbed_sections[0].end_idx - disturbed_sections[0].start_idx + 1;
     nUD += disturbed_sections[1].end_idx - disturbed_sections[1].start_idx + 1;
     disturbed_sections[0].avg_force -= w_perpiece * nUD;
+
+    // alternative calc for disturbed sec
+    disturbed_sections[0].avg_force.setZero();
+    for (int i = idStart; i > 0; i--) {
+        disturbed_sections[0].avg_force -= disturbed_sections[i].avg_force;
+    }
+    disturbed_sections[0].avg_force -= w_perpiece * (nv+1);
     // std::cout << "disturbed_sections[0].avg_force = " << disturbed_sections[0].avg_force << std::endl;
     // std::cout << "disturbed_sections[n].avg_force = " << disturbed_sections[idStart].avg_force << std::endl;
 
