@@ -705,6 +705,7 @@ void DLO_s2f::solveTorques()
         // set to force_sections
         force_sections[i].torque = -torqueImbal;
         force_sections[i].force = disturbed_sections_[i].avg_force;
+        force_sections[i].force_pos = relpos + nodeposMat.row(startId).transpose();
         force_sections[i].start_pos = nodeposMat.row(startId);
         force_sections[i].end_pos = nodeposMat.row(endId);
     }
