@@ -305,6 +305,8 @@ bool DLO_s2f::checkConsistency()
                 }
                 Section new_section(current_undisturbed_start, current_undisturbed_end);
                 new_section.avg_force = avg_F;
+                new_section.c3 = c3_vec;
+                new_section.indiv_forces = indiv_F;
                 undisturbed_sections.push_back(new_section);
                 in_undisturbed_section = false;
                 if (raiseErrs) {
