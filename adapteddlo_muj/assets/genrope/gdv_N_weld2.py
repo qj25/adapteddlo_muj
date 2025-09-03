@@ -195,7 +195,8 @@ class GenKin_N_weld2:
         f.write(self.curr_tab*self.t + '<config key="bend" value="{}"/>\n'.format(
             self.stiff_vals[1]
         ))
-        f.write(self.curr_tab*self.t + '<config key="pqsActive" value="true"/>\n')
+        if self.plugin_name == "wire":
+            f.write(self.curr_tab*self.t + '<config key="pqsActive" value="true"/>\n')
         if self.plugin_name != "cable":
             f.write(self.curr_tab*self.t + '<config key="twist_displace" value="{}"/>\n'.format(
                 self.twist_displace

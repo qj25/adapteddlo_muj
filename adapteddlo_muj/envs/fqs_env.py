@@ -560,16 +560,17 @@ class TestFQSEnv(gym.Env, utils.EzPickle):
         self._get_ftworld(1)
         # Get the stored torques
         # Get plugin state with bounds checking
-        start = self.model.plugin_stateadr[self.plgn_instance]
-        if self.plgn_instance == self.model.nplugin - 1:
-            # Last plugin - use remaining state
-            self.stored_torques = self.data.plugin_state[start:start+self.model.nv]
-            E_total = self.data.plugin_state[-1]
+        if self.stiff_type == 'wire':
+            start = self.model.plugin_stateadr[self.plgn_instance]
+            if self.plgn_instance == self.model.nplugin - 1:
+                # Last plugin - use remaining state
+                self.stored_torques = self.data.plugin_state[start:start+self.model.nv]
+                E_total = self.data.plugin_state[-1]
 
-        else:
-            # Not last plugin - use next plugin's start as end
-            self.stored_torques = self.data.plugin_state[start:start+self.model.nv]
-            E_total = self.data.plugin_state[start+self.model.nv]
+            else:
+                # Not last plugin - use next plugin's start as end
+                self.stored_torques = self.data.plugin_state[start:start+self.model.nv]
+                E_total = self.data.plugin_state[start+self.model.nv]
 
     def _get_abi_ftsensor(self, sensor_sitename):
         sensorsite_id = mjc2.obj_name2id(self.model, "site", sensor_sitename)
@@ -901,8 +902,7 @@ class TestFQSEnv(gym.Env, utils.EzPickle):
 
         self.hold_pos(10.)
 
-    def test_fqs(self):
-        l_shorten = 0.16
+    def test_fqs(self, l_shorten=0.05, rot_val=3*2.0*np.pi):
         n_steps = 50
         step_len = l_shorten / n_steps / 2
         # n_steps = int(l_shorten / step_len)
@@ -917,7 +917,7 @@ class TestFQSEnv(gym.Env, utils.EzPickle):
         for i in range(1):
             self.ropeend_pos_all(pos_move=pos_move.copy())
         
-        self.rot_x_rads2_sdir(x_rads=10*2.0*np.pi)
+        self.rot_x_rads2_sdir(x_rads=rot_val)
 
         pos_move = np.array([step_len, 0., 0.])
         print('0')
