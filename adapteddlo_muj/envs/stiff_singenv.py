@@ -304,7 +304,7 @@ class TestStiffSingEnv(gym.Env, utils.EzPickle):
         # update rope model
         world_base_path = os.path.join(
             os.path.dirname(os.path.dirname(__file__)),
-            "assets/world.xml"
+            "assets/world_ssing.xml"
         )
         box_path = os.path.join(
             os.path.dirname(world_base_path),

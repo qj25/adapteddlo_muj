@@ -439,3 +439,67 @@ def plot_computetime_all(pieces_list, data_list, plot_labels=None):
 
     # Show the plot
     plt.show()
+
+
+def plot_real_ssing():
+    import pandas as pd
+    from scipy import signal
+
+    # --- User parameters ---
+    data_dir = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+        "adapteddlo_muj/data/plugindata/"
+    )
+    csv_file = os.path.join(data_dir, "stiffsing_ft_data.csv")
+    csvsave_file = os.path.join(data_dir, "stiffsingcont_ft_data.csv")
+    sample_rate = 200.0   # Hz
+
+    # --- Load data ---
+    data = pd.read_csv(csv_file, header=None).to_numpy()
+    torque_x = -data[:, 3]  # 4th column
+
+    # --- Generate original time vector ---
+    N = len(torque_x)
+    time = np.arange(N) / sample_rate
+
+    # --- Exclude specific x-axis ranges first ---
+    # Example: exclude 0–1.26 s and 3.0–3.5 s
+    exclude_ranges = [(0,1.3),(20,30), (43,50), (63.5,999)]
+    # exclude_ranges = []
+    mask = np.ones_like(time, dtype=bool)
+    for start, end in exclude_ranges:
+        mask &= ~((time >= start) & (time <= end))
+
+    torque_x_kept = torque_x[mask]
+    time_kept = time[mask]
+
+    # Rebuild compressed continuous time axis
+    dt = 1.0 / sample_rate
+    new_time = np.arange(len(torque_x_kept)) * dt
+
+    # Save cont data
+    ft_data = np.column_stack((
+        new_time,
+        torque_x_kept
+    ))
+    np.savetxt(csvsave_file, ft_data, delimiter=",", comments="")
+
+    # --- Filtering AFTER exclusion ---
+    order = 3
+    fc = 3.0  # cutoff Hz
+    sos = signal.butter(order, fc, btype='lowpass', fs=sample_rate, output='sos')
+    filtered_kept = signal.sosfiltfilt(sos, torque_x_kept)  # zero-phase
+
+    # --- Compensation (optional) ---
+    compensate_kept = torque_x_kept - filtered_kept
+
+    # --- Plot ---
+    plt.figure(figsize=(10,5))
+    plt.plot(new_time, torque_x_kept, label="Torque X (original)", color=(0.7,0.7,0.7,0.2))
+    plt.plot(new_time, filtered_kept, label="Torque X (filtered)", color=(0.2,0.7,0.2,0.5))
+    plt.xlabel("Adjusted Time [s]")
+    plt.ylabel("Torque X")
+    plt.title("Torque X vs Adjusted Time (excluded ranges removed, then filtered)")
+    plt.grid(True)
+    plt.legend()
+    plt.show()
