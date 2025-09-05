@@ -198,7 +198,7 @@ def rotate_and_record_torque_multi(env_list, env_names, total_steps=360, record_
     sos = signal.butter(order, fc, btype='lowpass', fs=sample_rate, output='sos')
     torque_data_filtered = signal.sosfiltfilt(sos, torque_data)  # zero-phase
     plt.plot(step_numbers, torque_data_filtered, linewidth=2, 
-            label="real_filtered", color=colors[2])
+            label="real (filtered)", color=colors[2])
 
     # Finalize plot
     plt.xlabel('Rotation of Bottom End (°)', fontsize=12)
@@ -300,5 +300,5 @@ else:
     all_results = rotate_and_record_torque_multi(
         # [env_wireqst], ['wire_qst']
         [env_wireqst, env_wire], 
-        ['adapted', 'j-DER']
+        ['DER', 'j-DER']
     )
