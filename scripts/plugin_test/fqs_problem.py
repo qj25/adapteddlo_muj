@@ -30,7 +30,7 @@ test_part = 0
 
 loadfrompickle = False
 
-stiff_type = 'wire_qst'
+stiff_type = 'wire'
 
 use_specified_s2f = False
 
@@ -48,11 +48,13 @@ r_len = 0.5
 # r_mass = 1
 # alpha_val = 1.345/10
 # beta_val = 0.789/10
-r_pieces = 50
+r_pieces = 30
 alpha_val = 0.001196450659614982    # Obtained from simple PI
 beta_val = 0.001749108044378543
 mass_per_length = 0.079/2.98
 r_mass = mass_per_length * r_len
+r_mass = 1.0
+
 r_thickness = 0.006
 j_damp = 0.002
 overall_rot = 0.0

@@ -9,6 +9,6 @@
     </body>
   </worldbody>
   <equality>
-    <weld name="weld_mid" body1="B_25" body2="eef_body3_sensor" anchor="0 0 0" relpose="0 0 0 0 0 -1 0" torquescale="1" solref="0.001"/>
+    <weld name="weld_mid" body1="B_15" body2="eef_body3_sensor" anchor="0 0 0" relpose="0 0 0 0 0 -1 0" torquescale="1" solref="0.001"/>
   </equality>
 </mujoco> 
