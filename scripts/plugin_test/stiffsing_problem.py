@@ -26,14 +26,14 @@ note:
 """
 
 #======================| Settings |======================
-test_part = 1
+test_part = 0
 """
 IMPT: Change step size to 0.0001 in world_ssing.xml for lighter/thinner wires
 """
 
-loadfrompickle = True
+loadfrompickle = False
 
-stiff_type = 'wire'  # 'wire' or 'wire_qst'
+stiff_type = 'wire_qst'  # 'wire' or 'wire_qst'
 
 """
 set damping and stiffness when changing length and number of pieces
@@ -255,10 +255,10 @@ def make_env(plugin_name):
     env.data.qpos[3:7] = np.array([0.7071, 0, -0.7071, 0])
     if do_render:
         env.set_viewer_details(
-            dist=1.5,
+            dist=1.2,
             azi=52.5,
             elev=-31.0,
-            lookat=np.array([0.3535, 0.0, 0.85])
+            lookat=np.array([0.3535, 0.0, 0.95])
         )
         env.viewer.vopt.frame = 2
     env.test_force_curvature2(om_val=om_list[0])
