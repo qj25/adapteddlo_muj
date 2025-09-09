@@ -56,7 +56,7 @@ r_mass = mass_per_length * r_len
 r_mass = 1.0
 
 r_thickness = 0.006
-j_damp = 0.002
+j_damp = 0.0005
 overall_rot = 0.0
 
 # r_len = r_pieces*1.0
@@ -125,10 +125,10 @@ def make_env(plugin_name):
     # env.data.qpos[3:7] = np.array([0.7071, 0, -0.7071, 0])
     if do_render:
         env.set_viewer_details(
-            dist=1.5,
-            azi=52.5,
-            elev=-31.0,
-            lookat=np.array([0.0, 0.0, 0.55])
+            dist=0.5,
+            azi=90.0,
+            elev=0.0,
+            lookat=np.array([0.0, 0.0, 0.50])
         )
         # env.viewer.vopt.frame = 2
     env.test_force_curvature2(om_val=om_list[0])
