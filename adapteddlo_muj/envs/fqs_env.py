@@ -337,7 +337,10 @@ class TestFQSEnv(gym.Env, utils.EzPickle):
         #     ),
         #     self.data.xquat[self.mid_bodyid]
         # )
-        self.midbox_worldpose[:3] += self.data.xpos[self.mid_bodyid]
+        self.midbox_worldpose[:3] = (
+            self.data.xpos[self.mid_bodyid]
+            + self.data.xpos[self.mid_bodyid+1]
+        )/2
         self.model.body_pos[self.eef_body3_id] = self.midbox_worldpose[:3].copy()
         # self.model.body_quat[self.box_bodyid] = self.midbox_worldpose[3:].copy()
 
@@ -903,7 +906,9 @@ class TestFQSEnv(gym.Env, utils.EzPickle):
 
         self.hold_pos(10.)
 
-    def test_fqs(self, l_shorten=0.05, rot_val=10*2.0*np.pi):
+    def test_fqs(self, l_shorten=0.10, rot_val=4*2.0*np.pi):
+        self.viewer._paused = True
+        # self.model.opt.gravity[-1] = -9.81
         self.model.opt.gravity[-1] = -0.13003187919463088
         n_steps = 50
         step_len = l_shorten / n_steps / 2
@@ -920,6 +925,7 @@ class TestFQSEnv(gym.Env, utils.EzPickle):
             self.ropeend_pos_all(pos_move=pos_move.copy())
         
         # self.rot_x_rads2_sdir(x_rads=rot_val)
+        self.rot_x_rads_spec(x_rads=rot_val)
 
         pos_move = np.array([step_len, 0., 0.])
         print('0')
@@ -932,7 +938,6 @@ class TestFQSEnv(gym.Env, utils.EzPickle):
             # print(self.sitename2pos("r_joint0_site")-self.sitename2pos("r_joint180_site"))
             self.ropeend_pos_all(pos_move=pos_move.copy())
 
-        self.rot_x_rads_spec(x_rads=rot_val)
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~|| Lhb things ||~~~~~~~~~~~~~~~~~~~~~~~~~~
 
