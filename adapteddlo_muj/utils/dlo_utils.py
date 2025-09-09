@@ -208,6 +208,114 @@ def force2torq(forcevec, adjacent_distvec, ids_i):
     distmat = create_distmatrix(adjacent_distvec)
     return get_torqvec(forcevec, distmat, ids_i)
 
+def nearest_point_on_wire(wire_points, query_point):
+    """
+    Find the nearest point on a discretized wire (polyline) to a given query point.
+    
+    Parameters
+    ----------
+    wire_points : (N,3) ndarray
+        The 3D points describing the wire in order.
+    query_point : (3,) array_like
+        The 3D coordinates of the query point.
+    
+    Returns
+    -------
+    nearest_point : (3,) ndarray
+        The closest point on the wire (may lie inside a segment, not necessarily a node).
+    segment_index : int
+        Index of the starting vertex of the segment containing the nearest point.
+    distance : float
+        Euclidean distance from the query point to the nearest point.
+    t : float
+        Relative position along the segment [0,1].
+    """
+    wire_points = np.asarray(wire_points, dtype=float)
+    q = np.asarray(query_point, dtype=float)
+
+    if wire_points.shape[0] < 2:
+        raise ValueError("Wire must contain at least 2 points")
+
+    min_dist = np.inf
+    nearest_point = None
+    segment_index = -1
+    t_best = 0.0
+
+    for i in range(len(wire_points) - 1):
+        p0, p1 = wire_points[i], wire_points[i+1]
+        seg_vec = p1 - p0
+        seg_len2 = np.dot(seg_vec, seg_vec)
+        
+        if seg_len2 == 0:  # degenerate segment
+            proj = p0
+            t = 0.0
+        else:
+            t = np.dot(q - p0, seg_vec) / seg_len2
+            t = np.clip(t, 0.0, 1.0)  # restrict to segment
+            proj = p0 + t * seg_vec
+
+        dist = np.linalg.norm(q - proj)
+        if dist < min_dist:
+            min_dist = dist
+            nearest_point = proj
+            segment_index = i
+            t_best = t
+
+    return nearest_point, segment_index, min_dist, t_best
+
+def curvature_binormals(positions):
+    """
+    Compute curvature binormal vectors at each interior node of a discretized curve.
+
+    Args:
+        positions (ndarray): shape (N, 3), node positions
+
+    Returns:
+        kb (ndarray): shape (N, 3), curvature binormal vectors (0 at endpoints)
+    """
+    N = len(positions)
+    kb = np.zeros((N, 3))
+
+    for i in range(1, N-1):  # only interior nodes
+        e1 = positions[i] - positions[i-1]
+        e2 = positions[i+1] - positions[i]
+        denom = np.linalg.norm(e1) * np.linalg.norm(e2) + np.dot(e1, e2)
+        if denom > 1e-12:  # avoid division by zero
+            kb[i] = 2.0 * np.cross(e1, e2) / denom
+
+    return kb
+
+def kb_similarity_metric(positions, n=2):
+    """
+    Compute similarity metric of curvature binormals across neighbors.
+    Magnitudes are normalized away, only directional coherence remains.
+
+    Args:
+        positions (ndarray): shape (N, 3), node positions
+        n (int): neighborhood size
+
+    Returns:
+        kb_similarity (ndarray): shape (N,), similarity scores in [0,1]
+    """
+    kb = curvature_binormals(positions)
+    N = len(kb)
+
+    kb_similarity = np.zeros(N)
+    for i in range(N):
+        start = max(0, i - n)
+        end = min(N, i + n + 1)
+        neighborhood = kb[start:end]
+
+        # Normalize all nonzero vectors, keep zeros as [0,0,0]
+        norms = np.linalg.norm(neighborhood, axis=1, keepdims=True)
+        unit_vecs = np.divide(
+            neighborhood, norms, out=np.zeros_like(neighborhood), where=norms>1e-12
+        )
+        avg_unit_vec = np.mean(unit_vecs, axis=0)
+        kb_similarity[i] = np.linalg.norm(avg_unit_vec)
+
+    return kb_similarity
+
 if __name__ == "__main__":
     v1 = np.array([1.5, 1.5, 0.])
     v2 = np.array([-1., 0., 0.])
