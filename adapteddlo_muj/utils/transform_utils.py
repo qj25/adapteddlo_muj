@@ -319,6 +319,15 @@ def vecquat_multiply(vec, quat):
     mujoco.mju_rotVecMat(res, vec, mat.flatten())
     return res
 
+def scipy_quat_to_matrix(q):
+    """
+    Convert a quaternion in MuJoCo format [w, x, y, z] to a rotation matrix (3x3), using scipy.
+    """
+    from scipy.spatial.transform import Rotation as R
+    q = np.asarray(q)
+    q_scipy = np.array([q[1], q[2], q[3], q[0]])
+    return R.from_quat(q_scipy).as_matrix()
+
 if __name__ == "__main__":
     t1 = axisangle2quat(np.array([75.*np.pi/180, 0., 0.]))
     t2 = axisangle2quat(np.array([0., 0., 60.*np.pi/180]))
