@@ -26,14 +26,14 @@ note:
 """
 
 #======================| Settings |======================
-test_part = 1
+test_part = 0
 """
 IMPT: Change step size to 0.0001 in world_ssing.xml for lighter/thinner wires
 """
 
-loadfrompickle = True
+loadfrompickle = False
 
-stiff_type = 'wire'  # 'wire' or 'wire_qst'
+stiff_type = 'wire_qst'  # 'wire' or 'wire_qst'
 
 """
 set damping and stiffness when changing length and number of pieces
@@ -198,7 +198,7 @@ def rotate_and_record_torque_multi(env_list, env_names, total_steps=360, record_
     sos = signal.butter(order, fc, btype='lowpass', fs=sample_rate, output='sos')
     torque_data_filtered = signal.sosfiltfilt(sos, torque_data)  # zero-phase
     plt.plot(step_numbers, torque_data_filtered, linewidth=2, 
-            label="real_filtered", color=colors[2])
+            label="real (filtered)", color=colors[2])
 
     # Finalize plot
     plt.xlabel('Rotation of Bottom End (°)', fontsize=12)
@@ -255,10 +255,10 @@ def make_env(plugin_name):
     env.data.qpos[3:7] = np.array([0.7071, 0, -0.7071, 0])
     if do_render:
         env.set_viewer_details(
-            dist=1.5,
+            dist=1.2,
             azi=52.5,
             elev=-31.0,
-            lookat=np.array([0.3535, 0.0, 0.85])
+            lookat=np.array([0.3535, 0.0, 0.95])
         )
         env.viewer.vopt.frame = 2
     env.test_force_curvature2(om_val=om_list[0])
@@ -300,5 +300,5 @@ else:
     all_results = rotate_and_record_torque_multi(
         # [env_wireqst], ['wire_qst']
         [env_wireqst, env_wire], 
-        ['adapted', 'j-DER']
+        ['DER', 'j-DER']
     )

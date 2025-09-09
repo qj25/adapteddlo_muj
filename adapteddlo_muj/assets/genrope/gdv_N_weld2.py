@@ -21,7 +21,8 @@ class GenKin_N_weld2:
         vis_subcyl=True,
         obj_path=None,
         plugin_name="cable",
-        twist_displace=0.0
+        twist_displace=0.0,
+        solref_val="0.001 1"
     ):
         """
         connected by kinematic chain
@@ -58,6 +59,11 @@ class GenKin_N_weld2:
             self.con_data = [1, 1]
         else:
             self.con_data = [0, 0]
+
+        if solref_val is None:
+            self.solref_val = "0.001 1"
+        else: self.solref_val = solref_val
+
 
         self.grow_dirn = np.dot(np.array([1.,0,0]),T.quat2mat(init_quat))
         # self.init_angle = init_angle
@@ -254,7 +260,6 @@ class GenKin_N_weld2:
         # check if rope is to be attached to box
         # self.init_quat = np.array([0.5, 0.5, -0.5, 0.5])
         self.attach_pos = self.init_pos.copy()
-        self.solref_val = "0.001 1"
 
         # mass stuff
         if self.r_mass is not None:

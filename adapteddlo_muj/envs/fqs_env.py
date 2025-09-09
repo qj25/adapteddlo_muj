@@ -120,8 +120,8 @@ class TestFQSEnv(gym.Env, utils.EzPickle):
         )
 
         # init gravity
-        self.model.opt.gravity[-1] = 0.0
-        self.data.eq_active[2] = 0
+        self.model.opt.gravity[-1] = -0.13003187919463088
+        self.data.eq_active[2] = 0  # will be activated later
 
         # if self.do_render:
         #     self.viewer._paused = True
@@ -231,7 +231,7 @@ class TestFQSEnv(gym.Env, utils.EzPickle):
 
         # eef_body3
         self.eef_body3_id = mjc2.obj_name2id(self.model, "body", "eef_body3")
-        self.mid_bodyid = mjc2.obj_name2id(self.model, "body", "B_25")
+        self.mid_bodyid = mjc2.obj_name2id(self.model, "body", "B_15")
         self.box_mid_relpose = np.zeros(7)
         self.box_mid_relpose[3:] = T.quat_multiply(
             T.quat_inverse(self.data.xquat[self.mid_bodyid]),
@@ -248,7 +248,7 @@ class TestFQSEnv(gym.Env, utils.EzPickle):
         for i in range(self.model.neq):
             if (
                 self.model.eq_obj1id[i] 
-                == mjc2.obj_name2id(self.model,"body",'B_25')
+                == mjc2.obj_name2id(self.model,"body",'B_15')
             ):
                 self.model.eq_data[i][3:10] = self.box_mid_relpose.copy()
 
@@ -347,7 +347,7 @@ class TestFQSEnv(gym.Env, utils.EzPickle):
         # update rope model
         world_base_path = os.path.join(
             os.path.dirname(os.path.dirname(__file__)),
-            "assets/world.xml"
+            "assets/world_fqs.xml"
         )
         box_path = os.path.join(
             os.path.dirname(world_base_path),
@@ -380,7 +380,8 @@ class TestFQSEnv(gym.Env, utils.EzPickle):
             vis_subcyl=True,
             obj_path=rope_path,
             plugin_name=self.stiff_type,
-            twist_displace=self.overall_rot
+            twist_displace=self.overall_rot,
+            solref_val="0.0005 1"
         )
 
         self.xml = XMLWrapper(world_base_path)
@@ -902,7 +903,8 @@ class TestFQSEnv(gym.Env, utils.EzPickle):
 
         self.hold_pos(10.)
 
-    def test_fqs(self, l_shorten=0.05, rot_val=3*2.0*np.pi):
+    def test_fqs(self, l_shorten=0.05, rot_val=10*2.0*np.pi):
+        self.model.opt.gravity[-1] = -0.13003187919463088
         n_steps = 50
         step_len = l_shorten / n_steps / 2
         # n_steps = int(l_shorten / step_len)
@@ -917,7 +919,7 @@ class TestFQSEnv(gym.Env, utils.EzPickle):
         for i in range(1):
             self.ropeend_pos_all(pos_move=pos_move.copy())
         
-        self.rot_x_rads2_sdir(x_rads=rot_val)
+        # self.rot_x_rads2_sdir(x_rads=rot_val)
 
         pos_move = np.array([step_len, 0., 0.])
         print('0')
@@ -930,6 +932,7 @@ class TestFQSEnv(gym.Env, utils.EzPickle):
             # print(self.sitename2pos("r_joint0_site")-self.sitename2pos("r_joint180_site"))
             self.ropeend_pos_all(pos_move=pos_move.copy())
 
+        self.rot_x_rads_spec(x_rads=rot_val)
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~|| Lhb things ||~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1344,6 +1347,20 @@ class TestFQSEnv(gym.Env, utils.EzPickle):
             self.ropeend_rot(rot_axis=0)
         self.ropeend_rot(rot_a=rad_leftover,rot_axis=0)
 
+    def rot_x_rads_spec(self, x_rads):
+        body_id = mjc2.obj_name2id(self.model,"body","eef_body")
+        n_rotsteps = int(x_rads/(np.pi)*180)
+        rad_leftover = (
+            x_rads
+            - (n_rotsteps / 180 * np.pi)
+        )
+        print('0')
+        for i in range(n_rotsteps):
+            sys.stdout.write(f"\033[{1}F")
+            print(f"init rot stage (degs): {i+1}/{n_rotsteps}")
+            self.ropeend_rot(body_id=body_id,rot_axis=0)
+        self.ropeend_rot(body_id=body_id,rot_a=rad_leftover,rot_axis=0)
+
     def rot_x_rads2(self, x_rads):
         x_rads /= 2.0   # rotate from both ends
         body_id = mjc2.obj_name2id(self.model,"body","eef_body")
@@ -1378,13 +1395,16 @@ class TestFQSEnv(gym.Env, utils.EzPickle):
             self.ropeend_rot2_sdir(body_id, rot_axis=0)
         self.ropeend_rot2_sdir(body_id, rot_a=rad_leftover, rot_axis=0)
 
-    def ropeend_rot(self, rot_a=np.pi/180, rot_axis=0):
+    def ropeend_rot(self, body_id=None, rot_a=np.pi/180, rot_axis=0):
+        if body_id is None:
+            body_id = self.ropeend_body_id
+        # body_id = self.ropeend_body_id
         rot_arr = np.zeros(3)
         rot_arr[rot_axis] = rot_a
-        rot_quat = T.axisangle2quat(rot_arr)
-        new_quat = T.quat_multiply(rot_quat, self.model.body_quat[self.ropeend_body_id])
-        self.model.body_quat[self.ropeend_body_id] = new_quat
-        self.hold_pos(0.05)
+        rot_quat = T.axisangle2quat(-rot_arr)
+        new_quat = T.quat_multiply(rot_quat, self.model.body_quat[body_id])
+        self.model.body_quat[body_id] = new_quat
+        self.hold_pos(0.1)
 
     def ropeend_rot2(self, body_id, rot_a=np.pi/180, rot_axis=0):
         rot_arr = np.zeros(3)
