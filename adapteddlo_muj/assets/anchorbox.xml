@@ -2,18 +2,18 @@
   <worldbody>
     <body name="eef_body" pos="-0.25 0.0 0.5" quat="1.0 0.0 0.0 0.0">
       <site name="eef_body_site" pos="0 0 0" size="0.01 0.01 0.01" rgba="0 0 0 0" type="sphere" group="1"/>
-      <geom name="eef_geom" type="box" mass="1" size="0.006 0.006 0.012" contype="0" conaffinity="0" rgba=".8 .2 .1 0.7" friction="1 0.005 0.0001"/>
+      <geom name="eef_geom" type="box" mass="1" size="0.012 0.012 0.024" contype="0" conaffinity="0" rgba=".8 .2 .1 0.7" friction="1 0.005 0.0001"/>
       <body name="eef_body_sensor" pos="0 0 0" quat="1.0 0.0 0.0 0.0">
         <site name="sensor_site1" pos="0 0 0" size="0.01 0.01 0.01" rgba="0 0 0 0" type="sphere" group="1"/>
       </body>    </body>    <body name="eef_body2" pos="0.25 0.0 0.5" quat="1.0 0.0 0.0 0.0">
       <site name="eef_body2_site" pos="0 0 0" size="0.01 0.01 0.01" rgba="0 0 0 0" type="sphere" group="2"/>
-      <geom name="eef_geom2" type="box" mass="1" size="0.006 0.006 0.012" contype="0" conaffinity="0" rgba=".8 .2 .1 0.7" friction="1 0.005 0.0001" group="2"/>
+      <geom name="eef_geom2" type="box" mass="1" size="0.012 0.012 0.024" contype="0" conaffinity="0" rgba=".8 .2 .1 0.7" friction="1 0.005 0.0001" group="2"/>
       <body name="eef_body2_sensor" pos="0 0 0" quat="1.0 0.0 0.0 0.0">
         <site name="sensor_site2" pos="0 0 0" size="0.01 0.01 0.01" rgba="0 0 0 0" type="sphere" group="2"/>
       </body>    </body>  </worldbody>
   <equality>
-     <weld name='weld_end' body1='B_last' body2='eef_body_sensor' solref='0.0005 1'/>
-     <weld name='weld_start' body1='B_first' body2='eef_body2_sensor' solref='0.0005 1'/>
+     <weld name='weld_end' body1='B_last' body2='eef_body_sensor' solref='0.001 1'/>
+     <weld name='weld_start' body1='B_first' body2='eef_body2_sensor' solref='0.001 1'/>
   </equality>
   <contact>
   </contact>
