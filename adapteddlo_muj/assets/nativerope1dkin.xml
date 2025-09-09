@@ -2,12 +2,11 @@
   <compiler angle="radian" />
 
   <extension>
-    <plugin plugin="mujoco.elasticity.wire">
+    <plugin plugin="mujoco.elasticity.wire_qst">
       <instance name="composite">
         <config key="twist" value="13747120.556278683" />
         <config key="bend" value="18807015.9647687" />
         <config key="twist_displace" value="0.0" />
-        <config key="pqsActive" value="true" />
       </instance>
     </plugin>
   </extension>

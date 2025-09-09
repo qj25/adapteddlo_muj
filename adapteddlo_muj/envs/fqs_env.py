@@ -909,7 +909,7 @@ class TestFQSEnv(gym.Env, utils.EzPickle):
     def test_fqs(self, l_shorten=0.10, rot_val=4*2.0*np.pi):
         self.viewer._paused = True
         # self.model.opt.gravity[-1] = -9.81
-        self.model.opt.gravity[-1] = -0.13003187919463088
+        self.model.opt.gravity[-1] = -0.13003187919463088 * 10.0
         n_steps = 50
         step_len = l_shorten / n_steps / 2
         # n_steps = int(l_shorten / step_len)
