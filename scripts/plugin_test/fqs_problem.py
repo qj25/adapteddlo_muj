@@ -53,6 +53,7 @@ alpha_val = 0.001196450659614982    # Obtained from simple PI
 beta_val = 0.001749108044378543
 mass_per_length = 0.079/2.98
 r_mass = mass_per_length * r_len
+r_mass = 1.0
 r_thickness = 0.006
 j_damp = 0.002
 overall_rot = 0.0
