@@ -30,7 +30,7 @@ test_part = 0
 
 loadfrompickle = False
 
-stiff_type = 'wire'
+stiff_type = 'wire_qst'
 
 use_specified_s2f = False
 
