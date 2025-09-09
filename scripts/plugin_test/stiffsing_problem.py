@@ -254,12 +254,19 @@ def make_env(plugin_name):
     # make vertical
     env.data.qpos[3:7] = np.array([0.7071, 0, -0.7071, 0])
     if do_render:
+        # env.set_viewer_details(
+        #     dist=1.2,
+        #     azi=52.5,
+        #     elev=-31.0,
+        #     lookat=np.array([0.3535, 0.0, 0.95])
+        # )
         env.set_viewer_details(
-            dist=1.2,
+            dist=0.85,
             azi=52.5,
             elev=-31.0,
-            lookat=np.array([0.3535, 0.0, 0.95])
+            lookat=np.array([0.25, 0.0, 0.75])
         )
+        env.viewer._paused = True
         env.viewer.vopt.frame = 2
     env.test_force_curvature2(om_val=om_list[0])
     return env
@@ -270,6 +277,7 @@ if test_part == 0:
     env_test = make_env(plugin_name=stiff_type)
     env_test.viewer.vopt.geomgroup[2] ^= 1
     env_test.viewer.vopt.frame = 2
+    env_test.viewer._paused = True
     # rotate bottom end by pi
     for i in range(360):
         if (i + 1) % 10 == 0:
