@@ -24,14 +24,15 @@ note:
     - the reason why the torq_node works in s2f for derinmuj and not der_cpp 
         is because it uses the misc qfrc_passive forces incl. damping and friction.
 """
+plt.rcParams.update({'pdf.fonttype': 42})   # to prevent type 3 fonts in pdflatex
 
 #======================| Settings |======================
-test_part = 0
+test_part = 1
 """
 IMPT: Change step size to 0.0001 in world_ssing.xml for lighter/thinner wires
 """
 
-loadfrompickle = False
+loadfrompickle = True
 
 stiff_type = 'wire_qst'  # 'wire' or 'wire_qst'
 

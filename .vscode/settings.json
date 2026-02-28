@@ -70,5 +70,4 @@
         "stop_token": "cpp",
         "*.tcc": "cpp"
     },
-    "cmake.sourceDirectory": "/home/qj/git/deformanip/adapteddlo_muj/wire_plugin/src"
 }
