@@ -825,6 +825,33 @@ class TestPlainRopeEnv(gym.Env, utils.EzPickle):
 
         return real_v_sim_speed
 
+    def run_speedtest2_isolate(self):
+        """Same trajectory as run_speedtest2; returns 0 (no stiffness/plugin)."""
+        self.freq_velreset = 0.2
+        lhb_picklename = 'lhbtest{}.pickle'.format(self.r_pieces)
+        lhb_picklename = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            "data/lhb/adapt/" + lhb_picklename
+        )
+        with open(lhb_picklename, 'rb') as f:
+            self.init_pickle = pickle.load(f)
+        self.set_state(self.init_pickle)
+        self.init_pickle[0][9] = self.overall_rot
+        self.p_thetan = self.overall_rot % (2. * np.pi)
+        if self.p_thetan > np.pi:
+            self.p_thetan -= 2 * np.pi
+        self.init_pickle[0][10] = self.p_thetan
+
+        st_steps = 10000
+        print('0')
+        for i in range(st_steps):
+            if (i+1) % 1000 == 0:
+                sys.stdout.write(f"\033[{1}F")
+                print(f"Testing for {i+1} / {st_steps} steps..")
+            self.step()
+
+        return 0.0  # no stiffness/plugin
+
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~|| Utils ||~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def reset_vel(self):

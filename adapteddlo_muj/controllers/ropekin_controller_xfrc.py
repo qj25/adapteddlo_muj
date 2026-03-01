@@ -437,7 +437,65 @@ class DLORopeXfrc:
         # print(t4-t3)
 
         return self.force_node.copy(), self.x.copy(), bf_align
-    
+
+    def convert_and_update_force(self, limit_f=False, limit_f_indiv=False, damp_f=False):
+        """Same as update_force but adds forces to data.qfrc_passive via mj_applyFT instead of data.xfrc_applied (no f_scale)."""
+        bf_align = self._update_dlo_cpp()
+        self._calc_centerlineF()
+        self.avg_force = np.linalg.norm(self.force_node) / len(self.force_node)
+
+        excl_joints = 0
+        ids_i = range(excl_joints, self.nv + 2 - excl_joints)
+
+        for i in ids_i:
+            mujoco.mj_applyFT(
+                self.model,
+                self.data,
+                self.force_node[i],
+                np.zeros(3),
+                self.x[i],
+                self.vec_bodyid[i],
+                self.data.qfrc_passive,
+            )
+
+        return self.force_node.copy(), self.x.copy(), bf_align
+
+    def convert_and_update_force_timed(self, limit_f=False, limit_f_indiv=False, damp_f=False):
+        """Same as convert_and_update_force but returns (force_node, x, bf_align, total_ms, stiffness_ms, applyFT_ms)."""
+        from time import perf_counter
+        t0 = perf_counter()
+        bf_align = self._update_dlo_cpp()
+        self._calc_centerlineF()
+        self.avg_force = np.linalg.norm(self.force_node) / len(self.force_node)
+        t1 = perf_counter()
+        stiffness_ms = (t1 - t0) * 1000.0
+
+        excl_joints = 0
+        ids_i = range(excl_joints, self.nv + 2 - excl_joints)
+        t_ft0 = perf_counter()
+        for i in ids_i:
+            mujoco.mj_applyFT(
+                self.model,
+                self.data,
+                self.force_node[i],
+                np.zeros(3),
+                self.x[i],
+                self.vec_bodyid[i],
+                self.data.qfrc_passive,
+            )
+        t_ft1 = perf_counter()
+        applyFT_ms = (t_ft1 - t_ft0) * 1000.0
+        total_ms = stiffness_ms + applyFT_ms
+
+        return (
+            self.force_node.copy(),
+            self.x.copy(),
+            bf_align,
+            total_ms,
+            stiffness_ms,
+            applyFT_ms,
+        )
+
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~|| Other things ||~~~~~~~~~~~~~~~~~~~~~~~~~~
     def ropestart_rot(self, rot_a=np.pi/180):
         rot_quat = T.axisangle2quat(np.array([rot_a, 0., 0.]))

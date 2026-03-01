@@ -9,7 +9,7 @@ import mujoco_viewer
 import gymnasium as gym
 from gymnasium import utils
 import pickle
-from time import time
+from time import time, perf_counter
 
 import adapteddlo_muj.utils.transform_utils as T
 from adapteddlo_muj.utils.mjc_utils import MjSimWrapper
@@ -896,6 +896,44 @@ class TestRopeXfrcEnv(gym.Env, utils.EzPickle):
         print(f"    = {real_v_sim_speed} s / s (real time / sim time)")
 
         return real_v_sim_speed
+
+    def run_speedtest2_isolate(self):
+        """Same trajectory as run_speedtest2; returns dict with avg total, applyFT, rest (ms) per step."""
+        self.freq_velreset = 0.2
+        lhb_picklename = 'lhbtest{}.pickle'.format(self.r_pieces)
+        lhb_picklename = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            "data/lhb/" + self.picklefolder + "/" + lhb_picklename
+        )
+        with open(lhb_picklename, 'rb') as f:
+            self.init_pickle = pickle.load(f)
+        self.set_state(self.init_pickle)
+        self.init_pickle[0][9] = self.overall_rot
+        self.p_thetan = self.overall_rot % (2. * np.pi)
+        if self.p_thetan > np.pi:
+            self.p_thetan -= 2 * np.pi
+        self.init_pickle[0][10] = self.p_thetan
+
+        st_steps = 10000
+        total_ms = 0.0
+        applyFT_ms = 0.0
+        rest_ms = 0.0
+        print('0')
+        for i in range(st_steps):
+            if (i+1) % 1000 == 0:
+                sys.stdout.write(f"\033[{1}F")
+                print(f"Testing for {i+1} / {st_steps} steps..")
+            _, _, _, t_tot, t_rest, t_ft = self.dlo_sim.convert_and_update_force_timed()
+            total_ms += t_tot
+            applyFT_ms += t_ft
+            rest_ms += t_rest
+            self.sim.step()
+            self.sim.forward()
+            self.env_steps += 1
+            self.cur_time += self.dt
+
+        n = st_steps if st_steps else 1
+        return {"total": total_ms / n, "applyFT": applyFT_ms / n, "rest": rest_ms / n}
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~|| Utils ||~~~~~~~~~~~~~~~~~~~~~~~~~~
 

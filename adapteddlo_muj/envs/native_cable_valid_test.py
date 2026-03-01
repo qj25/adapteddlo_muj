@@ -855,7 +855,38 @@ class TestCableEnv(gym.Env, utils.EzPickle):
         print(f"    = {real_v_sim_speed} s / s (real time / sim time)")
 
         return real_v_sim_speed
-        
+
+    def run_speedtest2_isolate(self):
+        """Same trajectory as run_speedtest2; returns dict with avg total, applyFT, rest (ms) per step."""
+        self.freq_velreset = 0.2
+        lhb_picklename = 'lhbtest{}.pickle'.format(self.r_pieces)
+        lhb_picklename = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            "data/lhb/native/" + lhb_picklename
+        )
+        with open(lhb_picklename, 'rb') as f:
+            self.init_pickle = pickle.load(f)
+        self.set_state(self.init_pickle)
+
+        st_steps = 10000
+        total_ms = 0.0
+        applyFT_ms = 0.0
+        rest_ms = 0.0
+        print('0')
+        for i in range(st_steps):
+            if (i+1) % 1000 == 0:
+                sys.stdout.write(f"\033[{1}F")
+                print(f"Testing for {i+1} / {st_steps} steps..")
+            timing = mujoco.mj_step_timed(self.model, self.data, 1, return_timing=True)
+            if timing:
+                total_ms += timing["total_plugin_time_ms"]
+                applyFT_ms += timing.get("total_plugin_applyFT_time_ms", 0.0)
+                rest_ms += timing.get("total_plugin_rest_time_ms", timing["total_plugin_time_ms"])
+            self.env_steps += 1
+
+        n = st_steps if st_steps else 1
+        return {"total": total_ms / n, "applyFT": applyFT_ms / n, "rest": rest_ms / n}
+
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~|| Utils ||~~~~~~~~~~~~~~~~~~~~~~~~~~
     def print_viewer_details(self):
         print(f"distance = {self.viewer.cam.distance}")

@@ -363,14 +363,63 @@ def plot_computetime(pieces_list, data_list):
     # Show the plot
     plt.show()
 
+
+def plot_isolate_timing_split(
+    pieces_list,
+    t_total,
+    t_applyFT,
+    t_rest,
+    mode_labels=None,
+):
+    """Plot total / applyFT / rest timing per mode (no percentage). One color per mode, 3 lines each."""
+    plt.style.use('seaborn-v0_8')
+    if mode_labels is None:
+        mode_labels = ['native', 'xfrc', 'adapted', 'jpQ-DER']
+    x = np.array(pieces_list)
+    n_modes = t_total.shape[1]
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.set_facecolor('white')
+    ax.grid(color='#DDDDDD', linewidth=0.8, zorder=0)
+
+    colors = plt.cm.tab10(np.linspace(0, 1, max(n_modes, 4)))
+    for j in range(n_modes):
+        c = colors[j]
+        ax.plot(x, t_total[:, j], color=c, linewidth=2, linestyle='-',
+                label=f"{mode_labels[j]} (total)")
+        ax.plot(x, t_applyFT[:, j], color=c, linewidth=1.5, linestyle='--',
+                label=f"{mode_labels[j]} (applyFT)")
+        ax.plot(x, t_rest[:, j], color=c, linewidth=1.5, linestyle=':',
+                label=f"{mode_labels[j]} (rest)")
+
+    ax.set_xlabel('Number of Discrete Pieces', fontsize=14)
+    ax.set_ylabel('Avg time per step (ms)', fontsize=14)
+    ax.set_xticks(x)
+    ax.tick_params(axis='both', which='major', labelsize=12)
+    ax.legend(fontsize=10, loc='upper left', ncol=2)
+    plt.tight_layout()
+    plt.savefig(img_path + "plgn/compute_time_isolate_split.pdf", bbox_inches='tight')
+    plt.show()
+
+
 def plot_computetime_all(pieces_list, data_list, plot_labels=None):
     plt.style.use('seaborn-v0_8')
     # Sample data for 4 different results
     x = np.array(pieces_list)  # Number of discrete pieces simulated (from 1 to 100)
     y = np.array(data_list)
 
-    # compute percentage difference
-    y_percent = (y[:] - y[0]) / y[0] * 100.0
+    # Decide whether to plot percentage (skip when y[0] is close to 0, e.g. plain=0)
+    y0_arr = np.asarray(y[0])
+    plot_percent = y0_arr.size > 0 and not np.all(np.isclose(y0_arr, 0.0))
+
+    if plot_percent:
+        ref = y[0]
+        ref_arr = np.asarray(ref)
+        if ref_arr.size and (np.all(np.isclose(ref_arr, 0.0)) or (ref_arr.size == 1 and np.isclose(ref_arr.flat[0], 0.0))):
+            ref = y[1] if len(y) > 1 else y[0]
+        ref = np.atleast_1d(np.asarray(ref))
+        ref_safe = np.where(np.abs(ref) < 1e-12, 1e-12, ref)
+        y_percent = (y[:] - ref) / ref_safe * 100.0
 
     # Create the plot
     fig, twin1 = plt.subplots(figsize=(10, 6))
@@ -389,7 +438,7 @@ def plot_computetime_all(pieces_list, data_list, plot_labels=None):
     for spine_str in [
         'bottom',
         'left',
-        'right'    
+        'right'
     ]:
         ax.spines[spine_str].set_linewidth(1)
         ax.spines[spine_str].set_edgecolor('k')
@@ -397,33 +446,44 @@ def plot_computetime_all(pieces_list, data_list, plot_labels=None):
     if plot_labels is None:
         plot_labels = ['plain', 'native', 'direct', 'adapted']
 
-    # Plot each line with a label
-    ax.plot(x, y[0], label='plain', alpha=0.5, color='k', linewidth=2,zorder=3)
-    twin1.plot(0,0, label='raw time', alpha=1.0, color='k', linewidth=2)
-    twin1.plot(0,0, label='percent increase', alpha=1.0, color='k', linewidth=2, linestyle='--')
-    for i in range(len(plot_labels)-1,0,-1):
+    # Plot raw time on left axis
+    ax.plot(x, y[0], label='plain', alpha=0.5, color='k', linewidth=2, zorder=3)
+    for i in range(len(plot_labels)-1, 0, -1):
         ax.plot(x, y[i], label=plot_labels[i], alpha=0.7, linewidth=2)
-        twin1.plot(x, y_percent[i], alpha=0.7, linewidth=2,linestyle='--')
+
+    if plot_percent:
+        twin1.plot(0, 0, label='raw time', alpha=1.0, color='k', linewidth=2)
+        twin1.plot(0, 0, label='percent increase', alpha=1.0, color='k', linewidth=2, linestyle='--')
+        for i in range(len(plot_labels)-1, 0, -1):
+            twin1.plot(x, y_percent[i], alpha=0.7, linewidth=2, linestyle='--')
 
     ax.set_ylim(0, 50)
     ax.set_xlim(40, 180)
-    twin1.set_ylim(-5, 20)
+    if plot_percent:
+        twin1.set_ylim(-5, 20)
+        twin1.set_yticks(np.linspace(-5, 20., 6))
+        twin1.set_ylabel("Percentage Increase from plain", fontsize=14)
+    else:
+        twin1.spines['right'].set_visible(False)
+        twin1.set_yticks([])
+        twin1.set_ylabel('')
+
     ax.set_yticks(np.linspace(0., 50., 6))
     ax.set_xticks(x)
-    twin1.set_yticks(np.linspace(-5, 20., 6))
     tkw = dict(size=4, width=1.5)
     ax.tick_params(axis='y', **tkw)
-    twin1.tick_params(axis='y', **tkw)
+    if plot_percent:
+        twin1.tick_params(axis='y', **tkw)
 
     # Add labels and title
     ax.set_ylabel('Computational Time to Simulate 1s (seconds)', fontsize=14)
     twin1.set_xlabel('Number of Discrete Pieces', fontsize=14)
-    twin1.set_ylabel("Percentage Increase from plain", fontsize=14)
     # plt.title('Speed test', fontsize=14)
 
-    # Add a legend
-    ax.legend(fontsize=14, loc='upper left', bbox_to_anchor=(0.19, 0.98),ncol=1)
-    twin1.legend(fontsize=14, loc='upper left', bbox_to_anchor=(0.43, 0.98),ncol=1)
+    # Add a legend (single legend on left when no percent)
+    ax.legend(fontsize=14, loc='upper left', bbox_to_anchor=(0.19, 0.98), ncol=1)
+    if plot_percent:
+        twin1.legend(fontsize=14, loc='upper left', bbox_to_anchor=(0.43, 0.98), ncol=1)
 
     # Grid for better readability
     # plt.grid(True, which='both', linestyle='--', linewidth=0.5)
