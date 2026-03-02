@@ -47,6 +47,9 @@ if new_start:
     t_total = np.zeros((len(r_pieces_list), N_MODES))
     t_applyFT = np.zeros((len(r_pieces_list), N_MODES))
     t_rest = np.zeros((len(r_pieces_list), N_MODES))
+    t_total_std = np.zeros((len(r_pieces_list), N_MODES))
+    t_applyFT_std = np.zeros((len(r_pieces_list), N_MODES))
+    t_rest_std = np.zeros((len(r_pieces_list), N_MODES))
 
     for i in range(len(r_pieces_list)):
         print(f"Testing speed (isolate) for {r_pieces_list[i]} pieces.. ..")
@@ -67,6 +70,15 @@ if new_start:
         t_total[i, 0] = out["total"]
         t_applyFT[i, 0] = out["applyFT"]
         t_rest[i, 0] = out["rest"]
+        t_total_std[i, 0] = out.get("total_std", 0.0)
+        t_applyFT_std[i, 0] = out.get("applyFT_std", 0.0)
+        t_rest_std[i, 0] = out.get("rest_std", 0.0)
+        # Cleanup native environment
+        if env_native.viewer is not None:
+            env_native.viewer.close()
+            env_native.viewer = None
+        del env_native
+        print(t_total[i, :])
 
         # xfrc: Python convert_and_update_force_timed
         print("xfrc:")
@@ -84,6 +96,15 @@ if new_start:
         t_total[i, 1] = out["total"]
         t_applyFT[i, 1] = out["applyFT"]
         t_rest[i, 1] = out["rest"]
+        t_total_std[i, 1] = out.get("total_std", 0.0)
+        t_applyFT_std[i, 1] = out.get("applyFT_std", 0.0)
+        t_rest_std[i, 1] = out.get("rest_std", 0.0)
+        # Cleanup xfrc environment
+        if env_xfrc.viewer is not None:
+            env_xfrc.viewer.close()
+            env_xfrc.viewer = None
+        del env_xfrc
+        print(t_total[i, :])
 
         # adapted: wire_qst plugin
         print("adapted:")
@@ -102,6 +123,15 @@ if new_start:
         t_total[i, 2] = out["total"]
         t_applyFT[i, 2] = out["applyFT"]
         t_rest[i, 2] = out["rest"]
+        t_total_std[i, 2] = out.get("total_std", 0.0)
+        t_applyFT_std[i, 2] = out.get("applyFT_std", 0.0)
+        t_rest_std[i, 2] = out.get("rest_std", 0.0)
+        # Cleanup adapted environment
+        if env_adapted.viewer is not None:
+            env_adapted.viewer.close()
+            env_adapted.viewer = None
+        del env_adapted
+        print(t_total[i, :])
 
         # jpq-DER: wire plugin
         print("jpQ-DER:")
@@ -120,8 +150,18 @@ if new_start:
         t_total[i, 3] = out["total"]
         t_applyFT[i, 3] = out["applyFT"]
         t_rest[i, 3] = out["rest"]
+        t_total_std[i, 3] = out.get("total_std", 0.0)
+        t_applyFT_std[i, 3] = out.get("applyFT_std", 0.0)
+        t_rest_std[i, 3] = out.get("rest_std", 0.0)
+        # Cleanup jpq environment
+        if env_jpq.viewer is not None:
+            env_jpq.viewer.close()
+            env_jpq.viewer = None
+        del env_jpq
 
-    speedtest_data = [r_pieces_list, t_total, t_applyFT, t_rest]
+        print(t_total[i, :])
+
+    speedtest_data = [r_pieces_list, t_total, t_applyFT, t_rest, t_total_std, t_applyFT_std, t_rest_std]
     input("Saving pickle. Press 'Enter' to confirm.. ..")
     with open(speedtest_isolate_all_picklename, 'wb') as f:
         pickle.dump(speedtest_data, f)
@@ -130,7 +170,14 @@ if new_start:
 else:
     with open(speedtest_isolate_all_picklename, 'rb') as f:
         data = pickle.load(f)
-    r_pieces_list, t_total, t_applyFT, t_rest = data
+    # Handle both old format (without std) and new format (with std)
+    if len(data) == 4:
+        r_pieces_list, t_total, t_applyFT, t_rest = data
+        t_total_std = np.zeros_like(t_total)
+        t_applyFT_std = np.zeros_like(t_applyFT)
+        t_rest_std = np.zeros_like(t_rest)
+    else:
+        r_pieces_list, t_total, t_applyFT, t_rest, t_total_std, t_applyFT_std, t_rest_std = data
 
     print("Pickle loaded!")
 
@@ -140,4 +187,5 @@ plot_isolate_timing_split(
     t_applyFT,
     t_rest,
     mode_labels=MODE_LABELS,
+    t_total_std=t_total_std,
 )

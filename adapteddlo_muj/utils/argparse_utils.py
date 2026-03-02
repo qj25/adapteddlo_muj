@@ -55,5 +55,5 @@ def spdt_parse():
     # Create the parser
     parser = argparse.ArgumentParser(description="speed_test for obtaining computation speed.")
     # Add arguments with default values
-    parser.add_argument('--newstart', type=int, default=0, help='Option to re_init pickle of env: 0 or 1 [off]')
+    parser.add_argument('--newstart', type=int, default=1, help='Option to re_init pickle of env: 0 or 1 [off]')
     return parser

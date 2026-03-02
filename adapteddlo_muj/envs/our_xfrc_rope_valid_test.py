@@ -175,9 +175,11 @@ class TestRopeXfrcEnv(gym.Env, utils.EzPickle):
     def _get_xmlstr(self):
         # load model
         # update rope model
+        # Use fast world for speed tests
+        world_filename = "world_test_fast.xml" if self.test_type == 'speedtest2' else "world_test.xml"
         world_base_path = os.path.join(
             os.path.dirname(os.path.dirname(__file__)),
-            "assets/world_test.xml"
+            f"assets/{world_filename}"
         )
         box_path = os.path.join(
             os.path.dirname(world_base_path),
@@ -918,6 +920,10 @@ class TestRopeXfrcEnv(gym.Env, utils.EzPickle):
         total_ms = 0.0
         applyFT_ms = 0.0
         rest_ms = 0.0
+        # Store individual step timings for std dev calculation
+        step_totals = []
+        step_applyFTs = []
+        step_rests = []
         print('0')
         for i in range(st_steps):
             if (i+1) % 1000 == 0:
@@ -927,13 +933,41 @@ class TestRopeXfrcEnv(gym.Env, utils.EzPickle):
             total_ms += t_tot
             applyFT_ms += t_ft
             rest_ms += t_rest
+            
+            # Store individual step timings
+            step_totals.append(t_tot)
+            step_applyFTs.append(t_ft)
+            step_rests.append(t_rest)
+            
             self.sim.step()
             self.sim.forward()
             self.env_steps += 1
             self.cur_time += self.dt
 
         n = st_steps if st_steps else 1
-        return {"total": total_ms / n, "applyFT": applyFT_ms / n, "rest": rest_ms / n}
+        # Print summary similar to plugin timing output
+        avg_ms = total_ms / n
+        print(
+            f"[xfrc] Compute called {st_steps} times. "
+            f"Total time: {total_ms:.3f} ms. Average time: {avg_ms:.7f} ms."
+        )
+        
+        # Compute standard deviations
+        step_totals_arr = np.array(step_totals)
+        step_applyFTs_arr = np.array(step_applyFTs)
+        step_rests_arr = np.array(step_rests)
+        total_std = np.std(step_totals_arr) if len(step_totals_arr) > 0 else 0.0
+        applyFT_std = np.std(step_applyFTs_arr) if len(step_applyFTs_arr) > 0 else 0.0
+        rest_std = np.std(step_rests_arr) if len(step_rests_arr) > 0 else 0.0
+        
+        return {
+            "total": avg_ms, 
+            "applyFT": applyFT_ms / n, 
+            "rest": rest_ms / n,
+            "total_std": total_std,
+            "applyFT_std": applyFT_std,
+            "rest_std": rest_std
+        }
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~|| Utils ||~~~~~~~~~~~~~~~~~~~~~~~~~~
 

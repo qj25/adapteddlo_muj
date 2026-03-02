@@ -202,11 +202,13 @@ class GenKin_N_weld2:
             self.stiff_vals[1]
         ))
         if self.plugin_name == "wire":
-            f.write(self.curr_tab*self.t + '<config key="pqsActive" value="true"/>\n')
+            f.write(self.curr_tab*self.t + '<config key="pqsActive" value="false"/>\n')
         if self.plugin_name != "cable":
             f.write(self.curr_tab*self.t + '<config key="twist_displace" value="{}"/>\n'.format(
                 self.twist_displace
             ))
+        # Enable timing for speed tests
+        f.write(self.curr_tab*self.t + '<config key="timingEnabled" value="true"/>\n')
         # f.write(self.curr_tab*self.t + '<config key="vmax" value="100000"/>\n')
         self.curr_tab -= 1
         f.write(self.curr_tab*self.t + '</plugin>\n')

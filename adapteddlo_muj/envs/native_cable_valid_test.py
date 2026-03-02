@@ -173,9 +173,11 @@ class TestCableEnv(gym.Env, utils.EzPickle):
     def _get_xmlstr(self):
         # load model
         # update rope model
+        # Use fast world for speed tests
+        world_filename = "world_test_fast.xml" if self.test_type == 'speedtest2' else "world_test.xml"
         world_base_path = os.path.join(
             os.path.dirname(os.path.dirname(__file__)),
-            "assets/world_test.xml"
+            f"assets/{world_filename}"
         )
         box_path = os.path.join(
             os.path.dirname(world_base_path),
@@ -872,20 +874,70 @@ class TestCableEnv(gym.Env, utils.EzPickle):
         total_ms = 0.0
         applyFT_ms = 0.0
         rest_ms = 0.0
+        # Store individual step timings for std dev calculation
+        step_totals = []
+        step_applyFTs = []
+        step_rests = []
         print('0')
+        timing_count = 0
+        prev_total_ms = 0.0
+        prev_applyFT_ms = 0.0
         for i in range(st_steps):
             if (i+1) % 1000 == 0:
                 sys.stdout.write(f"\033[{1}F")
                 print(f"Testing for {i+1} / {st_steps} steps..")
             timing = mujoco.mj_step_timed(self.model, self.data, 1, return_timing=True)
-            if timing:
-                total_ms += timing["total_plugin_time_ms"]
-                applyFT_ms += timing.get("total_plugin_applyFT_time_ms", 0.0)
-                rest_ms += timing.get("total_plugin_rest_time_ms", timing["total_plugin_time_ms"])
+            if timing and "total_plugin_time_ms" in timing:
+                # mj_step_timed returns cumulative time, so compute difference for this step
+                current_total_ms = timing["total_plugin_time_ms"]
+                step_total_ms = current_total_ms - prev_total_ms
+                total_ms += step_total_ms
+                prev_total_ms = current_total_ms
+                
+                # Get applyFT timing increment
+                current_applyFT_ms = timing.get("total_plugin_applyFT_time_ms", 0.0)
+                step_applyFT_ms = current_applyFT_ms - prev_applyFT_ms
+                applyFT_ms += step_applyFT_ms
+                prev_applyFT_ms = current_applyFT_ms
+                
+                # Rest is the difference between total and applyFT
+                step_rest_ms = step_total_ms - step_applyFT_ms
+                rest_ms += step_rest_ms
+                
+                # Store individual step timings
+                step_totals.append(step_total_ms)
+                step_applyFTs.append(step_applyFT_ms)
+                step_rests.append(step_rest_ms)
+                timing_count += 1
+            elif i == 0:
+                # Debug: print what we got on first step
+                print(f"DEBUG: timing = {timing}")
+                if timing:
+                    print(f"DEBUG: timing keys = {timing.keys()}")
             self.env_steps += 1
 
         n = st_steps if st_steps else 1
-        return {"total": total_ms / n, "applyFT": applyFT_ms / n, "rest": rest_ms / n}
+        if timing_count == 0:
+            print(f"WARNING: No timing data collected! timing was None or missing 'total_plugin_time_ms' for all {st_steps} steps.")
+            print("This likely means timing is not enabled in the plugin config (need timingEnabled=true)")
+            return {"total": 0.0, "applyFT": 0.0, "rest": 0.0, "total_std": 0.0, "applyFT_std": 0.0, "rest_std": 0.0}
+        
+        # Compute standard deviations
+        step_totals_arr = np.array(step_totals)
+        step_applyFTs_arr = np.array(step_applyFTs)
+        step_rests_arr = np.array(step_rests)
+        total_std = np.std(step_totals_arr) if len(step_totals_arr) > 0 else 0.0
+        applyFT_std = np.std(step_applyFTs_arr) if len(step_applyFTs_arr) > 0 else 0.0
+        rest_std = np.std(step_rests_arr) if len(step_rests_arr) > 0 else 0.0
+        
+        return {
+            "total": total_ms / n, 
+            "applyFT": applyFT_ms / n, 
+            "rest": rest_ms / n,
+            "total_std": total_std,
+            "applyFT_std": applyFT_std,
+            "rest_std": rest_std
+        }
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~|| Utils ||~~~~~~~~~~~~~~~~~~~~~~~~~~
     def print_viewer_details(self):

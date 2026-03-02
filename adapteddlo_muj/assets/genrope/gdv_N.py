@@ -180,6 +180,8 @@ class GenKin_N:
         f.write(self.curr_tab*self.t + '<config key="bend" value="{}"/>\n'.format(
             self.stiff_vals[1]
         ))
+        # Enable timing for speed tests
+        f.write(self.curr_tab*self.t + '<config key="timingEnabled" value="true"/>\n')
         # if self.plugin_name != "cable":
         #     f.write(self.curr_tab*self.t + '<config key="twist_displace" value="{}"/>\n'.format(
         #         self.twist_displace

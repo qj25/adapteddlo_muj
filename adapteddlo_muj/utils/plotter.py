@@ -370,8 +370,10 @@ def plot_isolate_timing_split(
     t_applyFT,
     t_rest,
     mode_labels=None,
+    t_total_std=None,
 ):
-    """Plot total / applyFT / rest timing per mode (no percentage). One color per mode, 3 lines each."""
+    """Plot total / applyFT / rest timing per mode (no percentage). One color per mode, 3 lines each.
+    If t_total_std is provided, error bars are shown for total time."""
     plt.style.use('seaborn-v0_8')
     if mode_labels is None:
         mode_labels = ['native', 'xfrc', 'adapted', 'jpQ-DER']
@@ -385,8 +387,15 @@ def plot_isolate_timing_split(
     colors = plt.cm.tab10(np.linspace(0, 1, max(n_modes, 4)))
     for j in range(n_modes):
         c = colors[j]
-        ax.plot(x, t_total[:, j], color=c, linewidth=2, linestyle='-',
-                label=f"{mode_labels[j]} (total)")
+        # Plot total with error bars if std dev is provided
+        if t_total_std is not None:
+            ax.errorbar(x, t_total[:, j], yerr=t_total_std[:, j], 
+                       color=c, linewidth=1.6, linestyle='-', capsize=3, capthick=1.2,
+                       elinewidth=1.6, alpha=0.75,
+                       label=f"{mode_labels[j]} (total)", zorder=3)
+        else:
+            ax.plot(x, t_total[:, j], color=c, linewidth=2, linestyle='-',
+                    label=f"{mode_labels[j]} (total)")
         ax.plot(x, t_applyFT[:, j], color=c, linewidth=1.5, linestyle='--',
                 label=f"{mode_labels[j]} (applyFT)")
         ax.plot(x, t_rest[:, j], color=c, linewidth=1.5, linestyle=':',
