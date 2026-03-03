@@ -40,8 +40,8 @@ speedtest_isolate_all_picklename = os.path.join(
 )
 # ======================| End Settings |======================
 
-MODE_LABELS = ['native', 'xfrc', 'adapted', 'jpQ-DER']
-N_MODES = 4
+MODE_LABELS = ['native', 'xfrc', 'der_hybrid', 'adapted', 'jpQ-DER']
+N_MODES = 5
 
 if new_start:
     t_total = np.zeros((len(r_pieces_list), N_MODES))
@@ -133,6 +133,34 @@ if new_start:
         del env_adapted
         print(t_total[i, :])
 
+        # der_hybrid: wire_qst plugin with der_og=true
+        print("der_hybrid:")
+        env_der_hybrid = TestPluginEnv(
+            overall_rot=0.0,
+            do_render=False,
+            r_pieces=r_pieces_list[i],
+            r_len=r_len,
+            r_thickness=r_thickness,
+            test_type=test_type,
+            alpha_bar=alpha_val,
+            beta_bar=beta_val,
+            plugin_name="wire_qst",
+            extra_plugin_configs={"der_og": "true"}
+        )
+        out = env_der_hybrid.run_speedtest2_isolate()
+        t_total[i, 3] = out["total"]
+        t_applyFT[i, 3] = out["applyFT"]
+        t_rest[i, 3] = out["rest"]
+        t_total_std[i, 3] = out.get("total_std", 0.0)
+        t_applyFT_std[i, 3] = out.get("applyFT_std", 0.0)
+        t_rest_std[i, 3] = out.get("rest_std", 0.0)
+        # Cleanup der_hybrid environment
+        if env_der_hybrid.viewer is not None:
+            env_der_hybrid.viewer.close()
+            env_der_hybrid.viewer = None
+        del env_der_hybrid
+        print(t_total[i, :])
+
         # jpq-DER: wire plugin
         print("jpQ-DER:")
         env_jpq = TestPluginEnv(
@@ -147,18 +175,17 @@ if new_start:
             plugin_name="wire",
         )
         out = env_jpq.run_speedtest2_isolate()
-        t_total[i, 3] = out["total"]
-        t_applyFT[i, 3] = out["applyFT"]
-        t_rest[i, 3] = out["rest"]
-        t_total_std[i, 3] = out.get("total_std", 0.0)
-        t_applyFT_std[i, 3] = out.get("applyFT_std", 0.0)
-        t_rest_std[i, 3] = out.get("rest_std", 0.0)
+        t_total[i, 4] = out["total"]
+        t_applyFT[i, 4] = out["applyFT"]
+        t_rest[i, 4] = out["rest"]
+        t_total_std[i, 4] = out.get("total_std", 0.0)
+        t_applyFT_std[i, 4] = out.get("applyFT_std", 0.0)
+        t_rest_std[i, 4] = out.get("rest_std", 0.0)
         # Cleanup jpq environment
         if env_jpq.viewer is not None:
             env_jpq.viewer.close()
             env_jpq.viewer = None
         del env_jpq
-
         print(t_total[i, :])
 
     speedtest_data = [r_pieces_list, t_total, t_applyFT, t_rest, t_total_std, t_applyFT_std, t_rest_std]
@@ -170,14 +197,7 @@ if new_start:
 else:
     with open(speedtest_isolate_all_picklename, 'rb') as f:
         data = pickle.load(f)
-    # Handle both old format (without std) and new format (with std)
-    if len(data) == 4:
-        r_pieces_list, t_total, t_applyFT, t_rest = data
-        t_total_std = np.zeros_like(t_total)
-        t_applyFT_std = np.zeros_like(t_applyFT)
-        t_rest_std = np.zeros_like(t_rest)
-    else:
-        r_pieces_list, t_total, t_applyFT, t_rest, t_total_std, t_applyFT_std, t_rest_std = data
+    r_pieces_list, t_total, t_applyFT, t_rest, t_total_std, t_applyFT_std, t_rest_std = data
 
     print("Pickle loaded!")
 

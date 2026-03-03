@@ -35,7 +35,8 @@ class TestPluginEnv(gym.Env, utils.EzPickle):
         test_type=None,
         overall_rot=None,
         new_start=False,
-        plugin_name="cable"
+        plugin_name="cable",
+        extra_plugin_configs=None
     ):
         utils.EzPickle.__init__(self)
 
@@ -81,6 +82,9 @@ class TestPluginEnv(gym.Env, utils.EzPickle):
             self.beta_bar/J1,
             self.alpha_bar/Ix
         ]
+
+        # Store extra plugin configs for XML generation
+        self.extra_plugin_configs = extra_plugin_configs
 
         xml, arm_xml = self._get_xmlstr()
 
@@ -235,7 +239,8 @@ class TestPluginEnv(gym.Env, utils.EzPickle):
                 vis_subcyl=False,
                 obj_path=rope_path,
                 plugin_name=self.plugin_name,
-                twist_displace=self.twist_displace
+                twist_displace=self.twist_displace,
+                extra_plugin_configs=self.extra_plugin_configs
             )
         elif self.test_type == 'mbi':
             GenKin_N(
@@ -254,6 +259,7 @@ class TestPluginEnv(gym.Env, utils.EzPickle):
                 plugin_name=self.plugin_name,
                 twist_displace=self.twist_displace
             )
+            # Note: GenKin_N doesn't support extra_plugin_configs yet
         elif self.test_type == 'speedtest1':
             # j_damp = self.r_len / 9.29
             j_damp = 0.5

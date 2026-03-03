@@ -22,7 +22,8 @@ class GenKin_N_weld2:
         obj_path=None,
         plugin_name="cable",
         twist_displace=0.0,
-        solref_val="0.001 1"
+        solref_val="0.001 1",
+        extra_plugin_configs=None
     ):
         """
         connected by kinematic chain
@@ -40,6 +41,8 @@ class GenKin_N_weld2:
         self._init_plugins()
         ## cable or wire or wire_qst
         self.plugin_name = plugin_name
+        # Store any extra plugin configs (e.g. der_og) so they can be written in _write_init
+        self.extra_plugin_configs = extra_plugin_configs
 
         self.r_len = r_len
         self.r_thickness = r_thickness
@@ -209,6 +212,10 @@ class GenKin_N_weld2:
             ))
         # Enable timing for speed tests
         f.write(self.curr_tab*self.t + '<config key="timingEnabled" value="true"/>\n')
+        # Add extra plugin configs if provided
+        if self.extra_plugin_configs is not None:
+            for key, value in self.extra_plugin_configs.items():
+                f.write(self.curr_tab*self.t + '<config key="{}" value="{}"/>\n'.format(key, value))
         # f.write(self.curr_tab*self.t + '<config key="vmax" value="100000"/>\n')
         self.curr_tab -= 1
         f.write(self.curr_tab*self.t + '</plugin>\n')

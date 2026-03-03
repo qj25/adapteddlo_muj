@@ -473,16 +473,22 @@ class DLORopeXfrc:
         excl_joints = 0
         ids_i = range(excl_joints, self.nv + 2 - excl_joints)
         t_ft0 = perf_counter()
+        atest = np.zeros_like(self.data.qfrc_passive)
         for i in ids_i:
             mujoco.mj_applyFT(
                 self.model,
                 self.data,
-                self.force_node[i],
                 np.zeros(3),
+                self.force_node[i],
                 self.x[i],
                 self.vec_bodyid[i],
-                self.data.qfrc_passive,
+                atest,
+                # self.data.qfrc_passive,
             )
+            # print(f"id = {i}")
+            # print(f"t_node = {self.force_node[i]}")
+            # print(f"t_total = {atest}")
+            # print("============================================")
         t_ft1 = perf_counter()
         applyFT_ms = (t_ft1 - t_ft0) * 1000.0
         total_ms = stiffness_ms + applyFT_ms
