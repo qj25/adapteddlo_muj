@@ -106,33 +106,6 @@ if new_start:
         del env_xfrc
         print(t_total[i, :])
 
-        # adapted: wire_qst plugin
-        print("adapted:")
-        env_adapted = TestPluginEnv(
-            overall_rot=0.0,
-            do_render=False,
-            r_pieces=r_pieces_list[i],
-            r_len=r_len,
-            r_thickness=r_thickness,
-            test_type=test_type,
-            alpha_bar=alpha_val,
-            beta_bar=beta_val,
-            plugin_name="wire_qst",
-        )
-        out = env_adapted.run_speedtest2_isolate()
-        t_total[i, 2] = out["total"]
-        t_applyFT[i, 2] = out["applyFT"]
-        t_rest[i, 2] = out["rest"]
-        t_total_std[i, 2] = out.get("total_std", 0.0)
-        t_applyFT_std[i, 2] = out.get("applyFT_std", 0.0)
-        t_rest_std[i, 2] = out.get("rest_std", 0.0)
-        # Cleanup adapted environment
-        if env_adapted.viewer is not None:
-            env_adapted.viewer.close()
-            env_adapted.viewer = None
-        del env_adapted
-        print(t_total[i, :])
-
         # der_hybrid: wire_qst plugin with der_og=true
         print("der_hybrid:")
         env_der_hybrid = TestPluginEnv(
@@ -148,17 +121,44 @@ if new_start:
             extra_plugin_configs={"der_og": "true"}
         )
         out = env_der_hybrid.run_speedtest2_isolate()
+        t_total[i, 2] = out["total"]
+        t_applyFT[i, 2] = out["applyFT"]
+        t_rest[i, 2] = out["rest"]
+        t_total_std[i, 2] = out.get("total_std", 0.0)
+        t_applyFT_std[i, 2] = out.get("applyFT_std", 0.0)
+        t_rest_std[i, 2] = out.get("rest_std", 0.0)
+        # Cleanup der_hybrid environment
+        if env_der_hybrid.viewer is not None:
+            env_der_hybrid.viewer.close()
+            env_der_hybrid.viewer = None
+        del env_der_hybrid
+        print(t_total[i, :])
+
+        # adapted: wire_qst plugin
+        print("adapted:")
+        env_adapted = TestPluginEnv(
+            overall_rot=0.0,
+            do_render=False,
+            r_pieces=r_pieces_list[i],
+            r_len=r_len,
+            r_thickness=r_thickness,
+            test_type=test_type,
+            alpha_bar=alpha_val,
+            beta_bar=beta_val,
+            plugin_name="wire_qst",
+        )
+        out = env_adapted.run_speedtest2_isolate()
         t_total[i, 3] = out["total"]
         t_applyFT[i, 3] = out["applyFT"]
         t_rest[i, 3] = out["rest"]
         t_total_std[i, 3] = out.get("total_std", 0.0)
         t_applyFT_std[i, 3] = out.get("applyFT_std", 0.0)
         t_rest_std[i, 3] = out.get("rest_std", 0.0)
-        # Cleanup der_hybrid environment
-        if env_der_hybrid.viewer is not None:
-            env_der_hybrid.viewer.close()
-            env_der_hybrid.viewer = None
-        del env_der_hybrid
+        # Cleanup adapted environment
+        if env_adapted.viewer is not None:
+            env_adapted.viewer.close()
+            env_adapted.viewer = None
+        del env_adapted
         print(t_total[i, :])
 
         # jpq-DER: wire plugin
