@@ -967,7 +967,7 @@ class TestPluginEnv(gym.Env, utils.EzPickle):
             elif i == 0:
                 # Debug: print what we got on first step
                 print(f"DEBUG: timing = {timing}")
-                if timing:
+            if timing:
                     print(f"DEBUG: timing keys = {timing.keys()}")
             self.env_steps += 1
 

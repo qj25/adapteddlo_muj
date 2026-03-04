@@ -40,7 +40,7 @@ speedtest_isolate_all_picklename = os.path.join(
 )
 # ======================| End Settings |======================
 
-MODE_LABELS = ['native', 'xfrc', 'der_hybrid', 'adapted', 'jpQ-DER']
+MODE_LABELS = ['native', 'direct', 'der_hybrid', 'adapted', 'jpQ-DER']
 N_MODES = 5
 
 if new_start:

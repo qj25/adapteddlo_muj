@@ -318,9 +318,9 @@ def plot_computetime(pieces_list, data_list):
 
     # Plot each line with a label
     ax.plot(x, y[0], label='plain', alpha=0.7, color='k', linewidth=2,zorder=3)
-    ax.plot(x, y[3], label='adapted', alpha=0.7, linewidth=2)
-    ax.plot(x, y[2], label='direct', alpha=0.7, linewidth=2)
     ax.plot(x, y[1], label='native', alpha=0.7, linewidth=2)
+    ax.plot(x, y[2], label='direct', alpha=0.7, linewidth=2)
+    ax.plot(x, y[3], label='adapted', alpha=0.7, linewidth=2)
     twin1.plot(0,0, label='raw time', alpha=1.0, color='k', linewidth=2)
     twin1.plot(0,0, label='percent increase', alpha=1.0, color='k', linewidth=2, linestyle='--')
     # twin1.plot(x, y_percent[0], alpha=0.7, color='k', linewidth=2,linestyle='--')
@@ -377,6 +377,17 @@ def plot_isolate_timing_split(
     plt.style.use('seaborn-v0_8')
     if mode_labels is None:
         mode_labels = ['native', 'xfrc', 'adapted', 'jpQ-DER']
+    
+    # TEMP: Filter to only show native, xfrc (direct), and adapted
+    keep_indices = [0, 1, 3]  # native, xfrc, adapted
+    t_total = t_total[:, keep_indices]
+    t_applyFT = t_applyFT[:, keep_indices]
+    t_rest = t_rest[:, keep_indices]
+    if t_total_std is not None:
+        t_total_std = t_total_std[:, keep_indices]
+    if mode_labels is not None:
+        mode_labels = [mode_labels[i] for i in keep_indices]
+    
     x = np.array(pieces_list)
     n_modes = t_total.shape[1]
 
@@ -384,7 +395,38 @@ def plot_isolate_timing_split(
     ax.set_facecolor('white')
     ax.grid(color='#DDDDDD', linewidth=0.8, zorder=0)
 
-    colors = plt.cm.tab10(np.linspace(0, 1, max(n_modes, 4)))
+    # Color mapping for models (slightly darker, still soft)
+    color_map = {
+        "native": "#e77c8d",      # darker soft red
+        "xfrc": "#8c8c8c",        # medium grey
+        "direct": "#8c8c8c",      # medium grey
+        "adapted": "#7b95c3",     # darker soft blue
+        "der_hybrid": "#a291e1",  # teal-ish
+        "jpq-der": "#56ad74",     # darker soft green
+        "jpq_der": "#56ad74",
+        "jpqder": "#56ad74",
+    }
+    
+    # Get colors for each mode
+    colors = []
+    for j in range(n_modes):
+        if j < len(mode_labels):
+            # Normalize label: lowercase and replace common variations
+            name = mode_labels[j].lower().replace("-", "_").replace(" ", "_")
+            # Try exact match first, then try with underscores/dashes
+            c = color_map.get(name, None)
+            if c is None:
+                # Try variations
+                name_alt = name.replace("_", "-")
+                c = color_map.get(name_alt, None)
+            if c is None:
+                # Fallback to tab10 colormap
+                c = plt.cm.tab10(j / max(n_modes, 4))
+        else:
+            c = plt.cm.tab10(j / max(n_modes, 4))
+        colors.append(c)
+    
+    # Plot all lines without labels
     for j in range(n_modes):
         c = colors[j]
         # Plot total with error bars if std dev is provided
@@ -392,20 +434,57 @@ def plot_isolate_timing_split(
             ax.errorbar(x, t_total[:, j], yerr=t_total_std[:, j], 
                        color=c, linewidth=1.6, linestyle='-', capsize=3, capthick=1.2,
                        elinewidth=1.6, alpha=0.75,
-                       label=f"{mode_labels[j]} (total)", zorder=3)
+                       label=None, zorder=3)
         else:
             ax.plot(x, t_total[:, j], color=c, linewidth=2, linestyle='-',
-                    label=f"{mode_labels[j]} (total)")
+                    label=None)
         ax.plot(x, t_applyFT[:, j], color=c, linewidth=1.5, linestyle='--',
-                label=f"{mode_labels[j]} (applyFT)")
+                label=None)
         ax.plot(x, t_rest[:, j], color=c, linewidth=1.5, linestyle=':',
-                label=f"{mode_labels[j]} (rest)")
+                label=None)
 
     ax.set_xlabel('Number of Discrete Pieces', fontsize=14)
     ax.set_ylabel('Avg time per step (ms)', fontsize=14)
     ax.set_xticks(x)
     ax.tick_params(axis='both', which='major', labelsize=12)
-    ax.legend(fontsize=10, loc='upper left', ncol=2)
+    
+    # Create single legend with two columns: models (left) and line styles (right)
+    from matplotlib.lines import Line2D
+
+    # Model entries (colored solid lines)
+    model_handles = []
+    for j in range(n_modes):
+        if j < len(mode_labels):
+            label = mode_labels[j]
+        else:
+            label = f"mode {j}"
+        model_handles.append(
+            Line2D([0], [0], color=colors[j], linewidth=2, linestyle='-', label=label)
+        )
+    
+    # Line style entries (black)
+    style_handles = [
+        Line2D([0], [0], color='black', linewidth=2, linestyle='-', label='total'),
+        Line2D([0], [0], color='black', linewidth=1.5, linestyle='--', label='applyFT'),
+        Line2D([0], [0], color='black', linewidth=1.5, linestyle=':', label='stiffcompute'),
+    ]
+    
+    # Interleave handles so models appear in left column and styles in right column
+    # With ncol=2, items fill row by row: row1=[item0, item1], row2=[item2, item3], etc.
+    # We want: left column = models, right column = styles
+    max_len = max(len(model_handles), len(style_handles))
+    legend_handles = []
+    
+    for i in range(len(model_handles)):
+        # Left column: model (if available)
+        legend_handles.append(model_handles[i])
+        
+    legend_handles.append(Line2D([0], [0], visible=False))
+    for i in range(len(style_handles)):
+        # Right column: style (if available)
+        legend_handles.append(style_handles[i])
+    
+    ax.legend(handles=legend_handles, fontsize=10, loc='upper left', ncol=2)
     plt.tight_layout()
     plt.savefig(img_path + "plgn/compute_time_isolate_split.pdf", bbox_inches='tight')
     plt.show()
