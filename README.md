@@ -21,9 +21,11 @@ Also requires:
 ```
 pip install -e .
 ```
-2. Build dlo_cpp:
+2. Build C++ model backends:
 ```
 cd adapteddlo_muj/controllers/dlo_cpp
+bash swigbuild.sh
+cd ../massspring_cpp
 bash swigbuild.sh
 cd ../../..
 ```
@@ -38,10 +40,21 @@ and [test_type] = 'lhb' - localized helical buckling test, or 'mbi' - Michell's 
 ```
 python plot_mbicombined.py
 ```
-5. For computation speed tests:
+5. For computation speed tests (modular model runners):
 ```
-python speed_test.py
+python speed_test.py --newstart 1
 ```
+Optional model selection:
+```
+python speed_test.py --newstart 1 --models plain,native,xfrc,adapt,massspring,jpq_der
+```
+Load and plot previously saved JSON results:
+```
+python speed_test.py --newstart 0 --models plain,native
+```
+Outputs are written per model to:
+`adapteddlo_muj/data/speed_test/<test_type>_<model>.json`
+
 ## Real experiments
 # Real:
 6. To obtain 2D shape from image for parameter identification:
@@ -62,10 +75,34 @@ python real2sim_paramiden.py
 python test_shape_w_arm.py
 ```
 # Compare:
-10. To compare sim and real DLO poses:
+10. To compare sim and real DLO poses (modular model runners):
 ```
 python simvreal_dlomuj.py
 ```
+Optional model selection:
+```
+python simvreal_dlomuj.py --models adapt,native,massspring
+```
+Optional filtering by wire color and move id:
+```
+python simvreal_dlomuj.py --models adapt --wirecolor white --moveid 1
+```
+Outputs are written per model to:
+`adapteddlo_muj/data/simvreal_test/simvreal_<model>.json`
+
+## Adding a new model to modular runners
+1. Add a new model module:
+   - speed test: `adapteddlo_muj/envs/speed_test/<new_model>.py`
+   - simvreal test: `adapteddlo_muj/envs/simvreal_test/<new_model>.py`
+2. Register it:
+   - update `adapteddlo_muj/envs/speed_test/registry.py` and/or
+   - update `adapteddlo_muj/envs/simvreal_test/registry.py`
+3. Run with explicit model selection:
+```
+python speed_test.py --newstart 1 --models <new_model>
+python simvreal_dlomuj.py --models <new_model>
+```
+4. (Optional) Add it to `DEFAULT_MODELS` in each registry if you want it included by default.
 
 Note:
 - adjust time step to ensure stability

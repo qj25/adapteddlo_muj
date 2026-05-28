@@ -1,25 +1,30 @@
-"""
-To-do:
-"""
-
 import os
+import json
 import numpy as np
-import matplotlib.pyplot as plt
-from time import time
-import pickle
+from datetime import datetime, timezone
 
-from adapteddlo_muj.envs.plain_rope_valid_test import TestPlainRopeEnv
-from adapteddlo_muj.envs.our_xfrc_rope_valid_test import TestRopeXfrcEnv
-from adapteddlo_muj.envs.our_rope_valid_test import TestRopeEnv
-from adapteddlo_muj.envs.native_cable_valid_test import TestCableEnv
+from adapteddlo_muj.envs.speed_test.base import build_result_payload
+from adapteddlo_muj.envs.speed_test.registry import (
+    DEFAULT_MODELS,
+    get_model_specs,
+    parse_models_arg,
+)
 from adapteddlo_muj.utils.argparse_utils import spdt_parse
 from adapteddlo_muj.utils.plotter import plot_computetime
 
 #======================| Settings |======================
 parser = spdt_parse()
+parser.add_argument(
+    "--models",
+    type=str,
+    default=None,
+    help="Comma-separated model names to run (plain,native,xfrc,adapt,massspring,jpq_der).",
+)
 args = parser.parse_args()
 
 new_start = bool(args.newstart)
+model_names = parse_models_arg(args.models, DEFAULT_MODELS)
+model_specs = get_model_specs(model_names)
 
 test_type = 'speedtest2'
 
@@ -34,115 +39,53 @@ else:
     # r_pieces_list = [80]
 # r_pieces_list = [80]
 #======================| End Settings |======================
-
-speedtest_picklename = f'{test_type}_res.pickle'
-speedtest_picklename = os.path.join(
+data_dir = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-    "adapteddlo_muj/data/speed_test/" + speedtest_picklename
+    "adapteddlo_muj/data/speed_test"
 )
+os.makedirs(data_dir, exist_ok=True)
+
+
+def output_path(model_name):
+    return os.path.join(data_dir, f"{test_type}_{model_name}.json")
+
 
 if new_start:
-    t_list = np.zeros((len(r_pieces_list),4))
+    settings = {
+        "test_type": test_type,
+        "r_len": r_len,
+        "r_thickness": r_thickness,
+        "alpha_val": alpha_val,
+        "beta_val": beta_val,
+    }
+    for model_name, model_spec in model_specs.items():
+        t_list = np.zeros((len(r_pieces_list),))
+        for i, r_pieces in enumerate(r_pieces_list):
+            print(f"[{model_name}] Testing speed for {r_pieces} pieces.. ..")
+            run_cfg = dict(settings)
+            run_cfg["r_pieces"] = r_pieces
+            t_list[i] = model_spec["run"](run_cfg)
 
-    for i in range(len(r_pieces_list)):
-        print(f"Testing speed for {r_pieces_list[i]} pieces.. ..")
-        # Plain
-        print("Plain:")
-        env_plain = TestPlainRopeEnv(
-            overall_rot=0.0,
-            do_render=False,
-            r_pieces=r_pieces_list[i],
-            r_len=r_len,
-            r_thickness=r_thickness,
+        payload = build_result_payload(
+            model=model_name,
             test_type=test_type,
-            alpha_bar=alpha_val,
-            beta_bar=beta_val,
+            r_pieces_list=[int(v) for v in r_pieces_list],
+            times=t_list.tolist(),
+            settings=settings,
+            created_at=datetime.now(timezone.utc).isoformat(),
         )
-        if test_type == 'speedtest1':
-            t_list[i,0] = env_plain.run_speedtest1()
-        else:
-            t_list[i,0] = env_plain.run_speedtest2()
-
-        # Native
-        print("Native:")
-        env_native = TestCableEnv(
-            overall_rot=0.0,
-            do_render=False,
-            r_pieces=r_pieces_list[i],
-            r_len=r_len,
-            r_thickness=r_thickness,
-            test_type=test_type,
-            alpha_bar=alpha_val,
-            beta_bar=beta_val,
-        )
-        if test_type == 'speedtest1':
-            t_list[i,1] = env_native.run_speedtest1()
-        else:
-            t_list[i,1] = env_native.run_speedtest2()
-
-        # Our
-        print("Xfrc:")
-        env_xfrc = TestRopeXfrcEnv(
-            overall_rot=0.0,
-            do_render=False,
-            r_pieces=r_pieces_list[i],
-            r_len=r_len,
-            r_thickness=r_thickness,
-            test_type=test_type,
-            alpha_bar=alpha_val,
-            beta_bar=beta_val,
-        )
-        if test_type == 'speedtest1':
-            t_list[i,2] = env_xfrc.run_speedtest1()
-        else:
-            t_list[i,2] = env_xfrc.run_speedtest2()
-
-        # Our2
-        print("Bal:")
-        env_our = TestRopeEnv(
-            overall_rot=0.0,
-            do_render=False,
-            r_pieces=r_pieces_list[i],
-            r_len=r_len,
-            r_thickness=r_thickness,
-            test_type=test_type,
-            alpha_bar=alpha_val,
-            beta_bar=beta_val,
-        )
-        if test_type == 'speedtest1':
-            t_list[i,3] = env_our.run_speedtest1()
-        else:
-            t_list[i,3] = env_our.run_speedtest2()
-
-
-    speedtest_data = [r_pieces_list, t_list]
-    input("Saving pickle. Press 'Enter' to confirm.. ..")
-    with open(speedtest_picklename, 'wb') as f:
-        pickle.dump(speedtest_data,f)
-    print("Pickle saved!")
+        with open(output_path(model_name), "w", encoding="utf-8") as f:
+            json.dump(payload, f, indent=2)
+        print(f"Saved: {output_path(model_name)}")
 
 else:
-    with open(speedtest_picklename, 'rb') as f:
-        r_pieces_list, t_list = pickle.load(f)
-    print("Pickle loaded!")
-    print(t_list)
-    plot_computetime(
-        r_pieces_list, 
-        [
-            t_list[:,0],
-            t_list[:,1],
-            t_list[:,2],
-            t_list[:,3],
-        ]
-    )
-
-    # plt.figure("Speed Tests")
-    # plt.xlabel("r_pieces")
-    # plt.ylabel('time ratio (real/sim)')
-    # input(len(t_list[0]))
-    # for i in range(len(t_list[0])):
-    #     plt.plot(r_pieces_list, t_list[:,i])
-    # plt.legend(['plain','native','direct','adapt'])
-    # plt.grid(True)
-    # plt.tight_layout()
-    # plt.show()
+    series = []
+    for model_name in model_names:
+        model_path = output_path(model_name)
+        with open(model_path, "r", encoding="utf-8") as f:
+            payload = json.load(f)
+        if not series:
+            r_pieces_list = payload["r_pieces_list"]
+        series.append(np.array(payload["times"], dtype=float))
+        print(f"Loaded: {model_path}")
+    plot_computetime(r_pieces_list, series)

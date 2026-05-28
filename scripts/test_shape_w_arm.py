@@ -55,7 +55,7 @@ do_render = args.render
 # note: for red3native, must reset vel every 100 steps to ensure final pos reachable (due to robot control)
 
 if stest_types is None:
-    stest_types = ['adapt','native']
+    stest_types = ['adapt', 'native', 'massspring']
 else:
     stest_types = [stest_types]
 if wire_colors is None:
@@ -70,6 +70,7 @@ model_type2id = dict(
     adapt=0,
     xfrc=1,
     native=2,
+    massspring=3,
 )
 # alpha_glob_arr 
 # -- rows=model_type(adapt,xfrc,native)
@@ -163,6 +164,11 @@ class manip_rope_seq:
             os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
             "adapteddlo_muj/data/dlo_muj_real/stiff_vals/" + stiff_picklename
         )
+        if not os.path.exists(stiff_picklename) and stest_type == "massspring":
+            stiff_picklename = os.path.join(
+                os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                "adapteddlo_muj/data/dlo_muj_real/stiff_vals/" + wire_color + "_adapt_stiff.pickle"
+            )
         with open(stiff_picklename, 'rb') as f:
             stiff_pickle = pickle.load(f)
         alpha_glob, b_a_glob = stiff_pickle

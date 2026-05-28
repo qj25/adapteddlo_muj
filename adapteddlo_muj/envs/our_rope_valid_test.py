@@ -19,6 +19,8 @@ import adapteddlo_muj.utils.mjc2_utils as mjc2
 from adapteddlo_muj.assets.genrope.gdv_O import GenKin_O
 from adapteddlo_muj.assets.genrope.gdv_O_weld2 import GenKin_O_weld2
 from adapteddlo_muj.controllers.ropekin_controller_adapt import DLORopeAdapt
+from adapteddlo_muj.controllers.ropekin_controller_massspring import DLORopeMassSpring
+from adapteddlo_muj.controllers.ropekin_controller_xpbd import DLORopeXpbd
 from adapteddlo_muj.utils.data_utils import compute_PCA, centralize_devdata
 
 
@@ -36,13 +38,15 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
         overall_rot=None,
         new_start=False,
         limit_f=False,
+        model_name="adapt",
     ):
         utils.EzPickle.__init__(self)
 
         self.do_render = do_render
         self.test_type = test_type
         self.limit_f = limit_f
-        self.picklefolder = 'adapt'
+        self.model_name = model_name
+        self.picklefolder = self.model_name
 
         # rope init
         self.r_len = r_len
@@ -114,16 +118,42 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
 
         # init dlo controller
         self.f_limit = 1000.
-        self.dlo_sim = DLORopeAdapt(
-            model=self.model,
-            data=self.data,
-            n_link=self.r_pieces,
-            alpha_bar=self.alpha_bar,
-            beta_bar=self.beta_bar,
-            overall_rot=self.overall_rot,
-            f_limit=self.f_limit,
-            bothweld=self.bothweld
-        )
+        if self.model_name == "massspring":
+            self.dlo_sim = DLORopeMassSpring(
+                model=self.model,
+                data=self.data,
+                n_link=self.r_pieces,
+                alpha_bar=self.alpha_bar,
+                beta_bar=self.beta_bar,
+                overall_rot=self.overall_rot,
+                f_limit=self.f_limit,
+                bothweld=self.bothweld,
+            )
+        elif self.model_name == "xpbd":
+            seg_len = self.r_len / float(self.r_pieces)
+            self.dlo_sim = DLORopeXpbd(
+                model=self.model,
+                data=self.data,
+                n_link=self.r_pieces,
+                segment_length=seg_len,
+                radius=self.r_thickness / 2.0,
+                alpha_bar=self.alpha_bar,
+                beta_bar=self.beta_bar,
+                overall_rot=self.overall_rot,
+                f_limit=self.f_limit,
+                bothweld=self.bothweld,
+            )
+        else:
+            self.dlo_sim = DLORopeAdapt(
+                model=self.model,
+                data=self.data,
+                n_link=self.r_pieces,
+                alpha_bar=self.alpha_bar,
+                beta_bar=self.beta_bar,
+                overall_rot=self.overall_rot,
+                f_limit=self.f_limit,
+                bothweld=self.bothweld
+            )
         # if self.do_render:
         #     self.viewer._paused = True
 
@@ -290,7 +320,8 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
 
         if self.instability_check():
             print(f'unstable {self.env_steps}')
-            self.viewer._paused = True
+            if self.viewer is not None:
+                self.viewer._paused = True
             # input()
             # if self.do_render:
                 # self.viewer.render()
@@ -870,6 +901,11 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
             os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
             "data/lhb/" + self.picklefolder + "/" + lhb_picklename
         )
+        if not os.path.exists(lhb_picklename) and self.model_name in ("massspring", "xpbd"):
+            lhb_picklename = os.path.join(
+                os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                "data/lhb/adapt/" + 'lhbtest{}.pickle'.format(self.r_pieces)
+            )
         with open(lhb_picklename, 'rb') as f:
             self.init_pickle = pickle.load(f)
         self.set_state(self.init_pickle)
