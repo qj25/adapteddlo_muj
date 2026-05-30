@@ -21,6 +21,7 @@ from adapteddlo_muj.assets.genrope.gdv_O_weld2 import GenKin_O_weld2
 from adapteddlo_muj.controllers.ropekin_controller_adapt import DLORopeAdapt
 from adapteddlo_muj.controllers.ropekin_controller_massspring import DLORopeMassSpring
 from adapteddlo_muj.controllers.ropekin_controller_xpbd import DLORopeXpbd
+from adapteddlo_muj.controllers.ropekin_controller_geds import DLORopeGeds
 from adapteddlo_muj.utils.data_utils import compute_PCA, centralize_devdata
 
 
@@ -132,6 +133,20 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
         elif self.model_name == "xpbd":
             seg_len = self.r_len / float(self.r_pieces)
             self.dlo_sim = DLORopeXpbd(
+                model=self.model,
+                data=self.data,
+                n_link=self.r_pieces,
+                segment_length=seg_len,
+                radius=self.r_thickness / 2.0,
+                alpha_bar=self.alpha_bar,
+                beta_bar=self.beta_bar,
+                overall_rot=self.overall_rot,
+                f_limit=self.f_limit,
+                bothweld=self.bothweld,
+            )
+        elif self.model_name == "geds":
+            seg_len = self.r_len / float(self.r_pieces)
+            self.dlo_sim = DLORopeGeds(
                 model=self.model,
                 data=self.data,
                 n_link=self.r_pieces,
@@ -256,6 +271,7 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
                 obj_path=rope_path,
             )
         elif self.test_type == 'speedtest1':
+            self.bothweld = False
             # j_damp = self.r_len / 9.29
             j_damp = 0.5
             GenKin_O(
@@ -901,7 +917,7 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
             os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
             "data/lhb/" + self.picklefolder + "/" + lhb_picklename
         )
-        if not os.path.exists(lhb_picklename) and self.model_name in ("massspring", "xpbd"):
+        if not os.path.exists(lhb_picklename) and self.model_name in ("massspring", "xpbd", "geds"):
             lhb_picklename = os.path.join(
                 os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                 "data/lhb/adapt/" + 'lhbtest{}.pickle'.format(self.r_pieces)

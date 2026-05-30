@@ -1,8 +1,8 @@
-from adapteddlo_muj.envs.validitytest_env import TestPluginEnv
+from adapteddlo_muj.envs.our_rope_valid_test import TestRopeEnv
 
 
 def _run(settings):
-    env = TestPluginEnv(
+    env = TestRopeEnv(
         overall_rot=0.0,
         do_render=False,
         r_pieces=settings["r_pieces"],
@@ -11,7 +11,7 @@ def _run(settings):
         test_type=settings["test_type"],
         alpha_bar=settings["alpha_val"],
         beta_bar=settings["beta_val"],
-        plugin_name="wire",
+        model_name="geds",
     )
     if settings["test_type"] == "speedtest1":
         return env.run_speedtest1()
@@ -19,4 +19,4 @@ def _run(settings):
 
 
 def get_model_spec():
-    return {"name": "jpq_der", "run": _run}
+    return {"name": "geds", "run": _run}

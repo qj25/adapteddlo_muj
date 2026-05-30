@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from adapteddlo_muj.envs.speed_test.base import build_result_payload
 from adapteddlo_muj.envs.speed_test.registry import (
     DEFAULT_MODELS,
+    MODEL_REGISTRY,
     get_model_specs,
     parse_models_arg,
 )
@@ -14,11 +15,13 @@ from adapteddlo_muj.utils.plotter import plot_computetime
 
 #======================| Settings |======================
 parser = spdt_parse()
+_MODELS_HELP = ",".join(MODEL_REGISTRY.keys())
 parser.add_argument(
     "--models",
     type=str,
     default=None,
-    help="Comma-separated model names to run (plain,native,xfrc,adapt,massspring,jpq_der).",
+    help=f"Comma-separated model names to run. Available: {_MODELS_HELP}. "
+    f"Default: {','.join(DEFAULT_MODELS)}.",
 )
 args = parser.parse_args()
 

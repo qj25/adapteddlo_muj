@@ -8,16 +8,19 @@ from adapteddlo_muj.utils.plotter import plot_bars
 from adapteddlo_muj.utils.argparse_utils import svr_parse
 from adapteddlo_muj.envs.simvreal_test.registry import (
     DEFAULT_MODELS,
+    MODEL_REGISTRY,
     get_model_specs,
     parse_models_arg,
 )
 
 parser = svr_parse()
+_MODELS_HELP = ",".join(MODEL_REGISTRY.keys())
 parser.add_argument(
     "--models",
     type=str,
     default=None,
-    help="Comma-separated model names to run (adapt,native,massspring).",
+    help=f"Comma-separated model names to run. Available: {_MODELS_HELP}. "
+    f"Default: {','.join(DEFAULT_MODELS)}.",
 )
 args = parser.parse_args()
 

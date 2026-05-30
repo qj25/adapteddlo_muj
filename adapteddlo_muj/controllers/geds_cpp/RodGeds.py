@@ -7,9 +7,9 @@
 from sys import version_info as _swig_python_version_info
 # Import the low-level C/C++ module
 if __package__ or "." in __name__:
-    from . import _RodXpbd
+    from . import _RodGeds
 else:
-    import _RodXpbd
+    import _RodGeds
 
 try:
     import builtins as __builtin__
@@ -58,32 +58,26 @@ class _SwigNonDynamicMeta(type):
     __setattr__ = _swig_setattr_nondynamic_class_variable(type.__setattr__)
 
 
-class RodXpbd(object):
+class RodGeds(object):
     thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
     __repr__ = _swig_repr
 
-    def __init__(self, n_segments, dim_x, dim_q, segment_length, radius, youngs_modulus, torsion_modulus, bothweld):
-        _RodXpbd.RodXpbd_swiginit(self, _RodXpbd.new_RodXpbd(n_segments, dim_x, dim_q, segment_length, radius, youngs_modulus, torsion_modulus, bothweld))
-    __swig_destroy__ = _RodXpbd.delete_RodXpbd
+    def __init__(self, n_nodes, segment_length, diameter, youngs_modulus, torsion_modulus):
+        _RodGeds.RodGeds_swiginit(self, _RodGeds.new_RodGeds(n_nodes, segment_length, diameter, youngs_modulus, torsion_modulus))
+    __swig_destroy__ = _RodGeds.delete_RodGeds
 
     def setMaterial(self, youngs_modulus, torsion_modulus):
-        return _RodXpbd.RodXpbd_setMaterial(self, youngs_modulus, torsion_modulus)
+        return _RodGeds.RodGeds_setMaterial(self, youngs_modulus, torsion_modulus)
 
-    def setForceGain(self, k_force):
-        return _RodXpbd.RodXpbd_setForceGain(self, k_force)
+    def setNumSamples(self, samples_per_span):
+        return _RodGeds.RodGeds_setNumSamples(self, samples_per_span)
 
-    def setTorqueGain(self, k_torque):
-        return _RodXpbd.RodXpbd_setTorqueGain(self, k_torque)
+    def reinitRest(self, dim_x, dim_q):
+        return _RodGeds.RodGeds_reinitRest(self, dim_x, dim_q)
 
-    def setNumIterations(self, num_iters):
-        return _RodXpbd.RodXpbd_setNumIterations(self, num_iters)
+    def computeElasticWrenches(self, dim_x, dim_q, dim_f, dim_t):
+        return _RodGeds.RodGeds_computeElasticWrenches(self, dim_x, dim_q, dim_f, dim_t)
 
-    def reinitRestPose(self, dim_x, dim_q):
-        return _RodXpbd.RodXpbd_reinitRestPose(self, dim_x, dim_q)
-
-    def computeWrenches(self, dim_x, dim_q, dim_m, dim_i, dt, dim_f, dim_t):
-        return _RodXpbd.RodXpbd_computeWrenches(self, dim_x, dim_q, dim_m, dim_i, dt, dim_f, dim_t)
-
-# Register RodXpbd in _RodXpbd:
-_RodXpbd.RodXpbd_swigregister(RodXpbd)
+# Register RodGeds in _RodGeds:
+_RodGeds.RodGeds_swigregister(RodGeds)
 

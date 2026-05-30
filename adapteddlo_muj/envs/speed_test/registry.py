@@ -1,9 +1,9 @@
 from typing import Dict, List, Optional
 
-from adapteddlo_muj.envs.speed_test import adapt, jpq_der, massspring, native, plain, xfrc, xpbd
+from adapteddlo_muj.envs.speed_test import adapt, geds, jpqder, massspring, native, plain, xfrc, xpbd
 
 
-DEFAULT_MODELS = ["plain", "native", "xfrc", "adapt", "massspring", "jpq_der"]
+DEFAULT_MODELS = ["plain", "native", "xfrc", "adapt", "massspring", "jpqder"]
 
 MODEL_REGISTRY = {
     "plain": plain.get_model_spec(),
@@ -11,8 +11,9 @@ MODEL_REGISTRY = {
     "xfrc": xfrc.get_model_spec(),
     "adapt": adapt.get_model_spec(),
     "massspring": massspring.get_model_spec(),
-    "jpq_der": jpq_der.get_model_spec(),
+    "jpqder": jpqder.get_model_spec(),
     "xpbd": xpbd.get_model_spec(),
+    "geds": geds.get_model_spec(),
 }
 
 

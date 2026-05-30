@@ -27,6 +27,10 @@ cd adapteddlo_muj/controllers/dlo_cpp
 bash swigbuild.sh
 cd ../massspring_cpp
 bash swigbuild.sh
+cd ../xpbd_cpp
+bash swigbuild.sh
+cd ../geds_cpp
+bash swigbuild.sh
 cd ../../..
 ```
 3. To obtain validation results:
@@ -46,7 +50,7 @@ python speed_test.py --newstart 1
 ```
 Optional model selection:
 ```
-python speed_test.py --newstart 1 --models plain,native,xfrc,adapt,massspring,jpq_der
+python speed_test.py --newstart 1 --models plain,native,xfrc,adapt,massspring,jpqder,xpbd,geds
 ```
 Load and plot previously saved JSON results:
 ```
@@ -70,10 +74,54 @@ python get_pos/get_depth_many_azure.py
 ```
 python real2sim_paramiden.py
 ```
-9. To simulate DLO held by Denso VS-060 robot arm in 4 different poses:
+9. To simulate DLO held by Denso VS-060 robot arm in 4 different poses (modular model runners):
+
+Run from `scripts/` after `pip install -e .` and building the C++ backends (step 2). Stiffness values are read from `adapteddlo_muj/data/dlo_muj_real/stiff_vals/` (produce these with step 8, `real2sim_paramiden.py`).
+
+**Default** (all default models, all wire colors, all four move poses):
 ```
+cd scripts
 python test_shape_w_arm.py
 ```
+
+**Available models** (registered in `adapteddlo_muj/envs/test_shape_w_arm/registry.py`):
+
+| Model | Backend | Notes |
+|-------|---------|--------|
+| `adapt` | `ValidRnR2Env`, adapted DLO stiffness | Default |
+| `native` | `ValidRnR2Env`, native MuJoCo cable stiffness | Default |
+| `massspring` | `ValidRnR2Env`, mass-spring backend | Default; uses `{color}_adapt_stiff.pickle` if massspring stiff file is missing |
+| `xfrc` | `ValidRnR2Env`, direct external-force formulation | |
+| `geds` | `ValidRnR2Env`, GEDS backend | Requires `geds_cpp` build (step 2) |
+| `jpqder` | `ValidRnR3Env`, MuJoCo plugin `wire` | Requires wire plugin; see [C++ plugin](#c++-plugin) |
+
+Default models: `adapt`, `native`, `massspring`.
+
+**Select models** (`--models` overrides `--stiff`):
+```
+python test_shape_w_arm.py --models adapt,native,massspring
+python test_shape_w_arm.py --models jpqder
+python test_shape_w_arm.py --models adapt,geds,jpqder
+```
+
+**Legacy single-model flag** (same names as `--models`):
+```
+python test_shape_w_arm.py --stiff native
+```
+
+**Filter wire color and move pose** (`moveid` 0–3):
+```
+python test_shape_w_arm.py --models adapt --wirecolor white --moveid 1
+python test_shape_w_arm.py --models native --wirecolor red --moveid 2
+```
+
+**Visualization**:
+```
+python test_shape_w_arm.py --models adapt --wirecolor white --moveid 0 --render 1
+```
+
+Model implementations live under `adapteddlo_muj/envs/test_shape_w_arm/` (one module per model). To compare sim shapes against real data afterward, run step 10 (`simvreal_dlomuj.py`) with the same model names; plugin sim pickles for `jpqder` are expected under `adapteddlo_muj/data/simdata/plugin/` as `simdata_{color}{moveid}_jpqder.pickle` (legacy `*_adapt2.pickle` is also accepted).
+
 # Compare:
 10. To compare sim and real DLO poses (modular model runners):
 ```
@@ -81,7 +129,7 @@ python simvreal_dlomuj.py
 ```
 Optional model selection:
 ```
-python simvreal_dlomuj.py --models adapt,native,massspring
+python simvreal_dlomuj.py --models adapt,native,massspring,jpqder,xpbd,geds
 ```
 Optional filtering by wire color and move id:
 ```
@@ -94,15 +142,24 @@ Outputs are written per model to:
 1. Add a new model module:
    - speed test: `adapteddlo_muj/envs/speed_test/<new_model>.py`
    - simvreal test: `adapteddlo_muj/envs/simvreal_test/<new_model>.py`
+   - shape test: `adapteddlo_muj/envs/test_shape_w_arm/<new_model>.py`
 2. Register it:
    - update `adapteddlo_muj/envs/speed_test/registry.py` and/or
-   - update `adapteddlo_muj/envs/simvreal_test/registry.py`
+   - update `adapteddlo_muj/envs/simvreal_test/registry.py` and/or
+   - update `adapteddlo_muj/envs/test_shape_w_arm/registry.py`
 3. Run with explicit model selection:
 ```
 python speed_test.py --newstart 1 --models <new_model>
 python simvreal_dlomuj.py --models <new_model>
+python test_shape_w_arm.py --models <new_model>
 ```
 4. (Optional) Add it to `DEFAULT_MODELS` in each registry if you want it included by default.
+
+Validate GEDS after building:
+
+```bash
+python adapteddlo_muj/controllers/geds_cpp/geds_validate.py
+```
 
 Note:
 - adjust time step to ensure stability

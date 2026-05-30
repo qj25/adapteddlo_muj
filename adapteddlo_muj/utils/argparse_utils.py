@@ -15,7 +15,7 @@ def tswa_parse():
     # Create the parser
     parser = argparse.ArgumentParser(description="test_shape_w_arm for producing simulation shapes and comparing with real experimental results.")
     # Add arguments with default values
-    parser.add_argument('--stiff', type=str, default=None, help='specify stiffness type: native, adapt, or massspring [default: all]')
+    parser.add_argument('--stiff', type=str, default=None, help='specify model (legacy alias for --models): native, adapt, massspring, jpqder, etc. [default: all]')
     parser.add_argument('--wirecolor', type=str, default=None, help='specify wire color: black, red, or white [default: all]')
     parser.add_argument('--moveid', type=int, default=None, help='specify moveid: 0 to 3')
     parser.add_argument('--render', type=int, default=0, help='Render mode: 0 (off) or 1 (on) [default: off]')

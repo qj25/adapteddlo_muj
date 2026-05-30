@@ -1,6 +1,6 @@
 from typing import Dict, List, Optional
 
-from adapteddlo_muj.envs.simvreal_test import adapt, geds, jpqder, massspring, native, xpbd
+from adapteddlo_muj.envs.test_shape_w_arm import adapt, geds, jpqder, massspring, native, xfrc
 
 
 DEFAULT_MODELS = ["adapt", "native", "massspring"]
@@ -9,7 +9,7 @@ MODEL_REGISTRY = {
     "adapt": adapt.get_model_spec(),
     "native": native.get_model_spec(),
     "massspring": massspring.get_model_spec(),
-    "xpbd": xpbd.get_model_spec(),
+    "xfrc": xfrc.get_model_spec(),
     "geds": geds.get_model_spec(),
     "jpqder": jpqder.get_model_spec(),
 }
@@ -26,7 +26,7 @@ def get_model_specs(model_names: List[str]) -> Dict:
     unknown = [m for m in model_names if m not in MODEL_REGISTRY]
     if unknown:
         raise ValueError(
-            f"Unknown simvreal model(s): {unknown}. "
+            f"Unknown test_shape_w_arm model(s): {unknown}. "
             f"Available: {list(MODEL_REGISTRY.keys())}"
         )
     return {m: MODEL_REGISTRY[m] for m in model_names}

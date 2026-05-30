@@ -11,7 +11,7 @@
 #define SWIGPYTHON
 #define SWIG_PYTHON_DIRECTOR_NO_VTABLE
 
-#define SWIG_name    "_RodXpbd"
+#define SWIG_name    "_RodGeds"
 /* -----------------------------------------------------------------------------
  *  This section contains generic SWIG labels for method/variable
  *  declarations/attributes, and other compiler dependent labels.
@@ -3204,7 +3204,7 @@ SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value) {
 
 /* -------- TYPES TABLE (BEGIN) -------- */
 
-#define SWIGTYPE_p_RodXpbd swig_types[0]
+#define SWIGTYPE_p_RodGeds swig_types[0]
 #define SWIGTYPE_p_char swig_types[1]
 static swig_type_info *swig_types[3];
 static swig_module_info swig_module = {swig_types, 2, 0, 0, 0, 0};
@@ -3219,13 +3219,13 @@ static swig_module_info swig_module = {swig_types, 2, 0, 0, 0, 0};
 #define SWIG_TypeQuery SWIG_Python_TypeQuery
 
 /*-----------------------------------------------
-              @(target):= _RodXpbd.so
+              @(target):= _RodGeds.so
   ------------------------------------------------*/
 #if PY_VERSION_HEX >= 0x03000000
-#  define SWIG_init    PyInit__RodXpbd
+#  define SWIG_init    PyInit__RodGeds
 
 #else
-#  define SWIG_init    init_RodXpbd
+#  define SWIG_init    init_RodGeds
 
 #endif
 
@@ -3355,7 +3355,7 @@ namespace swig {
 
 
 #define SWIG_FILE_WITH_INIT
-#include "RodXpbd.h"
+#include "RodGeds.h"
 
 
 #ifndef SWIG_FILE_WITH_INIT
@@ -3999,145 +3999,67 @@ SWIG_AsVal_int (PyObject * obj, int *val)
 
 
 
-
-SWIGINTERN int
-SWIG_AsVal_bool (PyObject *obj, bool *val)
-{
-  int r;
-  if (!PyBool_Check(obj))
-    return SWIG_ERROR;
-  r = PyObject_IsTrue(obj);
-  if (r == -1)
-    return SWIG_ERROR;
-  if (val) *val = r ? true : false;
-  return SWIG_OK;
-}
-
 #ifdef __cplusplus
 extern "C" {
 #endif
-SWIGINTERN PyObject *_wrap_new_RodXpbd(PyObject *self, PyObject *args) {
+SWIGINTERN PyObject *_wrap_new_RodGeds(PyObject *self, PyObject *args) {
   PyObject *resultobj = 0;
   int arg1 ;
-  int arg2 ;
-  double *arg3 = (double *) 0 ;
-  int arg4 ;
-  double *arg5 = (double *) 0 ;
-  double arg6 ;
-  double arg7 ;
-  double arg8 ;
-  double arg9 ;
-  bool arg10 ;
+  double arg2 ;
+  double arg3 ;
+  double arg4 ;
+  double arg5 ;
   int val1 ;
   int ecode1 = 0 ;
-  PyArrayObject *array2 = NULL ;
-  int is_new_object2 = 0 ;
-  PyArrayObject *array4 = NULL ;
-  int is_new_object4 = 0 ;
-  double val6 ;
-  int ecode6 = 0 ;
-  double val7 ;
-  int ecode7 = 0 ;
-  double val8 ;
-  int ecode8 = 0 ;
-  double val9 ;
-  int ecode9 = 0 ;
-  bool val10 ;
-  int ecode10 = 0 ;
-  PyObject *swig_obj[8] ;
-  RodXpbd *result = 0 ;
+  double val2 ;
+  int ecode2 = 0 ;
+  double val3 ;
+  int ecode3 = 0 ;
+  double val4 ;
+  int ecode4 = 0 ;
+  double val5 ;
+  int ecode5 = 0 ;
+  PyObject *swig_obj[5] ;
+  RodGeds *result = 0 ;
   
   (void)self;
-  if (!SWIG_Python_UnpackTuple(args, "new_RodXpbd", 8, 8, swig_obj)) SWIG_fail;
+  if (!SWIG_Python_UnpackTuple(args, "new_RodGeds", 5, 5, swig_obj)) SWIG_fail;
   ecode1 = SWIG_AsVal_int(swig_obj[0], &val1);
   if (!SWIG_IsOK(ecode1)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "new_RodXpbd" "', argument " "1"" of type '" "int""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "new_RodGeds" "', argument " "1"" of type '" "int""'");
   } 
   arg1 = static_cast< int >(val1);
-  {
-    npy_intp size[1] = {
-      -1
-    };
-    array2 = obj_to_array_contiguous_allow_conversion(swig_obj[1],
-      NPY_DOUBLE,
-      &is_new_object2);
-    if (!array2 || !require_dimensions(array2, 1) ||
-      !require_size(array2, size, 1)) SWIG_fail;
-    arg2 = (int) array_size(array2,0);
-    arg3 = (double*) array_data(array2);
-  }
-  {
-    npy_intp size[1] = {
-      -1
-    };
-    array4 = obj_to_array_contiguous_allow_conversion(swig_obj[2],
-      NPY_DOUBLE,
-      &is_new_object4);
-    if (!array4 || !require_dimensions(array4, 1) ||
-      !require_size(array4, size, 1)) SWIG_fail;
-    arg4 = (int) array_size(array4,0);
-    arg5 = (double*) array_data(array4);
-  }
-  ecode6 = SWIG_AsVal_double(swig_obj[3], &val6);
-  if (!SWIG_IsOK(ecode6)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "new_RodXpbd" "', argument " "6"" of type '" "double""'");
+  ecode2 = SWIG_AsVal_double(swig_obj[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "new_RodGeds" "', argument " "2"" of type '" "double""'");
   } 
-  arg6 = static_cast< double >(val6);
-  ecode7 = SWIG_AsVal_double(swig_obj[4], &val7);
-  if (!SWIG_IsOK(ecode7)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "new_RodXpbd" "', argument " "7"" of type '" "double""'");
+  arg2 = static_cast< double >(val2);
+  ecode3 = SWIG_AsVal_double(swig_obj[2], &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "new_RodGeds" "', argument " "3"" of type '" "double""'");
   } 
-  arg7 = static_cast< double >(val7);
-  ecode8 = SWIG_AsVal_double(swig_obj[5], &val8);
-  if (!SWIG_IsOK(ecode8)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "new_RodXpbd" "', argument " "8"" of type '" "double""'");
+  arg3 = static_cast< double >(val3);
+  ecode4 = SWIG_AsVal_double(swig_obj[3], &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "new_RodGeds" "', argument " "4"" of type '" "double""'");
   } 
-  arg8 = static_cast< double >(val8);
-  ecode9 = SWIG_AsVal_double(swig_obj[6], &val9);
-  if (!SWIG_IsOK(ecode9)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "new_RodXpbd" "', argument " "9"" of type '" "double""'");
+  arg4 = static_cast< double >(val4);
+  ecode5 = SWIG_AsVal_double(swig_obj[4], &val5);
+  if (!SWIG_IsOK(ecode5)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "new_RodGeds" "', argument " "5"" of type '" "double""'");
   } 
-  arg9 = static_cast< double >(val9);
-  ecode10 = SWIG_AsVal_bool(swig_obj[7], &val10);
-  if (!SWIG_IsOK(ecode10)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode10), "in method '" "new_RodXpbd" "', argument " "10"" of type '" "bool""'");
-  } 
-  arg10 = static_cast< bool >(val10);
-  result = (RodXpbd *)new RodXpbd(arg1,arg2,(double const *)arg3,arg4,(double const *)arg5,arg6,arg7,arg8,arg9,arg10);
-  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_RodXpbd, SWIG_POINTER_NEW |  0 );
-  {
-    if (is_new_object2 && array2)
-    {
-      Py_DECREF(array2); 
-    }
-  }
-  {
-    if (is_new_object4 && array4)
-    {
-      Py_DECREF(array4); 
-    }
-  }
+  arg5 = static_cast< double >(val5);
+  result = (RodGeds *)new RodGeds(arg1,arg2,arg3,arg4,arg5);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_RodGeds, SWIG_POINTER_NEW |  0 );
   return resultobj;
 fail:
-  {
-    if (is_new_object2 && array2)
-    {
-      Py_DECREF(array2); 
-    }
-  }
-  {
-    if (is_new_object4 && array4)
-    {
-      Py_DECREF(array4); 
-    }
-  }
   return NULL;
 }
 
 
-SWIGINTERN PyObject *_wrap_delete_RodXpbd(PyObject *self, PyObject *args) {
+SWIGINTERN PyObject *_wrap_delete_RodGeds(PyObject *self, PyObject *args) {
   PyObject *resultobj = 0;
-  RodXpbd *arg1 = (RodXpbd *) 0 ;
+  RodGeds *arg1 = (RodGeds *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject *swig_obj[1] ;
@@ -4145,11 +4067,11 @@ SWIGINTERN PyObject *_wrap_delete_RodXpbd(PyObject *self, PyObject *args) {
   (void)self;
   if (!args) SWIG_fail;
   swig_obj[0] = args;
-  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_RodXpbd, SWIG_POINTER_DISOWN |  0 );
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_RodGeds, SWIG_POINTER_DISOWN |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_RodXpbd" "', argument " "1"" of type '" "RodXpbd *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_RodGeds" "', argument " "1"" of type '" "RodGeds *""'"); 
   }
-  arg1 = reinterpret_cast< RodXpbd * >(argp1);
+  arg1 = reinterpret_cast< RodGeds * >(argp1);
   delete arg1;
   resultobj = SWIG_Py_Void();
   return resultobj;
@@ -4158,9 +4080,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_RodXpbd_setMaterial(PyObject *self, PyObject *args) {
+SWIGINTERN PyObject *_wrap_RodGeds_setMaterial(PyObject *self, PyObject *args) {
   PyObject *resultobj = 0;
-  RodXpbd *arg1 = (RodXpbd *) 0 ;
+  RodGeds *arg1 = (RodGeds *) 0 ;
   double arg2 ;
   double arg3 ;
   void *argp1 = 0 ;
@@ -4172,20 +4094,20 @@ SWIGINTERN PyObject *_wrap_RodXpbd_setMaterial(PyObject *self, PyObject *args) {
   PyObject *swig_obj[3] ;
   
   (void)self;
-  if (!SWIG_Python_UnpackTuple(args, "RodXpbd_setMaterial", 3, 3, swig_obj)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_RodXpbd, 0 |  0 );
+  if (!SWIG_Python_UnpackTuple(args, "RodGeds_setMaterial", 3, 3, swig_obj)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_RodGeds, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "RodXpbd_setMaterial" "', argument " "1"" of type '" "RodXpbd *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "RodGeds_setMaterial" "', argument " "1"" of type '" "RodGeds *""'"); 
   }
-  arg1 = reinterpret_cast< RodXpbd * >(argp1);
+  arg1 = reinterpret_cast< RodGeds * >(argp1);
   ecode2 = SWIG_AsVal_double(swig_obj[1], &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "RodXpbd_setMaterial" "', argument " "2"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "RodGeds_setMaterial" "', argument " "2"" of type '" "double""'");
   } 
   arg2 = static_cast< double >(val2);
   ecode3 = SWIG_AsVal_double(swig_obj[2], &val3);
   if (!SWIG_IsOK(ecode3)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "RodXpbd_setMaterial" "', argument " "3"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "RodGeds_setMaterial" "', argument " "3"" of type '" "double""'");
   } 
   arg3 = static_cast< double >(val3);
   (arg1)->setMaterial(arg2,arg3);
@@ -4196,69 +4118,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_RodXpbd_setForceGain(PyObject *self, PyObject *args) {
+SWIGINTERN PyObject *_wrap_RodGeds_setNumSamples(PyObject *self, PyObject *args) {
   PyObject *resultobj = 0;
-  RodXpbd *arg1 = (RodXpbd *) 0 ;
-  double arg2 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  double val2 ;
-  int ecode2 = 0 ;
-  PyObject *swig_obj[2] ;
-  
-  (void)self;
-  if (!SWIG_Python_UnpackTuple(args, "RodXpbd_setForceGain", 2, 2, swig_obj)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_RodXpbd, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "RodXpbd_setForceGain" "', argument " "1"" of type '" "RodXpbd *""'"); 
-  }
-  arg1 = reinterpret_cast< RodXpbd * >(argp1);
-  ecode2 = SWIG_AsVal_double(swig_obj[1], &val2);
-  if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "RodXpbd_setForceGain" "', argument " "2"" of type '" "double""'");
-  } 
-  arg2 = static_cast< double >(val2);
-  (arg1)->setForceGain(arg2);
-  resultobj = SWIG_Py_Void();
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_RodXpbd_setTorqueGain(PyObject *self, PyObject *args) {
-  PyObject *resultobj = 0;
-  RodXpbd *arg1 = (RodXpbd *) 0 ;
-  double arg2 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  double val2 ;
-  int ecode2 = 0 ;
-  PyObject *swig_obj[2] ;
-  
-  (void)self;
-  if (!SWIG_Python_UnpackTuple(args, "RodXpbd_setTorqueGain", 2, 2, swig_obj)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_RodXpbd, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "RodXpbd_setTorqueGain" "', argument " "1"" of type '" "RodXpbd *""'"); 
-  }
-  arg1 = reinterpret_cast< RodXpbd * >(argp1);
-  ecode2 = SWIG_AsVal_double(swig_obj[1], &val2);
-  if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "RodXpbd_setTorqueGain" "', argument " "2"" of type '" "double""'");
-  } 
-  arg2 = static_cast< double >(val2);
-  (arg1)->setTorqueGain(arg2);
-  resultobj = SWIG_Py_Void();
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_RodXpbd_setNumIterations(PyObject *self, PyObject *args) {
-  PyObject *resultobj = 0;
-  RodXpbd *arg1 = (RodXpbd *) 0 ;
+  RodGeds *arg1 = (RodGeds *) 0 ;
   int arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -4267,18 +4129,18 @@ SWIGINTERN PyObject *_wrap_RodXpbd_setNumIterations(PyObject *self, PyObject *ar
   PyObject *swig_obj[2] ;
   
   (void)self;
-  if (!SWIG_Python_UnpackTuple(args, "RodXpbd_setNumIterations", 2, 2, swig_obj)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_RodXpbd, 0 |  0 );
+  if (!SWIG_Python_UnpackTuple(args, "RodGeds_setNumSamples", 2, 2, swig_obj)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_RodGeds, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "RodXpbd_setNumIterations" "', argument " "1"" of type '" "RodXpbd *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "RodGeds_setNumSamples" "', argument " "1"" of type '" "RodGeds *""'"); 
   }
-  arg1 = reinterpret_cast< RodXpbd * >(argp1);
+  arg1 = reinterpret_cast< RodGeds * >(argp1);
   ecode2 = SWIG_AsVal_int(swig_obj[1], &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "RodXpbd_setNumIterations" "', argument " "2"" of type '" "int""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "RodGeds_setNumSamples" "', argument " "2"" of type '" "int""'");
   } 
   arg2 = static_cast< int >(val2);
-  (arg1)->setNumIterations(arg2);
+  (arg1)->setNumSamples(arg2);
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -4286,9 +4148,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_RodXpbd_reinitRestPose(PyObject *self, PyObject *args) {
+SWIGINTERN PyObject *_wrap_RodGeds_reinitRest(PyObject *self, PyObject *args) {
   PyObject *resultobj = 0;
-  RodXpbd *arg1 = (RodXpbd *) 0 ;
+  RodGeds *arg1 = (RodGeds *) 0 ;
   int arg2 ;
   double *arg3 = (double *) 0 ;
   int arg4 ;
@@ -4302,12 +4164,12 @@ SWIGINTERN PyObject *_wrap_RodXpbd_reinitRestPose(PyObject *self, PyObject *args
   PyObject *swig_obj[3] ;
   
   (void)self;
-  if (!SWIG_Python_UnpackTuple(args, "RodXpbd_reinitRestPose", 3, 3, swig_obj)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_RodXpbd, 0 |  0 );
+  if (!SWIG_Python_UnpackTuple(args, "RodGeds_reinitRest", 3, 3, swig_obj)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_RodGeds, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "RodXpbd_reinitRestPose" "', argument " "1"" of type '" "RodXpbd *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "RodGeds_reinitRest" "', argument " "1"" of type '" "RodGeds *""'"); 
   }
-  arg1 = reinterpret_cast< RodXpbd * >(argp1);
+  arg1 = reinterpret_cast< RodGeds * >(argp1);
   {
     npy_intp size[1] = {
       -1
@@ -4332,7 +4194,7 @@ SWIGINTERN PyObject *_wrap_RodXpbd_reinitRestPose(PyObject *self, PyObject *args
     arg4 = (int) array_size(array4,0);
     arg5 = (double*) array_data(array4);
   }
-  (arg1)->reinitRestPose(arg2,(double const *)arg3,arg4,(double const *)arg5);
+  (arg1)->reinitRest(arg2,(double const *)arg3,arg4,(double const *)arg5);
   resultobj = SWIG_Py_Void();
   {
     if (is_new_object2 && array2)
@@ -4364,9 +4226,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_RodXpbd_computeWrenches(PyObject *self, PyObject *args) {
+SWIGINTERN PyObject *_wrap_RodGeds_computeElasticWrenches(PyObject *self, PyObject *args) {
   PyObject *resultobj = 0;
-  RodXpbd *arg1 = (RodXpbd *) 0 ;
+  RodGeds *arg1 = (RodGeds *) 0 ;
   int arg2 ;
   double *arg3 = (double *) 0 ;
   int arg4 ;
@@ -4375,11 +4237,6 @@ SWIGINTERN PyObject *_wrap_RodXpbd_computeWrenches(PyObject *self, PyObject *arg
   double *arg7 = (double *) 0 ;
   int arg8 ;
   double *arg9 = (double *) 0 ;
-  double arg10 ;
-  int arg11 ;
-  double *arg12 = (double *) 0 ;
-  int arg13 ;
-  double *arg14 = (double *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyArrayObject *array2 = NULL ;
@@ -4390,21 +4247,15 @@ SWIGINTERN PyObject *_wrap_RodXpbd_computeWrenches(PyObject *self, PyObject *arg
   int is_new_object6 = 0 ;
   PyArrayObject *array8 = NULL ;
   int is_new_object8 = 0 ;
-  double val10 ;
-  int ecode10 = 0 ;
-  PyArrayObject *array11 = NULL ;
-  int is_new_object11 = 0 ;
-  PyArrayObject *array13 = NULL ;
-  int is_new_object13 = 0 ;
-  PyObject *swig_obj[8] ;
+  PyObject *swig_obj[5] ;
   
   (void)self;
-  if (!SWIG_Python_UnpackTuple(args, "RodXpbd_computeWrenches", 8, 8, swig_obj)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_RodXpbd, 0 |  0 );
+  if (!SWIG_Python_UnpackTuple(args, "RodGeds_computeElasticWrenches", 5, 5, swig_obj)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_RodGeds, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "RodXpbd_computeWrenches" "', argument " "1"" of type '" "RodXpbd *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "RodGeds_computeElasticWrenches" "', argument " "1"" of type '" "RodGeds *""'"); 
   }
-  arg1 = reinterpret_cast< RodXpbd * >(argp1);
+  arg1 = reinterpret_cast< RodGeds * >(argp1);
   {
     npy_intp size[1] = {
       -1
@@ -4453,36 +4304,7 @@ SWIGINTERN PyObject *_wrap_RodXpbd_computeWrenches(PyObject *self, PyObject *arg
     arg8 = (int) array_size(array8,0);
     arg9 = (double*) array_data(array8);
   }
-  ecode10 = SWIG_AsVal_double(swig_obj[5], &val10);
-  if (!SWIG_IsOK(ecode10)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode10), "in method '" "RodXpbd_computeWrenches" "', argument " "10"" of type '" "double""'");
-  } 
-  arg10 = static_cast< double >(val10);
-  {
-    npy_intp size[1] = {
-      -1
-    };
-    array11 = obj_to_array_contiguous_allow_conversion(swig_obj[6],
-      NPY_DOUBLE,
-      &is_new_object11);
-    if (!array11 || !require_dimensions(array11, 1) ||
-      !require_size(array11, size, 1)) SWIG_fail;
-    arg11 = (int) array_size(array11,0);
-    arg12 = (double*) array_data(array11);
-  }
-  {
-    npy_intp size[1] = {
-      -1
-    };
-    array13 = obj_to_array_contiguous_allow_conversion(swig_obj[7],
-      NPY_DOUBLE,
-      &is_new_object13);
-    if (!array13 || !require_dimensions(array13, 1) ||
-      !require_size(array13, size, 1)) SWIG_fail;
-    arg13 = (int) array_size(array13,0);
-    arg14 = (double*) array_data(array13);
-  }
-  (arg1)->computeWrenches(arg2,(double const *)arg3,arg4,(double const *)arg5,arg6,(double const *)arg7,arg8,(double const *)arg9,arg10,arg11,arg12,arg13,arg14);
+  (arg1)->computeElasticWrenches(arg2,(double const *)arg3,arg4,(double const *)arg5,arg6,arg7,arg8,arg9);
   resultobj = SWIG_Py_Void();
   {
     if (is_new_object2 && array2)
@@ -4506,18 +4328,6 @@ SWIGINTERN PyObject *_wrap_RodXpbd_computeWrenches(PyObject *self, PyObject *arg
     if (is_new_object8 && array8)
     {
       Py_DECREF(array8); 
-    }
-  }
-  {
-    if (is_new_object11 && array11)
-    {
-      Py_DECREF(array11); 
-    }
-  }
-  {
-    if (is_new_object13 && array13)
-    {
-      Py_DECREF(array13); 
     }
   }
   return resultobj;
@@ -4546,63 +4356,49 @@ fail:
       Py_DECREF(array8); 
     }
   }
-  {
-    if (is_new_object11 && array11)
-    {
-      Py_DECREF(array11); 
-    }
-  }
-  {
-    if (is_new_object13 && array13)
-    {
-      Py_DECREF(array13); 
-    }
-  }
   return NULL;
 }
 
 
-SWIGINTERN PyObject *RodXpbd_swigregister(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *RodGeds_swigregister(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *obj = NULL;
   if (!SWIG_Python_UnpackTuple(args, "swigregister", 1, 1, &obj)) return NULL;
-  SWIG_TypeNewClientData(SWIGTYPE_p_RodXpbd, SWIG_NewClientData(obj));
+  SWIG_TypeNewClientData(SWIGTYPE_p_RodGeds, SWIG_NewClientData(obj));
   return SWIG_Py_Void();
 }
 
-SWIGINTERN PyObject *RodXpbd_swiginit(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *RodGeds_swiginit(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   return SWIG_Python_InitShadowInstance(args);
 }
 
 static PyMethodDef SwigMethods[] = {
-	 { "new_RodXpbd", _wrap_new_RodXpbd, METH_VARARGS, NULL},
-	 { "delete_RodXpbd", _wrap_delete_RodXpbd, METH_O, NULL},
-	 { "RodXpbd_setMaterial", _wrap_RodXpbd_setMaterial, METH_VARARGS, NULL},
-	 { "RodXpbd_setForceGain", _wrap_RodXpbd_setForceGain, METH_VARARGS, NULL},
-	 { "RodXpbd_setTorqueGain", _wrap_RodXpbd_setTorqueGain, METH_VARARGS, NULL},
-	 { "RodXpbd_setNumIterations", _wrap_RodXpbd_setNumIterations, METH_VARARGS, NULL},
-	 { "RodXpbd_reinitRestPose", _wrap_RodXpbd_reinitRestPose, METH_VARARGS, NULL},
-	 { "RodXpbd_computeWrenches", _wrap_RodXpbd_computeWrenches, METH_VARARGS, NULL},
-	 { "RodXpbd_swigregister", RodXpbd_swigregister, METH_O, NULL},
-	 { "RodXpbd_swiginit", RodXpbd_swiginit, METH_VARARGS, NULL},
+	 { "new_RodGeds", _wrap_new_RodGeds, METH_VARARGS, NULL},
+	 { "delete_RodGeds", _wrap_delete_RodGeds, METH_O, NULL},
+	 { "RodGeds_setMaterial", _wrap_RodGeds_setMaterial, METH_VARARGS, NULL},
+	 { "RodGeds_setNumSamples", _wrap_RodGeds_setNumSamples, METH_VARARGS, NULL},
+	 { "RodGeds_reinitRest", _wrap_RodGeds_reinitRest, METH_VARARGS, NULL},
+	 { "RodGeds_computeElasticWrenches", _wrap_RodGeds_computeElasticWrenches, METH_VARARGS, NULL},
+	 { "RodGeds_swigregister", RodGeds_swigregister, METH_O, NULL},
+	 { "RodGeds_swiginit", RodGeds_swiginit, METH_VARARGS, NULL},
 	 { NULL, NULL, 0, NULL }
 };
 
 
 /* -------- TYPE CONVERSION AND EQUIVALENCE RULES (BEGIN) -------- */
 
-static swig_type_info _swigt__p_RodXpbd = {"_p_RodXpbd", "RodXpbd *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_RodGeds = {"_p_RodGeds", "RodGeds *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_char = {"_p_char", "char *", 0, 0, (void*)0, 0};
 
 static swig_type_info *swig_type_initial[] = {
-  &_swigt__p_RodXpbd,
+  &_swigt__p_RodGeds,
   &_swigt__p_char,
 };
 
-static swig_cast_info _swigc__p_RodXpbd[] = {  {&_swigt__p_RodXpbd, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_RodGeds[] = {  {&_swigt__p_RodGeds, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_char[] = {  {&_swigt__p_char, 0, 0, 0},{0, 0, 0, 0}};
 
 static swig_cast_info *swig_cast_initial[] = {
-  _swigc__p_RodXpbd,
+  _swigc__p_RodGeds,
   _swigc__p_char,
 };
 
