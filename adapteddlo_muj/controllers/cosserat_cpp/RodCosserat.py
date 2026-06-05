@@ -10,9 +10,9 @@ if _swig_python_version_info < (2, 7, 0):
 
 # Import the low-level C/C++ module
 if __package__ or "." in __name__:
-    from . import _RodGeds
+    from . import _RodCosserat
 else:
-    import _RodGeds
+    import _RodCosserat
 
 try:
     import builtins as __builtin__
@@ -61,28 +61,31 @@ class _SwigNonDynamicMeta(type):
     __setattr__ = _swig_setattr_nondynamic_class_variable(type.__setattr__)
 
 
-class RodGeds(object):
+class RodCosserat(object):
     thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
     __repr__ = _swig_repr
 
-    def __init__(self, n_nodes, segment_length, diameter, youngs_modulus, torsion_modulus):
-        _RodGeds.RodGeds_swiginit(self, _RodGeds.new_RodGeds(n_nodes, segment_length, diameter, youngs_modulus, torsion_modulus))
-    __swig_destroy__ = _RodGeds.delete_RodGeds
+    def __init__(self, n_nodes, segment_length, k_bend, k_twist):
+        _RodCosserat.RodCosserat_swiginit(self, _RodCosserat.new_RodCosserat(n_nodes, segment_length, k_bend, k_twist))
+    __swig_destroy__ = _RodCosserat.delete_RodCosserat
 
-    def setMaterial(self, youngs_modulus, torsion_modulus):
-        return _RodGeds.RodGeds_setMaterial(self, youngs_modulus, torsion_modulus)
+    def setMaterial(self, k_bend, k_twist):
+        return _RodCosserat.RodCosserat_setMaterial(self, k_bend, k_twist)
 
-    def setNumSamples(self, samples_per_span):
-        return _RodGeds.RodGeds_setNumSamples(self, samples_per_span)
+    def setNumIterations(self, num_iters):
+        return _RodCosserat.RodCosserat_setNumIterations(self, num_iters)
+
+    def setTorqueGain(self, k_torque):
+        return _RodCosserat.RodCosserat_setTorqueGain(self, k_torque)
 
     def reinitRest(self, dim_x, dim_q):
-        return _RodGeds.RodGeds_reinitRest(self, dim_x, dim_q)
+        return _RodCosserat.RodCosserat_reinitRest(self, dim_x, dim_q)
 
-    def computeElasticWrenches(self, dim_x, dim_q, dim_f, dim_t):
-        return _RodGeds.RodGeds_computeElasticWrenches(self, dim_x, dim_q, dim_f, dim_t)
+    def computeWrenches(self, dim_x, dim_q, dt, dim_t):
+        return _RodCosserat.RodCosserat_computeWrenches(self, dim_x, dim_q, dt, dim_t)
 
-# Register RodGeds in _RodGeds:
-_RodGeds.RodGeds_swigregister(RodGeds)
+# Register RodCosserat in _RodCosserat:
+_RodCosserat.RodCosserat_swigregister(RodCosserat)
 
 
 

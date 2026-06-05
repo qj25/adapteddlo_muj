@@ -2689,7 +2689,7 @@ SWIGINTERN PyObject *SWIG_PyStaticMethod_New(PyObject *SWIGUNUSEDPARM(self), PyO
 
 /* -------- TYPES TABLE (BEGIN) -------- */
 
-#define SWIGTYPE_p_RodGeds swig_types[0]
+#define SWIGTYPE_p_RodCosserat swig_types[0]
 #define SWIGTYPE_p_char swig_types[1]
 static swig_type_info *swig_types[3];
 static swig_module_info swig_module = {swig_types, 2, 0, 0, 0, 0};
@@ -2704,16 +2704,16 @@ static swig_module_info swig_module = {swig_types, 2, 0, 0, 0, 0};
 #define SWIG_TypeQuery SWIG_Python_TypeQuery
 
 /*-----------------------------------------------
-              @(target):= _RodGeds.so
+              @(target):= _RodCosserat.so
   ------------------------------------------------*/
 #if PY_VERSION_HEX >= 0x03000000
-#  define SWIG_init    PyInit__RodGeds
+#  define SWIG_init    PyInit__RodCosserat
 
 #else
-#  define SWIG_init    init_RodGeds
+#  define SWIG_init    init_RodCosserat
 
 #endif
-#define SWIG_name    "_RodGeds"
+#define SWIG_name    "_RodCosserat"
 
 #define SWIGVERSION 0x040002 
 #define SWIG_VERSION SWIGVERSION
@@ -2797,7 +2797,7 @@ namespace swig {
 
 
 #define SWIG_FILE_WITH_INIT
-#include "RodGeds.h"
+#include "RodCosserat.h"
 
 
 #ifndef SWIG_FILE_WITH_INIT
@@ -3437,13 +3437,12 @@ SWIG_AsVal_int (PyObject * obj, int *val)
 #ifdef __cplusplus
 extern "C" {
 #endif
-SWIGINTERN PyObject *_wrap_new_RodGeds(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_new_RodCosserat(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   int arg1 ;
   double arg2 ;
   double arg3 ;
   double arg4 ;
-  double arg5 ;
   int val1 ;
   int ecode1 = 0 ;
   double val2 ;
@@ -3452,59 +3451,52 @@ SWIGINTERN PyObject *_wrap_new_RodGeds(PyObject *SWIGUNUSEDPARM(self), PyObject 
   int ecode3 = 0 ;
   double val4 ;
   int ecode4 = 0 ;
-  double val5 ;
-  int ecode5 = 0 ;
-  PyObject *swig_obj[5] ;
-  RodGeds *result = 0 ;
+  PyObject *swig_obj[4] ;
+  RodCosserat *result = 0 ;
   
-  if (!SWIG_Python_UnpackTuple(args, "new_RodGeds", 5, 5, swig_obj)) SWIG_fail;
+  if (!SWIG_Python_UnpackTuple(args, "new_RodCosserat", 4, 4, swig_obj)) SWIG_fail;
   ecode1 = SWIG_AsVal_int(swig_obj[0], &val1);
   if (!SWIG_IsOK(ecode1)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "new_RodGeds" "', argument " "1"" of type '" "int""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "new_RodCosserat" "', argument " "1"" of type '" "int""'");
   } 
   arg1 = static_cast< int >(val1);
   ecode2 = SWIG_AsVal_double(swig_obj[1], &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "new_RodGeds" "', argument " "2"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "new_RodCosserat" "', argument " "2"" of type '" "double""'");
   } 
   arg2 = static_cast< double >(val2);
   ecode3 = SWIG_AsVal_double(swig_obj[2], &val3);
   if (!SWIG_IsOK(ecode3)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "new_RodGeds" "', argument " "3"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "new_RodCosserat" "', argument " "3"" of type '" "double""'");
   } 
   arg3 = static_cast< double >(val3);
   ecode4 = SWIG_AsVal_double(swig_obj[3], &val4);
   if (!SWIG_IsOK(ecode4)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "new_RodGeds" "', argument " "4"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "new_RodCosserat" "', argument " "4"" of type '" "double""'");
   } 
   arg4 = static_cast< double >(val4);
-  ecode5 = SWIG_AsVal_double(swig_obj[4], &val5);
-  if (!SWIG_IsOK(ecode5)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "new_RodGeds" "', argument " "5"" of type '" "double""'");
-  } 
-  arg5 = static_cast< double >(val5);
-  result = (RodGeds *)new RodGeds(arg1,arg2,arg3,arg4,arg5);
-  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_RodGeds, SWIG_POINTER_NEW |  0 );
+  result = (RodCosserat *)new RodCosserat(arg1,arg2,arg3,arg4);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_RodCosserat, SWIG_POINTER_NEW |  0 );
   return resultobj;
 fail:
   return NULL;
 }
 
 
-SWIGINTERN PyObject *_wrap_delete_RodGeds(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_delete_RodCosserat(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  RodGeds *arg1 = (RodGeds *) 0 ;
+  RodCosserat *arg1 = (RodCosserat *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject *swig_obj[1] ;
   
   if (!args) SWIG_fail;
   swig_obj[0] = args;
-  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_RodGeds, SWIG_POINTER_DISOWN |  0 );
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_RodCosserat, SWIG_POINTER_DISOWN |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_RodGeds" "', argument " "1"" of type '" "RodGeds *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_RodCosserat" "', argument " "1"" of type '" "RodCosserat *""'"); 
   }
-  arg1 = reinterpret_cast< RodGeds * >(argp1);
+  arg1 = reinterpret_cast< RodCosserat * >(argp1);
   delete arg1;
   resultobj = SWIG_Py_Void();
   return resultobj;
@@ -3513,9 +3505,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_RodGeds_setMaterial(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_RodCosserat_setMaterial(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  RodGeds *arg1 = (RodGeds *) 0 ;
+  RodCosserat *arg1 = (RodCosserat *) 0 ;
   double arg2 ;
   double arg3 ;
   void *argp1 = 0 ;
@@ -3526,20 +3518,20 @@ SWIGINTERN PyObject *_wrap_RodGeds_setMaterial(PyObject *SWIGUNUSEDPARM(self), P
   int ecode3 = 0 ;
   PyObject *swig_obj[3] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "RodGeds_setMaterial", 3, 3, swig_obj)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_RodGeds, 0 |  0 );
+  if (!SWIG_Python_UnpackTuple(args, "RodCosserat_setMaterial", 3, 3, swig_obj)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_RodCosserat, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "RodGeds_setMaterial" "', argument " "1"" of type '" "RodGeds *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "RodCosserat_setMaterial" "', argument " "1"" of type '" "RodCosserat *""'"); 
   }
-  arg1 = reinterpret_cast< RodGeds * >(argp1);
+  arg1 = reinterpret_cast< RodCosserat * >(argp1);
   ecode2 = SWIG_AsVal_double(swig_obj[1], &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "RodGeds_setMaterial" "', argument " "2"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "RodCosserat_setMaterial" "', argument " "2"" of type '" "double""'");
   } 
   arg2 = static_cast< double >(val2);
   ecode3 = SWIG_AsVal_double(swig_obj[2], &val3);
   if (!SWIG_IsOK(ecode3)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "RodGeds_setMaterial" "', argument " "3"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "RodCosserat_setMaterial" "', argument " "3"" of type '" "double""'");
   } 
   arg3 = static_cast< double >(val3);
   (arg1)->setMaterial(arg2,arg3);
@@ -3550,9 +3542,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_RodGeds_setNumSamples(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_RodCosserat_setNumIterations(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  RodGeds *arg1 = (RodGeds *) 0 ;
+  RodCosserat *arg1 = (RodCosserat *) 0 ;
   int arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -3560,18 +3552,18 @@ SWIGINTERN PyObject *_wrap_RodGeds_setNumSamples(PyObject *SWIGUNUSEDPARM(self),
   int ecode2 = 0 ;
   PyObject *swig_obj[2] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "RodGeds_setNumSamples", 2, 2, swig_obj)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_RodGeds, 0 |  0 );
+  if (!SWIG_Python_UnpackTuple(args, "RodCosserat_setNumIterations", 2, 2, swig_obj)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_RodCosserat, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "RodGeds_setNumSamples" "', argument " "1"" of type '" "RodGeds *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "RodCosserat_setNumIterations" "', argument " "1"" of type '" "RodCosserat *""'"); 
   }
-  arg1 = reinterpret_cast< RodGeds * >(argp1);
+  arg1 = reinterpret_cast< RodCosserat * >(argp1);
   ecode2 = SWIG_AsVal_int(swig_obj[1], &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "RodGeds_setNumSamples" "', argument " "2"" of type '" "int""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "RodCosserat_setNumIterations" "', argument " "2"" of type '" "int""'");
   } 
   arg2 = static_cast< int >(val2);
-  (arg1)->setNumSamples(arg2);
+  (arg1)->setNumIterations(arg2);
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -3579,9 +3571,38 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_RodGeds_reinitRest(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_RodCosserat_setTorqueGain(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  RodGeds *arg1 = (RodGeds *) 0 ;
+  RodCosserat *arg1 = (RodCosserat *) 0 ;
+  double arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  double val2 ;
+  int ecode2 = 0 ;
+  PyObject *swig_obj[2] ;
+  
+  if (!SWIG_Python_UnpackTuple(args, "RodCosserat_setTorqueGain", 2, 2, swig_obj)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_RodCosserat, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "RodCosserat_setTorqueGain" "', argument " "1"" of type '" "RodCosserat *""'"); 
+  }
+  arg1 = reinterpret_cast< RodCosserat * >(argp1);
+  ecode2 = SWIG_AsVal_double(swig_obj[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "RodCosserat_setTorqueGain" "', argument " "2"" of type '" "double""'");
+  } 
+  arg2 = static_cast< double >(val2);
+  (arg1)->setTorqueGain(arg2);
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_RodCosserat_reinitRest(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  RodCosserat *arg1 = (RodCosserat *) 0 ;
   int arg2 ;
   double *arg3 = (double *) 0 ;
   int arg4 ;
@@ -3594,12 +3615,12 @@ SWIGINTERN PyObject *_wrap_RodGeds_reinitRest(PyObject *SWIGUNUSEDPARM(self), Py
   int is_new_object4 = 0 ;
   PyObject *swig_obj[3] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "RodGeds_reinitRest", 3, 3, swig_obj)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_RodGeds, 0 |  0 );
+  if (!SWIG_Python_UnpackTuple(args, "RodCosserat_reinitRest", 3, 3, swig_obj)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_RodCosserat, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "RodGeds_reinitRest" "', argument " "1"" of type '" "RodGeds *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "RodCosserat_reinitRest" "', argument " "1"" of type '" "RodCosserat *""'"); 
   }
-  arg1 = reinterpret_cast< RodGeds * >(argp1);
+  arg1 = reinterpret_cast< RodCosserat * >(argp1);
   {
     npy_intp size[1] = {
       -1
@@ -3656,35 +3677,34 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_RodGeds_computeElasticWrenches(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_RodCosserat_computeWrenches(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  RodGeds *arg1 = (RodGeds *) 0 ;
+  RodCosserat *arg1 = (RodCosserat *) 0 ;
   int arg2 ;
   double *arg3 = (double *) 0 ;
   int arg4 ;
   double *arg5 = (double *) 0 ;
-  int arg6 ;
-  double *arg7 = (double *) 0 ;
-  int arg8 ;
-  double *arg9 = (double *) 0 ;
+  double arg6 ;
+  int arg7 ;
+  double *arg8 = (double *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyArrayObject *array2 = NULL ;
   int is_new_object2 = 0 ;
   PyArrayObject *array4 = NULL ;
   int is_new_object4 = 0 ;
-  PyArrayObject *array6 = NULL ;
-  int is_new_object6 = 0 ;
-  PyArrayObject *array8 = NULL ;
-  int is_new_object8 = 0 ;
+  double val6 ;
+  int ecode6 = 0 ;
+  PyArrayObject *array7 = NULL ;
+  int is_new_object7 = 0 ;
   PyObject *swig_obj[5] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "RodGeds_computeElasticWrenches", 5, 5, swig_obj)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_RodGeds, 0 |  0 );
+  if (!SWIG_Python_UnpackTuple(args, "RodCosserat_computeWrenches", 5, 5, swig_obj)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_RodCosserat, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "RodGeds_computeElasticWrenches" "', argument " "1"" of type '" "RodGeds *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "RodCosserat_computeWrenches" "', argument " "1"" of type '" "RodCosserat *""'"); 
   }
-  arg1 = reinterpret_cast< RodGeds * >(argp1);
+  arg1 = reinterpret_cast< RodCosserat * >(argp1);
   {
     npy_intp size[1] = {
       -1
@@ -3709,31 +3729,24 @@ SWIGINTERN PyObject *_wrap_RodGeds_computeElasticWrenches(PyObject *SWIGUNUSEDPA
     arg4 = (int) array_size(array4,0);
     arg5 = (double*) array_data(array4);
   }
+  ecode6 = SWIG_AsVal_double(swig_obj[3], &val6);
+  if (!SWIG_IsOK(ecode6)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "RodCosserat_computeWrenches" "', argument " "6"" of type '" "double""'");
+  } 
+  arg6 = static_cast< double >(val6);
   {
     npy_intp size[1] = {
       -1
     };
-    array6 = obj_to_array_contiguous_allow_conversion(swig_obj[3],
+    array7 = obj_to_array_contiguous_allow_conversion(swig_obj[4],
       NPY_DOUBLE,
-      &is_new_object6);
-    if (!array6 || !require_dimensions(array6, 1) ||
-      !require_size(array6, size, 1)) SWIG_fail;
-    arg6 = (int) array_size(array6,0);
-    arg7 = (double*) array_data(array6);
+      &is_new_object7);
+    if (!array7 || !require_dimensions(array7, 1) ||
+      !require_size(array7, size, 1)) SWIG_fail;
+    arg7 = (int) array_size(array7,0);
+    arg8 = (double*) array_data(array7);
   }
-  {
-    npy_intp size[1] = {
-      -1
-    };
-    array8 = obj_to_array_contiguous_allow_conversion(swig_obj[4],
-      NPY_DOUBLE,
-      &is_new_object8);
-    if (!array8 || !require_dimensions(array8, 1) ||
-      !require_size(array8, size, 1)) SWIG_fail;
-    arg8 = (int) array_size(array8,0);
-    arg9 = (double*) array_data(array8);
-  }
-  (arg1)->computeElasticWrenches(arg2,(double const *)arg3,arg4,(double const *)arg5,arg6,arg7,arg8,arg9);
+  (arg1)->computeWrenches(arg2,(double const *)arg3,arg4,(double const *)arg5,arg6,arg7,arg8);
   resultobj = SWIG_Py_Void();
   {
     if (is_new_object2 && array2)
@@ -3748,15 +3761,9 @@ SWIGINTERN PyObject *_wrap_RodGeds_computeElasticWrenches(PyObject *SWIGUNUSEDPA
     }
   }
   {
-    if (is_new_object6 && array6)
+    if (is_new_object7 && array7)
     {
-      Py_DECREF(array6); 
-    }
-  }
-  {
-    if (is_new_object8 && array8)
-    {
-      Py_DECREF(array8); 
+      Py_DECREF(array7); 
     }
   }
   return resultobj;
@@ -3774,42 +3781,37 @@ fail:
     }
   }
   {
-    if (is_new_object6 && array6)
+    if (is_new_object7 && array7)
     {
-      Py_DECREF(array6); 
-    }
-  }
-  {
-    if (is_new_object8 && array8)
-    {
-      Py_DECREF(array8); 
+      Py_DECREF(array7); 
     }
   }
   return NULL;
 }
 
 
-SWIGINTERN PyObject *RodGeds_swigregister(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *RodCosserat_swigregister(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *obj;
   if (!SWIG_Python_UnpackTuple(args, "swigregister", 1, 1, &obj)) return NULL;
-  SWIG_TypeNewClientData(SWIGTYPE_p_RodGeds, SWIG_NewClientData(obj));
+  SWIG_TypeNewClientData(SWIGTYPE_p_RodCosserat, SWIG_NewClientData(obj));
   return SWIG_Py_Void();
 }
 
-SWIGINTERN PyObject *RodGeds_swiginit(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *RodCosserat_swiginit(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   return SWIG_Python_InitShadowInstance(args);
 }
 
 static PyMethodDef SwigMethods[] = {
 	 { "SWIG_PyInstanceMethod_New", SWIG_PyInstanceMethod_New, METH_O, NULL},
-	 { "new_RodGeds", _wrap_new_RodGeds, METH_VARARGS, NULL},
-	 { "delete_RodGeds", _wrap_delete_RodGeds, METH_O, NULL},
-	 { "RodGeds_setMaterial", _wrap_RodGeds_setMaterial, METH_VARARGS, NULL},
-	 { "RodGeds_setNumSamples", _wrap_RodGeds_setNumSamples, METH_VARARGS, NULL},
-	 { "RodGeds_reinitRest", _wrap_RodGeds_reinitRest, METH_VARARGS, NULL},
-	 { "RodGeds_computeElasticWrenches", _wrap_RodGeds_computeElasticWrenches, METH_VARARGS, NULL},
-	 { "RodGeds_swigregister", RodGeds_swigregister, METH_O, NULL},
-	 { "RodGeds_swiginit", RodGeds_swiginit, METH_VARARGS, NULL},
+	 { "new_RodCosserat", _wrap_new_RodCosserat, METH_VARARGS, NULL},
+	 { "delete_RodCosserat", _wrap_delete_RodCosserat, METH_O, NULL},
+	 { "RodCosserat_setMaterial", _wrap_RodCosserat_setMaterial, METH_VARARGS, NULL},
+	 { "RodCosserat_setNumIterations", _wrap_RodCosserat_setNumIterations, METH_VARARGS, NULL},
+	 { "RodCosserat_setTorqueGain", _wrap_RodCosserat_setTorqueGain, METH_VARARGS, NULL},
+	 { "RodCosserat_reinitRest", _wrap_RodCosserat_reinitRest, METH_VARARGS, NULL},
+	 { "RodCosserat_computeWrenches", _wrap_RodCosserat_computeWrenches, METH_VARARGS, NULL},
+	 { "RodCosserat_swigregister", RodCosserat_swigregister, METH_O, NULL},
+	 { "RodCosserat_swiginit", RodCosserat_swiginit, METH_VARARGS, NULL},
 	 { NULL, NULL, 0, NULL }
 };
 
@@ -3820,19 +3822,19 @@ static PyMethodDef SwigMethods_proxydocs[] = {
 
 /* -------- TYPE CONVERSION AND EQUIVALENCE RULES (BEGIN) -------- */
 
-static swig_type_info _swigt__p_RodGeds = {"_p_RodGeds", "RodGeds *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_RodCosserat = {"_p_RodCosserat", "RodCosserat *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_char = {"_p_char", "char *", 0, 0, (void*)0, 0};
 
 static swig_type_info *swig_type_initial[] = {
-  &_swigt__p_RodGeds,
+  &_swigt__p_RodCosserat,
   &_swigt__p_char,
 };
 
-static swig_cast_info _swigc__p_RodGeds[] = {  {&_swigt__p_RodGeds, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_RodCosserat[] = {  {&_swigt__p_RodCosserat, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_char[] = {  {&_swigt__p_char, 0, 0, 0},{0, 0, 0, 0}};
 
 static swig_cast_info *swig_cast_initial[] = {
-  _swigc__p_RodGeds,
+  _swigc__p_RodCosserat,
   _swigc__p_char,
 };
 

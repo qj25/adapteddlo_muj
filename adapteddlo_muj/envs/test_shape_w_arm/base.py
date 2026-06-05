@@ -25,8 +25,10 @@ def stiff_pickle_path(wire_color: str, stiff_key: str) -> str:
 
 def load_stiffness(wire_color: str, stiff_key: str) -> Tuple[float, float]:
     picklename = stiff_pickle_path(wire_color, stiff_key)
-    if not os.path.exists(picklename) and stiff_key == "massspring":
-        picklename = stiff_pickle_path(wire_color, "adapt")
+    if not os.path.exists(picklename) and stiff_key != "adapt":
+        adapt_picklename = stiff_pickle_path(wire_color, "adapt")
+        if os.path.exists(adapt_picklename):
+            picklename = adapt_picklename
     with open(picklename, "rb") as f:
         alpha_glob, b_a_glob = pickle.load(f)
     beta_glob = b_a_glob * alpha_glob

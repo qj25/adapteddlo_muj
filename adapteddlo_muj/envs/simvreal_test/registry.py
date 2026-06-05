@@ -1,6 +1,6 @@
 from typing import Dict, List, Optional
 
-from adapteddlo_muj.envs.simvreal_test import adapt, geds, jpqder, massspring, native, xpbd
+from adapteddlo_muj.envs.simvreal_test import adapt, cosserat, geds, jpqder, massspring, native, xpbd
 
 
 DEFAULT_MODELS = ["adapt", "native", "massspring"]
@@ -12,6 +12,7 @@ MODEL_REGISTRY = {
     "xpbd": xpbd.get_model_spec(),
     "geds": geds.get_model_spec(),
     "jpqder": jpqder.get_model_spec(),
+    "cosserat": cosserat.get_model_spec(),
 }
 
 
