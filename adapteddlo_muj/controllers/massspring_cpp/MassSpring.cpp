@@ -3,6 +3,16 @@
 #include <algorithm>
 #include <cmath>
 
+namespace {
+Eigen::Vector3d cross3(const Eigen::Vector3d& a, const Eigen::Vector3d& b) {
+    return Eigen::Vector3d(
+        a(1) * b(2) - a(2) * b(1),
+        a(2) * b(0) - a(0) * b(2),
+        a(0) * b(1) - a(1) * b(0)
+    );
+}
+}  // namespace
+
 MassSpring::MassSpring(
     int dim_nq,
     double* neutral_quat,
@@ -53,20 +63,34 @@ void MassSpring::computeTorque(int dim_cq, double* current_quat, int dim_nt, dou
         node_torque[i] = 0.0;
     }
 
-    for (int i = 0; i < n; ++i) {
-        Eigen::Vector4d q_cur;
-        q_cur << current_quat[i * 4 + 0],
-            current_quat[i * 4 + 1],
-            current_quat[i * 4 + 2],
-            current_quat[i * 4 + 3];
-        q_cur = normalizeQuat(q_cur);
+    auto readQuat = [&](int idx, double* src) {
+        Eigen::Vector4d q;
+        q << src[idx * 4 + 0],
+            src[idx * 4 + 1],
+            src[idx * 4 + 2],
+            src[idx * 4 + 3];
+        return normalizeQuat(q);
+    };
 
-        const Eigen::Vector4d q_rel = multiplyQuat(invertQuat(neutral_quat_[i]), q_cur);
-        const Eigen::Vector3d dev = quatToRotvec(q_rel);
+    // Joint spring: deviation of relative rotation from neutral relative rotation.
+    // Torque is stored on the child body (index i) in child body frame.
+    for (int i = 1; i < n; ++i) {
+        const Eigen::Vector4d q_prev = readQuat(i - 1, current_quat);
+        const Eigen::Vector4d q_cur = readQuat(i, current_quat);
+        const Eigen::Vector4d q_rel = multiplyQuat(invertQuat(q_prev), q_cur);
+        const Eigen::Vector4d q_rel0 = multiplyQuat(invertQuat(neutral_quat_[i - 1]), neutral_quat_[i]);
+        const Eigen::Vector4d q_dev = multiplyQuat(invertQuat(q_rel0), q_rel);
+        const Eigen::Vector3d dev = quatToRotvec(q_dev);
 
-        node_torque[i * 3 + 0] = -k_bend_x_ * dev(0);
-        node_torque[i * 3 + 1] = -k_bend_y_ * dev(1);
-        node_torque[i * 3 + 2] = -k_twist_ * dev(2);
+        Eigen::Vector3d tau_parent;
+        tau_parent(0) = -k_bend_x_ * dev(0);
+        tau_parent(1) = -k_bend_y_ * dev(1);
+        tau_parent(2) = -k_twist_ * dev(2);
+
+        const Eigen::Vector3d tau_child = rotVecQuat(tau_parent, invertQuat(q_rel));
+        node_torque[i * 3 + 0] = tau_child(0);
+        node_torque[i * 3 + 1] = tau_child(1);
+        node_torque[i * 3 + 2] = tau_child(2);
     }
 }
 
@@ -118,4 +142,21 @@ Eigen::Vector3d MassSpring::quatToRotvec(const Eigen::Vector4d& q) const {
 
     const double angle = 2.0 * std::atan2(v_norm, w);
     return (angle / v_norm) * v;
+}
+
+Eigen::Vector3d MassSpring::rotVecQuat(const Eigen::Vector3d& vec, const Eigen::Vector4d& quat) const {
+    if (vec.squaredNorm() < 1e-24) {
+        return Eigen::Vector3d::Zero();
+    }
+    if (std::abs(quat(0) - 1.0) < 1e-12 && quat.segment<3>(1).squaredNorm() < 1e-24) {
+        return vec;
+    }
+
+    const Eigen::Vector3d q_xyz = quat.segment<3>(1);
+    const Eigen::Vector3d tmp(
+        quat(0) * vec(0) + quat(2) * vec(2) - quat(3) * vec(1),
+        quat(0) * vec(1) + quat(3) * vec(0) - quat(1) * vec(2),
+        quat(0) * vec(2) + quat(1) * vec(1) - quat(2) * vec(0)
+    );
+    return vec + 2.0 * cross3(q_xyz, tmp);
 }

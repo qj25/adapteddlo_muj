@@ -1,4 +1,12 @@
 import argparse
+from typing import List, Optional
+
+
+def parse_moveids_arg(moveid_arg: Optional[str]) -> Optional[List[int]]:
+    if moveid_arg is None or str(moveid_arg).strip() == "":
+        return None
+    return [int(m.strip()) for m in str(moveid_arg).split(",") if m.strip()]
+
 
 def dtd_parse():
     # Create the parser
@@ -17,7 +25,12 @@ def tswa_parse():
     # Add arguments with default values
     parser.add_argument('--stiff', type=str, default=None, help='specify model (legacy alias for --models): native, adapt, massspring, jpqder, etc. [default: all]')
     parser.add_argument('--wirecolor', type=str, default=None, help='specify wire color: black, red, or white [default: all]')
-    parser.add_argument('--moveid', type=int, default=None, help='specify moveid: 0 to 3')
+    parser.add_argument(
+        '--moveid',
+        type=str,
+        default=None,
+        help='Comma-separated move ids (0-7), e.g. 4,5,6,7. Default: all.',
+    )
     parser.add_argument('--render', type=int, default=0, help='Render mode: 0 (off) or 1 (on) [default: off]')
     return parser
 

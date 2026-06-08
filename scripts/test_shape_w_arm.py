@@ -1,14 +1,18 @@
 import numpy as np
 
 import adapteddlo_muj.utils.transform_utils as T
-from adapteddlo_muj.envs.test_shape_w_arm.base import R_PIECES, run_manipulation
+from adapteddlo_muj.envs.test_shape_w_arm.base import (
+    R_PIECES,
+    run_manipulation,
+    save_sim_case_json,
+)
 from adapteddlo_muj.envs.test_shape_w_arm.registry import (
     DEFAULT_MODELS,
     MODEL_REGISTRY,
     get_model_specs,
     parse_models_arg,
 )
-from adapteddlo_muj.utils.argparse_utils import tswa_parse
+from adapteddlo_muj.utils.argparse_utils import parse_moveids_arg, tswa_parse
 
 # from adapteddlo_muj.utils.transform_utils import IDENTITY_QUATERNION
 
@@ -69,7 +73,7 @@ else:
 
 model_specs = get_model_specs(model_names)
 wire_colors = [args.wirecolor] if args.wirecolor is not None else ["black", "red", "white"]
-move_id = args.moveid
+move_ids = parse_moveids_arg(args.moveid)
 do_render = bool(args.render)
 
 n_models = len(model_names)
@@ -98,10 +102,10 @@ move_aa = np.array([
 ])
 z_rot = np.array([360.0, -720.0, 360.0, -720.0, 720.0, 540.0, 0.0, 0.0])
 
-if move_id is not None:
-    move_pos = np.array([move_pos[move_id]])
-    move_aa = np.array([move_aa[move_id]])
-    z_rot = np.array([z_rot[move_id]])
+if move_ids is not None:
+    move_pos = move_pos[move_ids]
+    move_aa = move_aa[move_ids]
+    z_rot = z_rot[move_ids]
 
 z_rot *= np.pi / 180
 move_aa *= np.pi / 180
@@ -117,7 +121,7 @@ for i, model_name in enumerate(model_names):
     model_spec = model_specs[model_name]
     for j, wire_color in enumerate(wire_colors):
         for pos_id in range(n_pos):
-            i_move = pos_id if move_id is None else move_id
+            i_move = move_ids[pos_id] if move_ids is not None else pos_id
             velreset = wire_color == "red" and i_move == 2
 
             print(f"Now computing: {wire_color}{i_move}_{model_name}")
@@ -135,11 +139,19 @@ for i, model_name in enumerate(model_names):
                 pos_id,
                 getting_jointpos=getting_jointpos,
             )
-            if do_render:
-                env.viewer._paused = True
-                env.hold_pos(1.0)
 
             joint_pos_arr[i, j, pos_id] = joint_pos
             node_pos_arr[i, j, pos_id] = nodes_pos
 
-print("sim test csvdata saved!")
+            out_path = save_sim_case_json(
+                wire_color=wire_color,
+                move_id=i_move,
+                model_name=model_name,
+                init_qpos=env.init_qpos,
+                z_rot_rad=z_rot[pos_id],
+                joint_pos=joint_pos,
+                nodes_pos=nodes_pos,
+            )
+            print(f"Saved: {out_path}")
+
+print("sim test data saved!")

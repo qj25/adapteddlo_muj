@@ -24,6 +24,7 @@ private:
     Eigen::Vector4d invertQuat(const Eigen::Vector4d& q) const;
     Eigen::Vector4d multiplyQuat(const Eigen::Vector4d& qa, const Eigen::Vector4d& qb) const;
     Eigen::Vector3d quatToRotvec(const Eigen::Vector4d& q) const;
+    Eigen::Vector3d rotVecQuat(const Eigen::Vector3d& vec, const Eigen::Vector4d& quat) const;
 
     int n_nodes_;
     Eigen::Vector4d* neutral_quat_;
