@@ -17,13 +17,13 @@
     <texture type="skybox" builtin="gradient" rgb1="1 1 0.9" rgb2="0.9 0.9 0.81" width="512" height="3072"/>
     <texture type="2d" name="texplane" builtin="checker" mark="cross" rgb1="0.2 0.3 0.4" rgb2="0.1 0.15 0.2" markrgb="0.8 0.8 0.8" width="512" height="512"/>
     <material name="matplane" texture="texplane" texuniform="true" reflectance="0.3"/>
-    <mesh name="BASE_mesh" content_type="model/stl" file="/home/qj/git/deformrope/adapteddlo_muj/adapteddlo_muj/assets/densovs060/meshes/BASE_mesh.stl"/>
-    <mesh name="J1_mesh" content_type="model/stl" file="/home/qj/git/deformrope/adapteddlo_muj/adapteddlo_muj/assets/densovs060/meshes/J1_mesh.stl"/>
-    <mesh name="J2_mesh" content_type="model/stl" file="/home/qj/git/deformrope/adapteddlo_muj/adapteddlo_muj/assets/densovs060/meshes/J2_mesh.stl"/>
-    <mesh name="J3_mesh" content_type="model/stl" file="/home/qj/git/deformrope/adapteddlo_muj/adapteddlo_muj/assets/densovs060/meshes/J3_mesh.stl"/>
-    <mesh name="J4_mesh" content_type="model/stl" file="/home/qj/git/deformrope/adapteddlo_muj/adapteddlo_muj/assets/densovs060/meshes/J4_mesh.stl"/>
-    <mesh name="J5_mesh" content_type="model/stl" file="/home/qj/git/deformrope/adapteddlo_muj/adapteddlo_muj/assets/densovs060/meshes/J5_mesh.stl"/>
-    <mesh name="Flange_mesh" content_type="model/stl" file="/home/qj/git/deformrope/adapteddlo_muj/adapteddlo_muj/assets/densovs060/meshes/Flange_mesh.stl"/>
+    <mesh name="BASE_mesh" file="/home/qj/git/deformrope/adapteddlo_muj/adapteddlo_muj/assets/densovs060/meshes/BASE_mesh.stl"/>
+    <mesh name="J1_mesh" file="/home/qj/git/deformrope/adapteddlo_muj/adapteddlo_muj/assets/densovs060/meshes/J1_mesh.stl"/>
+    <mesh name="J2_mesh" file="/home/qj/git/deformrope/adapteddlo_muj/adapteddlo_muj/assets/densovs060/meshes/J2_mesh.stl"/>
+    <mesh name="J3_mesh" file="/home/qj/git/deformrope/adapteddlo_muj/adapteddlo_muj/assets/densovs060/meshes/J3_mesh.stl"/>
+    <mesh name="J4_mesh" file="/home/qj/git/deformrope/adapteddlo_muj/adapteddlo_muj/assets/densovs060/meshes/J4_mesh.stl"/>
+    <mesh name="J5_mesh" file="/home/qj/git/deformrope/adapteddlo_muj/adapteddlo_muj/assets/densovs060/meshes/J5_mesh.stl"/>
+    <mesh name="Flange_mesh" file="/home/qj/git/deformrope/adapteddlo_muj/adapteddlo_muj/assets/densovs060/meshes/Flange_mesh.stl"/>
   </asset>
 
   <worldbody>
