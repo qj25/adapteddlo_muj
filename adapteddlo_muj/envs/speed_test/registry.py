@@ -1,6 +1,6 @@
 from typing import Dict, List, Optional
 
-from adapteddlo_muj.envs.speed_test import adapt, cosserat, geds, jpqder, massspring, native, plain, xfrc, xpbd
+from adapteddlo_muj.envs.speed_test import adapt, cosserat, cosserat2, cosserat3, geds, jpqder, massspring, native, plain, xfrc, xpbd
 
 
 DEFAULT_MODELS = ["plain", "native", "xfrc", "adapt", "massspring", "jpqder"]
@@ -15,6 +15,8 @@ MODEL_REGISTRY = {
     "xpbd": xpbd.get_model_spec(),
     "geds": geds.get_model_spec(),
     "cosserat": cosserat.get_model_spec(),
+    "cosserat2": cosserat2.get_model_spec(),
+    "cosserat3": cosserat3.get_model_spec(),
 }
 
 

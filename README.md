@@ -71,12 +71,54 @@ python get_pos/get_depth_many_azure.py
 ```
 # Sim:
 8. To determine sim stiffness parameters from real experiment (with 2D positions and critical angles obtained):
+
+Run from `scripts/` after `pip install -e .` and building the C++ backends (step 2).
+
+**Full pipeline** (recommended): bending stiffness for testids 0–4, then twisting stiffness, per model:
 ```
-python real2sim_paramiden.py
+cd scripts
+python real2sim_paramiden_all.py --wirecolor white --models massspring,cosserat
 ```
+
+Default models: `adapt`, `native`, `massspring`, `cosserat`. Available models are registered in `adapteddlo_muj/envs/real2sim_paramiden/registry.py` (`adapt`, `native`, `massspring`, `cosserat`, `xfrc`, `xpbd`, `geds`).
+
+**All wire colors**:
+```
+python real2sim_paramiden_all.py --wirecolors white,black,red --models adapt,native,massspring,cosserat
+```
+
+**Bending only** (e.g. if twisting data is not ready yet):
+```
+python real2sim_paramiden_all.py --wirecolor white --skip-twisting
+```
+
+**Twisting only** (after all five bending pickles exist):
+```
+python real2sim_paramiden_all.py --wirecolor white --skip-bending
+```
+
+**Search ranges** (defaults are model-aware; bending and twisting use the same bounds):
+- `adapt` / `native` / `xfrc`: `[0, 2]` on `stiff_scale` and `beta/alpha`
+- `massspring` / `cosserat` / `xpbd` / `geds`: `[0, 20]` on `stiff_scale` and `beta/alpha`
+
+Override globally:
+```
+python real2sim_paramiden_all.py --wirecolor white --models massspring --stiff-lim 0,30 --b-a-lim 0,30
+```
+
+**Single step** (one testtype and one testid):
+```
+python real2sim_paramiden.py --testtype bending --testid 0 --wirecolor white --models massspring
+python real2sim_paramiden.py --testtype twisting --wirecolor white --models massspring
+```
+
+Outputs:
+- Per-trial bending alpha: `adapteddlo_muj/data/dlo_muj_real/stiff_vals/{color}_{model}_{testid}_bendstiff.pickle`
+- Final combined stiffness `[alpha, b_a]`: `adapteddlo_muj/data/dlo_muj_real/stiff_vals/{color}_{model}_stiff.pickle` (used by step 9)
+
 9. To simulate DLO held by Denso VS-060 robot arm in 4 different poses (modular model runners):
 
-Run from `scripts/` after `pip install -e .` and building the C++ backends (step 2). Stiffness values are read from `adapteddlo_muj/data/dlo_muj_real/stiff_vals/` (produce these with step 8, `real2sim_paramiden.py`).
+Stiffness values are read from `adapteddlo_muj/data/dlo_muj_real/stiff_vals/` (produce these with step 8).
 
 **Default** (all default models, all wire colors, all four move poses):
 ```
@@ -143,15 +185,18 @@ Outputs are written per model to:
    - speed test: `adapteddlo_muj/envs/speed_test/<new_model>.py`
    - simvreal test: `adapteddlo_muj/envs/simvreal_test/<new_model>.py`
    - shape test: `adapteddlo_muj/envs/test_shape_w_arm/<new_model>.py`
+   - parameter identification: `adapteddlo_muj/envs/real2sim_paramiden/<new_model>.py`
 2. Register it:
    - update `adapteddlo_muj/envs/speed_test/registry.py` and/or
    - update `adapteddlo_muj/envs/simvreal_test/registry.py` and/or
-   - update `adapteddlo_muj/envs/test_shape_w_arm/registry.py`
+   - update `adapteddlo_muj/envs/test_shape_w_arm/registry.py` and/or
+   - update `adapteddlo_muj/envs/real2sim_paramiden/registry.py`
 3. Run with explicit model selection:
 ```
 python speed_test.py --newstart 1 --models <new_model>
 python simvreal_dlomuj.py --models <new_model>
 python test_shape_w_arm.py --models <new_model>
+python real2sim_paramiden_all.py --models <new_model> --wirecolor white
 ```
 4. (Optional) Add it to `DEFAULT_MODELS` in each registry if you want it included by default.
 

@@ -75,8 +75,8 @@ class MassSpring(object):
     def setStiffness(self, k_bend_x, k_bend_y, k_twist):
         return _MassSpring.MassSpring_setStiffness(self, k_bend_x, k_bend_y, k_twist)
 
-    def computeTorque(self, dim_cq, dim_nt):
-        return _MassSpring.MassSpring_computeTorque(self, dim_cq, dim_nt)
+    def computeTorque(self, dim_x, dim_cq, dim_nt):
+        return _MassSpring.MassSpring_computeTorque(self, dim_x, dim_cq, dim_nt)
 
 # Register MassSpring in _MassSpring:
 _MassSpring.MassSpring_swigregister(MassSpring)

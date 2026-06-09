@@ -1,5 +1,6 @@
 import numpy as np
-from adapteddlo_muj.envs.realgrav_valid_test import TestRopeEnv
+
+from adapteddlo_muj.envs.real2sim_paramiden.base import create_mbi_env, sim_pos_error
 
 # Golden-section search algorithm in Python
 
@@ -56,17 +57,18 @@ def midpoint_rootfind(f,a,b,tol=1e-4):
 class mbi_stiff:
     def __init__(
         self,
-        stest_type,
+        model_name,
         rgba_vals,
         real_pos=None,
         massperlen=1.0,
-        overall_rot=0.,
+        overall_rot=0.0,
         r_len=1.0,
         grav_on=True,
         do_render=False,
         new_start=False,
+        stest_type=None,
     ):
-        self.stest_type = stest_type
+        self.model_name = stest_type or model_name
         self.rgba_vals = rgba_vals
         self.real_pos = real_pos
         self.massperlen = massperlen
@@ -75,83 +77,40 @@ class mbi_stiff:
         self.grav_on = grav_on
         self.do_render = do_render
         self.new_start = new_start
-        self.r_pieces = 52
-        self.r_len = self.r_len * self.r_pieces / (self.r_pieces-2)
-        self.r_thickness = 0.01
-        self.r_mass = self.massperlen * self.r_len
-    
+        self.alpha_bar = None
+        self.beta_bar = None
+        self.env = None
+
+    def _make_env(self, alpha_bar, beta_bar):
+        self.alpha_bar = alpha_bar
+        self.beta_bar = beta_bar
+        self.env = create_mbi_env(
+            self.model_name,
+            alpha_bar=alpha_bar,
+            beta_bar=beta_bar,
+            rgba_vals=self.rgba_vals,
+            massperlen=self.massperlen,
+            overall_rot=self.overall_rot,
+            rope_len=self.r_len,
+            grav_on=self.grav_on,
+            do_render=self.do_render,
+            new_start=self.new_start,
+        )
+        return self.env
+
     def opt_func(self, stiff):
         if self.real_pos is None:
             print("self.real_pos not specified. Please specify or re_init class.")
             return None
-        # optimization function to find alpha (bending stiffness)
-        self.alpha_bar = stiff/(2*np.pi)**3
-        self.beta_bar = stiff/(2*np.pi)**3
+        alpha_bar = stiff / (2 * np.pi) ** 3
+        env = self._make_env(alpha_bar, alpha_bar)
+        return sim_pos_error(env, self.real_pos, r_len=self.r_len)
 
-        self.env = TestRopeEnv(
-            overall_rot=self.overall_rot,
-            do_render=self.do_render,
-            r_pieces=self.r_pieces,
-            r_len=self.r_len,
-            r_thickness=self.r_thickness,
-            test_type='mbi',
-            alpha_bar=self.alpha_bar,
-            beta_bar=self.beta_bar,
-            r_mass=self.r_mass,
-            new_start=self.new_start,
-            stifftorqtype=self.stest_type,
-            grav_on=self.grav_on,
-            rgba_vals=self.rgba_vals
-        )
-        if self.do_render:
-            self.env.set_viewer_details(
-                dist=1.5,
-                azi=90.0,
-                elev=0.0,
-                lookat=np.array([-0.81,0.0,0.15])
-            )
-        sim_pos = self.env.observations['rope_pose'][1:-1].copy()[:,[0,2]]
-        sim_pos -= sim_pos[0]
-        sim_pos *= -1.0
-        diff_pos = np.sum(
-            np.linalg.norm(sim_pos-self.real_pos,axis=1)
-        )/len(sim_pos)/self.r_len
-        # print("|===|NEW DATA |================================================")
-        # print(f"stiff_scale = {stiff}")
-        # print(f"diff_pos = {diff_pos}")
-        # if self.do_render:
-            # self.env.viewer.close()
-        # self.env.close()
-
-        return diff_pos
-    
-    def opt_func2(self,b_a):
-        # optimization function to find b_a (twisting stiffness)
-        # must have set self.alpha_bar and self.overall_rot before hand
-        self.beta_bar = self.alpha_bar * b_a
-        self.env = TestRopeEnv(
-            overall_rot=self.overall_rot,
-            do_render=self.do_render,
-            r_pieces=self.r_pieces,
-            r_len=self.r_len,
-            r_thickness=self.r_thickness,
-            test_type='mbi',
-            alpha_bar=self.alpha_bar,
-            beta_bar=self.beta_bar,
-            r_mass=self.r_mass,
-            new_start=self.new_start,
-            stifftorqtype=self.stest_type,
-            grav_on=self.grav_on,
-            rgba_vals=self.rgba_vals
-        )
-        if self.do_render:
-            self.env.set_viewer_details(
-                dist=1.5,
-                azi=90.0,
-                elev=0.0,
-                lookat=np.array([-0.81,0.0,0.15])
-            )
-        return self.env.circle_oop
+    def opt_func2(self, b_a):
+        if self.alpha_bar is None:
+            raise ValueError("alpha_bar must be set before calling opt_func2")
+        env = self._make_env(self.alpha_bar, self.alpha_bar * b_a)
+        return env.circle_oop
     
 if __name__ == "__main__":
     def square_func(x):

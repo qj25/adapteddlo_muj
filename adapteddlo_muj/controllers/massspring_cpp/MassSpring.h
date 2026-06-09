@@ -17,7 +17,14 @@ public:
 
     void setNeutralQuat(int dim_nq, double* neutral_quat);
     void setStiffness(double k_bend_x, double k_bend_y, double k_twist);
-    void computeTorque(int dim_cq, double* current_quat, int dim_nt, double* node_torque);
+    void computeTorque(
+        int dim_x,
+        double* current_x,
+        int dim_cq,
+        double* current_quat,
+        int dim_nt,
+        double* node_torque
+    );
 
 private:
     Eigen::Vector4d normalizeQuat(const Eigen::Vector4d& q) const;
@@ -25,6 +32,7 @@ private:
     Eigen::Vector4d multiplyQuat(const Eigen::Vector4d& qa, const Eigen::Vector4d& qb) const;
     Eigen::Vector3d quatToRotvec(const Eigen::Vector4d& q) const;
     Eigen::Vector3d rotVecQuat(const Eigen::Vector3d& vec, const Eigen::Vector4d& quat) const;
+    Eigen::Vector3d safeNormalize(const Eigen::Vector3d& v, const Eigen::Vector3d& fallback) const;
 
     int n_nodes_;
     Eigen::Vector4d* neutral_quat_;

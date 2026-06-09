@@ -21,6 +21,11 @@ from adapteddlo_muj.assets.genrope.gdv_O_xfrc import GenKin_O_xfrc
 from adapteddlo_muj.assets.genrope.gdv_N import GenKin_N
 from adapteddlo_muj.controllers.ropekin_controller_xfrc import DLORopeXfrc
 from adapteddlo_muj.controllers.ropekin_controller_adapt import DLORopeAdapt
+from adapteddlo_muj.controllers.ropekin_controller_massspring import DLORopeMassSpring
+from adapteddlo_muj.controllers.ropekin_controller_cosserat import DLORopeCosserat
+from adapteddlo_muj.controllers.ropekin_controller_cosserat2 import DLORopeCosserat2
+from adapteddlo_muj.controllers.ropekin_controller_xpbd import DLORopeXpbd
+from adapteddlo_muj.controllers.ropekin_controller_geds import DLORopeGeds
 from adapteddlo_muj.utils.data_utils import compute_PCA, centralize_devdata
 
 
@@ -175,6 +180,39 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
                 bothweld=self.bothweld
             )
             self.joint_qveladdr_full = self.dlo_sim.dlo_joint_qveladdr_full.copy()
+        elif self.storqtype == 'massspring':
+            self.dlo_sim = DLORopeMassSpring(
+                model=self.model,
+                data=self.data,
+                n_link=self.r_pieces,
+                alpha_bar=self.alpha_bar,
+                beta_bar=self.beta_bar,
+                overall_rot=self.overall_rot,
+                f_limit=self.f_limit,
+                bothweld=self.bothweld,
+            )
+            self.joint_qveladdr_full = self.dlo_sim.dlo_joint_qveladdr_full.copy()
+        elif self.storqtype in ('cosserat', 'cosserat2', 'xpbd', 'geds'):
+            seg_len = self.r_len / float(self.r_pieces)
+            controller_cls = {
+                'cosserat': DLORopeCosserat,
+                'cosserat2': DLORopeCosserat2,
+                'xpbd': DLORopeXpbd,
+                'geds': DLORopeGeds,
+            }[self.storqtype]
+            self.dlo_sim = controller_cls(
+                model=self.model,
+                data=self.data,
+                n_link=self.r_pieces,
+                segment_length=seg_len,
+                radius=self.r_thickness / 2.0,
+                alpha_bar=self.alpha_bar,
+                beta_bar=self.beta_bar,
+                overall_rot=self.overall_rot,
+                f_limit=self.f_limit,
+                bothweld=self.bothweld,
+            )
+            self.joint_qveladdr_full = self.dlo_sim.dlo_joint_qveladdr_full.copy()
         # if self.do_render:
         #     self.viewer._paused = True
 
@@ -312,7 +350,7 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
                 obj_path=rope_path,
                 rgba_vals=self.rgba_vals
             )
-        if self.storqtype=='adapt':
+        if self.storqtype in ('adapt', 'massspring', 'cosserat', 'cosserat2', 'xpbd', 'geds'):
             GenKin_O(
                 r_len=self.r_len,
                 r_thickness=self.r_thickness,
@@ -373,7 +411,7 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
         # print(f"self.beta_bar = {self.beta_bar}")
         if self.storqtype == 'xfrc':
             self.dlo_sim.update_force()
-        elif self.storqtype == 'adapt':
+        elif self.storqtype in ('adapt', 'massspring', 'cosserat', 'cosserat2', 'xpbd', 'geds'):
             self.dlo_sim.update_torque()
 
         # print(self.data.ncon)
@@ -399,7 +437,8 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
 
         if self.instability_check():
             print(f'unstable {self.env_steps}')
-            self.viewer._paused = True
+            if self.viewer is not None:
+                self.viewer._paused = True
             # input()
             # if self.do_render:
                 # self.viewer.render()

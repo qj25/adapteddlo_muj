@@ -64,8 +64,11 @@ RodCosserat::RodCosserat(
       segment_length_(segment_length),
       k_bend_(k_bend),
       k_twist_(k_twist),
-      k_torque_(1.0),
+      k_stretch_(10.0 * k_bend),
+      k_torque_(0.01),
       num_iters_(4),
+      use_velocity_drive_(false),
+      joint_child_torques_(true),
       rest_rel_quat_(nullptr) {
     if (n_joints_ > 0) {
         rest_rel_quat_ = new double[4 * n_joints_];
@@ -85,12 +88,24 @@ void RodCosserat::setMaterial(double k_bend, double k_twist) {
     k_twist_ = k_twist;
 }
 
+void RodCosserat::setStretchStiffness(double k_stretch) {
+    k_stretch_ = k_stretch;
+}
+
 void RodCosserat::setNumIterations(int num_iters) {
     num_iters_ = num_iters < 1 ? 1 : num_iters;
 }
 
 void RodCosserat::setTorqueGain(double k_torque) {
     k_torque_ = k_torque;
+}
+
+void RodCosserat::setVelocityDrive(bool use_velocity_drive) {
+    use_velocity_drive_ = use_velocity_drive;
+}
+
+void RodCosserat::setJointChildTorques(bool joint_child_torques) {
+    joint_child_torques_ = joint_child_torques;
 }
 
 void RodCosserat::buildRestAngles(int dim_q, const double* rest_quat) {
@@ -116,15 +131,25 @@ void RodCosserat::reinitRest(
     buildRestAngles(dim_q, rest_quat);
 }
 
+static void splitBendTwist(
+    const Vector3d& rotvec,
+    const Vector3d& tangent,
+    Vector3d& bend_vec,
+    Vector3d& twist_vec) {
+    const double twist_scalar = rotvec.dot(tangent);
+    twist_vec = twist_scalar * tangent;
+    bend_vec = rotvec - twist_vec;
+}
+
 // Bend/twist-only shadow orientation solve (stretch skipped; kss=0 in reference).
 // Uses unit constraint weights here; physical k_bend/k_twist are applied only when
 // converting the shadow correction to output torques (XPBD-style decoupling).
 static void shadowOrientationSolve(
     std::vector<Quaterniond>& q_shadow,
-    const std::vector<Vector3d>& x_anchor,
     const double* rest_rel_quat,
     int n_joints) {
-    const Vector3d fallback_tangent(1.0, 0.0, 0.0);
+    // q0^{-1}*q1 rotvecs are in the parent joint frame; split with local +X.
+    const Vector3d tangent_parent(1.0, 0.0, 0.0);
     const double step_gain = 0.25;
 
     for (int j = 0; j < n_joints; ++j) {
@@ -138,14 +163,13 @@ static void shadowOrientationSolve(
             delta.coeffs() = -delta.coeffs();
         }
 
-        Vector3d rotvec = quatToRotvec(delta);
-        const Vector3d tangent = safeNormalize(
-            x_anchor[static_cast<size_t>(j + 1)] - x_anchor[static_cast<size_t>(j)],
-            fallback_tangent);
-
-        const double twist_scalar = rotvec.dot(tangent);
-        const Vector3d twist_vec = twist_scalar * tangent;
-        const Vector3d bend_vec = rotvec - twist_vec;
+        Vector3d bend_vec;
+        Vector3d twist_vec;
+        splitBendTwist(
+            quatToRotvec(delta),
+            tangent_parent,
+            bend_vec,
+            twist_vec);
         const Vector3d corr = step_gain * (bend_vec + twist_vec);
 
         const Quaterniond dq0 = rotvecToQuat(corr);
@@ -181,13 +205,17 @@ void RodCosserat::computeWrenches(
     int dim_q,
     const double* quat,
     double dt,
+    int dim_f,
+    double* force_out,
     int dim_t,
     double* torque_out) {
     (void)dim_x;
     (void)dim_q;
+    (void)dim_f;
     (void)dim_t;
 
     const int n = n_nodes_;
+    std::memset(force_out, 0, sizeof(double) * 3 * n);
     std::memset(torque_out, 0, sizeof(double) * 3 * n);
     if (n < 2 || n_joints_ < 1 || dt <= 0.0) {
         return;
@@ -206,27 +234,84 @@ void RodCosserat::computeWrenches(
     for (int iter = 0; iter < num_iters_; ++iter) {
         shadowOrientationSolve(
             q_shadow,
-            x_anchor,
             rest_rel_quat_,
             n_joints_);
     }
 
-    (void)dt;
-    const double kt = k_torque_;
+    double scale = k_torque_;
+    if (use_velocity_drive_) {
+        scale *= 1.0 / dt;
+    }
     const Vector3d fallback_tangent(1.0, 0.0, 0.0);
-    for (int i = 0; i < n; ++i) {
-        Quaterniond dq = q_shadow[static_cast<size_t>(i)] * q0[static_cast<size_t>(i)].inverse();
-        if (dq.w() < 0.0) {
-            dq.coeffs() = -dq.coeffs();
+
+    // Pairwise distance springs (world frame, symmetric nodal forces).
+    if (k_stretch_ > 0.0) for (int j = 0; j < n_joints_; ++j) {
+        const Vector3d edge =
+            x_anchor[static_cast<size_t>(j + 1)] - x_anchor[static_cast<size_t>(j)];
+        const double dist = edge.norm();
+        if (dist < 1e-12) {
+            continue;
         }
-        const Vector3d rotvec = quatToRotvec(dq);
-        const Vector3d tangent = nodeTangent(i, n, x_anchor, fallback_tangent);
-        const double twist_scalar = rotvec.dot(tangent);
-        const Vector3d twist_vec = twist_scalar * tangent;
-        const Vector3d bend_vec = rotvec - twist_vec;
-        const Vector3d weighted = k_bend_ * bend_vec + k_twist_ * twist_vec;
-        torque_out[3 * i + 0] = -kt * weighted[0];
-        torque_out[3 * i + 1] = -kt * weighted[1];
-        torque_out[3 * i + 2] = -kt * weighted[2];
+        const double err = dist - segment_length_;
+        const Vector3d f = k_stretch_ * err * (edge / dist);
+        force_out[3 * j + 0] += f[0];
+        force_out[3 * j + 1] += f[1];
+        force_out[3 * j + 2] += f[2];
+        force_out[3 * (j + 1) + 0] -= f[0];
+        force_out[3 * (j + 1) + 1] -= f[1];
+        force_out[3 * (j + 1) + 2] -= f[2];
+    }
+
+    const Vector3d tangent_parent(1.0, 0.0, 0.0);
+
+    if (joint_child_torques_) {
+        // Shadow-corrected relative rotation per edge; torque on child in child frame.
+        for (int i = 1; i < n; ++i) {
+            const int j = i - 1;
+            const Quaterniond q_prev = q0[static_cast<size_t>(j)];
+            const Quaterniond q_cur = q0[static_cast<size_t>(i)];
+            const Quaterniond qs_prev = q_shadow[static_cast<size_t>(j)];
+            const Quaterniond qs_cur = q_shadow[static_cast<size_t>(i)];
+
+            const Quaterniond q_rel = q_prev.inverse() * q_cur;
+            const Quaterniond q_rel_shadow = qs_prev.inverse() * qs_cur;
+            Quaterniond delta = q_rel_shadow * q_rel.inverse();
+            if (delta.w() < 0.0) {
+                delta.coeffs() = -delta.coeffs();
+            }
+
+            Vector3d bend_vec;
+            Vector3d twist_vec;
+            splitBendTwist(
+                quatToRotvec(delta),
+                tangent_parent,
+                bend_vec,
+                twist_vec);
+            const Vector3d weighted = k_bend_ * bend_vec + k_twist_ * twist_vec;
+            const Vector3d tau_child = q_rel.inverse() * weighted;
+
+            torque_out[3 * i + 0] = scale * tau_child[0];
+            torque_out[3 * i + 1] = scale * tau_child[1];
+            torque_out[3 * i + 2] = scale * tau_child[2];
+        }
+    } else {
+        // Per-node shadow correction; torque in world frame.
+        for (int i = 0; i < n; ++i) {
+            Quaterniond dq = q_shadow[static_cast<size_t>(i)] * q0[static_cast<size_t>(i)].inverse();
+            if (dq.w() < 0.0) {
+                dq.coeffs() = -dq.coeffs();
+            }
+            Vector3d bend_vec;
+            Vector3d twist_vec;
+            splitBendTwist(
+                quatToRotvec(dq),
+                nodeTangent(i, n, x_anchor, fallback_tangent),
+                bend_vec,
+                twist_vec);
+            const Vector3d weighted = k_bend_ * bend_vec + k_twist_ * twist_vec;
+            torque_out[3 * i + 0] = scale * weighted[0];
+            torque_out[3 * i + 1] = scale * weighted[1];
+            torque_out[3 * i + 2] = scale * weighted[2];
+        }
     }
 }

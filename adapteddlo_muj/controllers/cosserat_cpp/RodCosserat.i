@@ -15,6 +15,7 @@ import_array();
     (int dim_q, const double* rest_quat),
     (int dim_x, const double* x),
     (int dim_q, const double* quat),
+    (int dim_f, double* force_out),
     (int dim_t, double* torque_out)
 };
 

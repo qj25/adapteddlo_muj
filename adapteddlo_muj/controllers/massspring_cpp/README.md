@@ -4,29 +4,23 @@ Lightweight C++/SWIG rope model that applies per-piece restoring torques from ro
 
 ## Model idea
 
-For each rope piece `i`, we store a neutral orientation quaternion `q_neutral_i` (captured at init/reset).  
-At runtime we read the current orientation `q_i` and compute the relative rotation:
+For each joint between nodes `i-1` and `i`, we store neutral orientations and compute the
+relative rotation deviation from the neutral relative rotation:
 
-- `q_rel_i = q_neutral_i^{-1} * q_i`
+- `q_rel = q_{i-1}^{-1} * q_i`
+- `q_rel0 = q_neutral_{i-1}^{-1} * q_neutral_i`
+- `dev = rotvec(q_rel0^{-1} * q_rel)`
 
-Then convert `q_rel_i` to a rotation-vector deviation:
+The deviation is split into bend and twist using the segment tangent `t`:
 
-- `dev_i = [dev_x, dev_y, dev_z]`
+- `dev_twist = (dev · t) t`
+- `dev_bend = dev - dev_twist`
 
-Interpretation:
+Restoring torque in the parent frame:
 
-- `dev_x`, `dev_y`: bending deviations around local `x`/`y`
-- `dev_z`: twist deviation around local `z`
+- `tau_parent = -(k_bend * dev_bend + k_twist * dev_twist)`
 
-Restoring torque is linear in deviation:
-
-- `tau_i = -diag(k_bx, k_by, k_twist) * dev_i`
-
-or component-wise:
-
-- `tau_x = -k_bx * dev_x`
-- `tau_y = -k_by * dev_y`
-- `tau_z = -k_twist * dev_z`
+where `k_bend = (k_bx + k_by) / 2`. The torque is then rotated into the child body frame.
 
 This is the rotational analog of a linear mass-spring law.
 
@@ -45,7 +39,7 @@ Defined in `MassSpring.h`:
 - `MassSpring(neutral_quat, k_bend_x, k_bend_y, k_twist)`
 - `setNeutralQuat(neutral_quat)`
 - `setStiffness(k_bend_x, k_bend_y, k_twist)`
-- `computeTorque(current_quat, node_torque_out)`
+- `computeTorque(current_x, current_quat, node_torque_out)`
 
 Array layout from Python:
 

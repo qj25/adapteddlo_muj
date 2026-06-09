@@ -130,8 +130,13 @@ class DLORopeMassSpring:
         self.massspring_math.setStiffness(self.k_bend_x, self.k_bend_y, self.k_twist)
 
     def _calc_centerline_torq(self):
+        body_xpos_flat = self.data.xpos[self.vec_bodyid[:]].flatten()
         body_quats_flat = self.data.xquat[self.vec_bodyid[:]].flatten()
-        self.massspring_math.computeTorque(body_quats_flat, self.torq_node_flat)
+        self.massspring_math.computeTorque(
+            body_xpos_flat,
+            body_quats_flat,
+            self.torq_node_flat,
+        )
         self.torq_node = self.torq_node_flat.reshape((self.nv + 2, 3))
 
     def _update_xvecs(self):

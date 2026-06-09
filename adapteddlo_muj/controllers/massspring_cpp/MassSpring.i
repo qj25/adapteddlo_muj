@@ -12,6 +12,7 @@ import_array();
 
 %apply (int DIM1, double* IN_ARRAY1) {
     (int dim_nq, double* neutral_quat),
+    (int dim_x, double* current_x),
     (int dim_cq, double* current_quat),
     (int dim_nt, double* node_torque)
 };

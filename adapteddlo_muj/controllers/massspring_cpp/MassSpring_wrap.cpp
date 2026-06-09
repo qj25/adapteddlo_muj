@@ -3521,15 +3521,19 @@ SWIGINTERN PyObject *_wrap_MassSpring_computeTorque(PyObject *SWIGUNUSEDPARM(sel
   double *arg3 = (double *) 0 ;
   int arg4 ;
   double *arg5 = (double *) 0 ;
+  int arg6 ;
+  double *arg7 = (double *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyArrayObject *array2 = NULL ;
   int is_new_object2 = 0 ;
   PyArrayObject *array4 = NULL ;
   int is_new_object4 = 0 ;
-  PyObject *swig_obj[3] ;
+  PyArrayObject *array6 = NULL ;
+  int is_new_object6 = 0 ;
+  PyObject *swig_obj[4] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "MassSpring_computeTorque", 3, 3, swig_obj)) SWIG_fail;
+  if (!SWIG_Python_UnpackTuple(args, "MassSpring_computeTorque", 4, 4, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_MassSpring, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "MassSpring_computeTorque" "', argument " "1"" of type '" "MassSpring *""'"); 
@@ -3559,7 +3563,19 @@ SWIGINTERN PyObject *_wrap_MassSpring_computeTorque(PyObject *SWIGUNUSEDPARM(sel
     arg4 = (int) array_size(array4,0);
     arg5 = (double*) array_data(array4);
   }
-  (arg1)->computeTorque(arg2,arg3,arg4,arg5);
+  {
+    npy_intp size[1] = {
+      -1
+    };
+    array6 = obj_to_array_contiguous_allow_conversion(swig_obj[3],
+      NPY_DOUBLE,
+      &is_new_object6);
+    if (!array6 || !require_dimensions(array6, 1) ||
+      !require_size(array6, size, 1)) SWIG_fail;
+    arg6 = (int) array_size(array6,0);
+    arg7 = (double*) array_data(array6);
+  }
+  (arg1)->computeTorque(arg2,arg3,arg4,arg5,arg6,arg7);
   resultobj = SWIG_Py_Void();
   {
     if (is_new_object2 && array2)
@@ -3571,6 +3587,12 @@ SWIGINTERN PyObject *_wrap_MassSpring_computeTorque(PyObject *SWIGUNUSEDPARM(sel
     if (is_new_object4 && array4)
     {
       Py_DECREF(array4); 
+    }
+  }
+  {
+    if (is_new_object6 && array6)
+    {
+      Py_DECREF(array6); 
     }
   }
   return resultobj;
@@ -3585,6 +3607,12 @@ fail:
     if (is_new_object4 && array4)
     {
       Py_DECREF(array4); 
+    }
+  }
+  {
+    if (is_new_object6 && array6)
+    {
+      Py_DECREF(array6); 
     }
   }
   return NULL;

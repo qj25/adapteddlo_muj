@@ -23,6 +23,7 @@ from adapteddlo_muj.controllers.ropekin_controller_adapt import DLORopeAdapt
 from adapteddlo_muj.controllers.ropekin_controller_massspring import DLORopeMassSpring
 from adapteddlo_muj.controllers.ropekin_controller_geds import DLORopeGeds
 from adapteddlo_muj.controllers.ropekin_controller_cosserat import DLORopeCosserat
+from adapteddlo_muj.controllers.ropekin_controller_cosserat2 import DLORopeCosserat2
 from adapteddlo_muj.controllers.ropekin_controller_xpbd import DLORopeXpbd
 from adapteddlo_muj.controllers.ropekin_controller_xfrc import DLORopeXfrc
 # from adapteddlo_muj.utils.ik_ur5.Ikfast_ur5 import Uik
@@ -321,6 +322,20 @@ class ValidRnR2Env(gym.Env, utils.EzPickle):
                 f_limit=self.f_limit,
                 bothweld=self.bothweld,
             )
+        elif self.rope_type == 'cosserat2':
+            seg_len = self.r_len / float(self.r_pieces)
+            self.dlo_sim = DLORopeCosserat2(
+                model=self.model,
+                data=self.data,
+                n_link=self.r_pieces,
+                segment_length=seg_len,
+                radius=self.r_thickness / 2.0,
+                alpha_bar=self.alpha_bar,
+                beta_bar=self.beta_bar,
+                overall_rot=self.overall_rot,
+                f_limit=self.f_limit,
+                bothweld=self.bothweld,
+            )
         elif self.rope_type == 'xpbd':
             seg_len = self.r_len / float(self.r_pieces)
             self.dlo_sim = DLORopeXpbd(
@@ -419,6 +434,9 @@ class ValidRnR2Env(gym.Env, utils.EzPickle):
             ropexml = "dlorope1dkin.xml"
             overallxml = "overall.xml"
         elif self.rope_type == 'cosserat':
+            ropexml = "dlorope1dkin.xml"
+            overallxml = "overall.xml"
+        elif self.rope_type == 'cosserat2':
             ropexml = "dlorope1dkin.xml"
             overallxml = "overall.xml"
         elif self.rope_type == 'xpbd':
@@ -558,6 +576,25 @@ class ValidRnR2Env(gym.Env, utils.EzPickle):
                 obj_path=rope_path,
                 rgba_vals=self.rgba_vals
             )
+        elif self.rope_type == 'cosserat2':
+            ropexml = "dlorope1dkin.xml"
+            overallxml = "overall.xml"
+            GenKin_O(
+                r_len=self.r_len,
+                r_thickness=self.r_thickness,
+                r_pieces=self.r_pieces,
+                r_mass=self.r_mass,
+                j_stiff=0.0,
+                j_damp=j_damp,
+                init_pos=self.rope_initpose[:3],
+                init_quat=self.rope_initpose[3:],
+                coll_on=True,
+                d_small=0.,
+                rope_type="capsule",
+                vis_subcyl=False,
+                obj_path=rope_path,
+                rgba_vals=self.rgba_vals
+            )
         elif self.rope_type == 'xpbd':
             ropexml = "dlorope1dkin.xml"
             overallxml = "overall.xml"
@@ -634,7 +671,7 @@ class ValidRnR2Env(gym.Env, utils.EzPickle):
         # print(self.observations['eef_pos'])
         if self.rope_type == 'xfrc':
             self.dlo_sim.update_force()
-        elif self.rope_type in ('adapt', 'massspring', 'geds', 'cosserat', 'xpbd'):
+        elif self.rope_type in ('adapt', 'massspring', 'geds', 'cosserat', 'cosserat2', 'xpbd'):
             self.dlo_sim.update_torque()
 
         # if self.env_steps==1000:
