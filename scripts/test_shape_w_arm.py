@@ -126,7 +126,9 @@ for i, model_name in enumerate(model_names):
 
             print(f"Now computing: {wire_color}{i_move}_{model_name}")
             overall_rot = None
-            env = model_spec["create_env"](wire_color, overall_rot, do_render)
+            env = model_spec["create_env"](
+                wire_color, overall_rot, do_render, model_name=model_name
+            )
             env.velreset = velreset
             if getting_jointpos:
                 env.max_action = 0.02

@@ -94,7 +94,7 @@ def main():
         type=str,
         default=None,
         help="Bending search range as lo,hi on stiff_scale for all models. "
-        "Default: [0,2] for adapt/native/xfrc, [0,20] for massspring/cosserat/xpbd/geds.",
+        "Default: [0,2] for all models.",
     )
     parser.add_argument(
         "--b-a-lim",
