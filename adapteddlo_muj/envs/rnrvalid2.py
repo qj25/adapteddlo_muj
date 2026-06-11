@@ -12,7 +12,11 @@ import sys
 import adapteddlo_muj.utils.transform_utils as T
 # from adapteddlo_muj.controllers.pose_controller_ur5 import PoseController
 from adapteddlo_muj.utils.mjc_utils import MjSimWrapper
-from adapteddlo_muj.utils.xml_utils import XMLWrapper
+from adapteddlo_muj.utils.xml_utils import (
+    XMLWrapper,
+    allocate_genrope_xml_paths,
+    release_genrope_xml_paths,
+)
 import adapteddlo_muj.utils.mjc2_utils as mjc2
 from adapteddlo_muj.utils.ik_utils import ik_denso
 from adapteddlo_muj.assets.genrope.gdv_N import GenKin_N
@@ -23,7 +27,7 @@ from adapteddlo_muj.controllers.ropekin_controller_adapt import DLORopeAdapt
 from adapteddlo_muj.controllers.ropekin_controller_massspring import DLORopeMassSpring
 from adapteddlo_muj.controllers.ropekin_controller_geds import DLORopeGeds
 from adapteddlo_muj.controllers.ropekin_controller_cosserat import DLORopeCosserat
-from adapteddlo_muj.controllers.ropekin_controller_cosserat2 import DLORopeCosserat2
+from adapteddlo_muj.controllers.ropekin_controller_cosserat5 import DLORopeCosserat5
 from adapteddlo_muj.controllers.ropekin_controller_xpbd import DLORopeXpbd
 from adapteddlo_muj.controllers.ropekin_controller_xfrc import DLORopeXfrc
 # from adapteddlo_muj.utils.ik_ur5.Ikfast_ur5 import Uik
@@ -288,6 +292,7 @@ class ValidRnR2Env(gym.Env, utils.EzPickle):
                 model=self.model,
                 data=self.data,
                 n_link=self.r_pieces,
+                radius=self.r_thickness / 2.0,
                 alpha_bar=self.alpha_bar,
                 beta_bar=self.beta_bar,
                 overall_rot=self.overall_rot,
@@ -322,13 +327,11 @@ class ValidRnR2Env(gym.Env, utils.EzPickle):
                 f_limit=self.f_limit,
                 bothweld=self.bothweld,
             )
-        elif self.rope_type == 'cosserat2':
-            seg_len = self.r_len / float(self.r_pieces)
-            self.dlo_sim = DLORopeCosserat2(
+        elif self.rope_type == 'cosserat5':
+            self.dlo_sim = DLORopeCosserat5(
                 model=self.model,
                 data=self.data,
                 n_link=self.r_pieces,
-                segment_length=seg_len,
                 radius=self.r_thickness / 2.0,
                 alpha_bar=self.alpha_bar,
                 beta_bar=self.beta_bar,
@@ -436,7 +439,7 @@ class ValidRnR2Env(gym.Env, utils.EzPickle):
         elif self.rope_type == 'cosserat':
             ropexml = "dlorope1dkin.xml"
             overallxml = "overall.xml"
-        elif self.rope_type == 'cosserat2':
+        elif self.rope_type == 'cosserat5':
             ropexml = "dlorope1dkin.xml"
             overallxml = "overall.xml"
         elif self.rope_type == 'xpbd':
@@ -453,18 +456,10 @@ class ValidRnR2Env(gym.Env, utils.EzPickle):
             os.path.dirname(world_base_path),
             "densovs060/densovs060_wireclamp.xml"
         )
-        box_path = os.path.join(
-            os.path.dirname(world_base_path),
-            "anchorbox.xml"
-        )
-        weldweight_path = os.path.join(
-            os.path.dirname(world_base_path),
-            "weldweight.xml"
-        )
-        rope_path = os.path.join(
-            os.path.dirname(world_base_path),
-            ropexml
-        )
+        gen_paths = allocate_genrope_xml_paths(ropexml)
+        rope_path = gen_paths.rope
+        box_path = gen_paths.anchorbox
+        weldweight_path = gen_paths.weldweight
         j_damp = 0.01
         self.bothweld = False
         if self.rope_type == 'native':
@@ -576,7 +571,7 @@ class ValidRnR2Env(gym.Env, utils.EzPickle):
                 obj_path=rope_path,
                 rgba_vals=self.rgba_vals
             )
-        elif self.rope_type == 'cosserat2':
+        elif self.rope_type == 'cosserat5':
             ropexml = "dlorope1dkin.xml"
             overallxml = "overall.xml"
             GenKin_O(
@@ -649,16 +644,12 @@ class ValidRnR2Env(gym.Env, utils.EzPickle):
                 dlorope, ["worldbody", "equality", "contact"]
             )
 
-        asset_path = os.path.join(
-            os.path.dirname(os.path.dirname(__file__)),
-            "assets/" + overallxml
-        )
-
         xml_string = self.xml.get_xml_string()
 
         model = mujoco.MjModel.from_xml_string(xml_string)
-        mujoco.mj_saveLastXML(asset_path,model)
-        
+        mujoco.mj_saveLastXML(gen_paths.overall(overallxml), model)
+
+        release_genrope_xml_paths(gen_paths)
         return xml_string, robotarm
     
     def step(self, action=np.zeros(6)):
@@ -671,7 +662,7 @@ class ValidRnR2Env(gym.Env, utils.EzPickle):
         # print(self.observations['eef_pos'])
         if self.rope_type == 'xfrc':
             self.dlo_sim.update_force()
-        elif self.rope_type in ('adapt', 'massspring', 'geds', 'cosserat', 'cosserat2', 'xpbd'):
+        elif self.rope_type in ('adapt', 'massspring', 'geds', 'cosserat', 'cosserat5', 'xpbd'):
             self.dlo_sim.update_torque()
 
         # if self.env_steps==1000:

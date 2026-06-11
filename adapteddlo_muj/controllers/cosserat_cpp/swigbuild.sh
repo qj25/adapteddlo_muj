@@ -7,6 +7,7 @@ EIGEN_INCLUDE="${EIGEN_INCLUDE:-$HOME/eigen}"
 swig -c++ -python -o RodCosserat_wrap.cpp RodCosserat.i
 g++ -c RodCosserat.cpp RodCosserat_wrap.cpp \
     -I"${EIGEN_INCLUDE}" \
+    -I/usr/include/eigen3 \
     -I"${NUMPY_INCLUDE_PATH}" \
     -I"${PYTHON_INCLUDE_PATH}" \
     -fPIC -std=c++17 -O2

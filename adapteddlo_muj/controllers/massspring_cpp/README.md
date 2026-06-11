@@ -11,18 +11,18 @@ relative rotation deviation from the neutral relative rotation:
 - `q_rel0 = q_neutral_{i-1}^{-1} * q_neutral_i`
 - `dev = rotvec(q_rel0^{-1} * q_rel)`
 
-The deviation is split into bend and twist using the segment tangent `t`:
+The tangent component (twist about the segment axis) is removed using the segment tangent `t`:
 
-- `dev_twist = (dev · t) t`
-- `dev_bend = dev - dev_twist`
+- `dev_bend = dev - (dev · t) t`
 
-Restoring torque in the parent frame:
+Restoring torque in the parent frame (bend only):
 
-- `tau_parent = -(k_bend * dev_bend + k_twist * dev_twist)`
+- `tau_parent = -k_bend * dev_bend`
 
 where `k_bend = (k_bx + k_by) / 2`. The torque is then rotated into the child body frame.
 
-This is the rotational analog of a linear mass-spring law.
+Twist stiffness is applied separately in Python via the cable-style layer in
+`adapteddlo_muj/controllers/ropekin_controller_massspring.py` (matching `cable.cc`).
 
 ## Quaternion math used
 
@@ -36,9 +36,9 @@ This is the rotational analog of a linear mass-spring law.
 
 Defined in `MassSpring.h`:
 
-- `MassSpring(neutral_quat, k_bend_x, k_bend_y, k_twist)`
+- `MassSpring(neutral_quat, k_bend_x, k_bend_y)`
 - `setNeutralQuat(neutral_quat)`
-- `setStiffness(k_bend_x, k_bend_y, k_twist)`
+- `setStiffness(k_bend_x, k_bend_y)`
 - `computeTorque(current_x, current_quat, node_torque_out)`
 
 Array layout from Python:
@@ -51,8 +51,9 @@ Array layout from Python:
 The Python controller `adapteddlo_muj/controllers/ropekin_controller_massspring.py`:
 
 1. captures neutral rope-body quaternions,
-2. calls `computeTorque(...)` each step,
-3. writes resulting torques to MuJoCo generalized passive forces (`qfrc_passive`).
+2. calls `computeTorque(...)` each step for bending,
+3. applies cable-style twist torques via `mj_applyFT`,
+4. writes resulting torques to MuJoCo generalized passive forces (`qfrc_passive`).
 
 ## Build
 
@@ -67,4 +68,3 @@ This generates and builds:
 - `MassSpring_wrap.cpp`
 - `MassSpring.py`
 - `_MassSpring.so`
-

@@ -11,7 +11,11 @@ import pickle
 import adapteddlo_muj.utils.transform_utils as T
 # from adapteddlo_muj.controllers.pose_controller_ur5 import PoseController
 from adapteddlo_muj.utils.mjc_utils import MjSimWrapper
-from adapteddlo_muj.utils.xml_utils import XMLWrapper
+from adapteddlo_muj.utils.xml_utils import (
+    XMLWrapper,
+    allocate_genrope_xml_paths,
+    release_genrope_xml_paths,
+)
 import adapteddlo_muj.utils.mjc2_utils as mjc2
 from adapteddlo_muj.utils.ik_utils import ik_denso
 from adapteddlo_muj.assets.genrope.gdv_N import GenKin_N
@@ -352,18 +356,10 @@ class ValidRnREnv(gym.Env, utils.EzPickle):
             os.path.dirname(world_base_path),
             "densovs060/densovs060.xml"
         )
-        box_path = os.path.join(
-            os.path.dirname(world_base_path),
-            "anchorbox.xml"
-        )
-        weldweight_path = os.path.join(
-            os.path.dirname(world_base_path),
-            "weldweight.xml"
-        )
-        rope_path = os.path.join(
-            os.path.dirname(world_base_path),
-            ropexml
-        )
+        gen_paths = allocate_genrope_xml_paths(ropexml)
+        rope_path = gen_paths.rope
+        box_path = gen_paths.anchorbox
+        weldweight_path = gen_paths.weldweight
         j_damp = 0.01
         self.bothweld = False
         if self.rope_type == 'native':
@@ -453,16 +449,12 @@ class ValidRnREnv(gym.Env, utils.EzPickle):
                 dlorope, ["worldbody", "equality", "contact"]
             )
 
-        asset_path = os.path.join(
-            os.path.dirname(os.path.dirname(__file__)),
-            "assets/" + overallxml
-        )
-
         xml_string = self.xml.get_xml_string()
 
         model = mujoco.MjModel.from_xml_string(xml_string)
-        mujoco.mj_saveLastXML(asset_path,model)
-        
+        mujoco.mj_saveLastXML(gen_paths.overall(overallxml), model)
+
+        release_genrope_xml_paths(gen_paths)
         return xml_string, robotarm
     
     def step(self, action=np.zeros(6)):

@@ -9,14 +9,13 @@ public:
         int dim_nq,
         double* neutral_quat,
         double k_bend_x,
-        double k_bend_y,
-        double k_twist
+        double k_bend_y
     );
 
     ~MassSpring();
 
     void setNeutralQuat(int dim_nq, double* neutral_quat);
-    void setStiffness(double k_bend_x, double k_bend_y, double k_twist);
+    void setStiffness(double k_bend_x, double k_bend_y);
     void computeTorque(
         int dim_x,
         double* current_x,
@@ -39,7 +38,6 @@ private:
 
     double k_bend_x_;
     double k_bend_y_;
-    double k_twist_;
 };
 
 #endif

@@ -13,7 +13,11 @@ from time import time, perf_counter
 
 import adapteddlo_muj.utils.transform_utils as T
 from adapteddlo_muj.utils.mjc_utils import MjSimWrapper
-from adapteddlo_muj.utils.xml_utils import XMLWrapper
+from adapteddlo_muj.utils.xml_utils import (
+    XMLWrapper,
+    allocate_genrope_xml_paths,
+    release_genrope_xml_paths,
+)
 import adapteddlo_muj.utils.mjc2_utils as mjc2
 
 from adapteddlo_muj.assets.genrope.gdv_O_xfrc import GenKin_O_xfrc
@@ -181,14 +185,9 @@ class TestRopeXfrcEnv(gym.Env, utils.EzPickle):
             os.path.dirname(os.path.dirname(__file__)),
             f"assets/{world_filename}"
         )
-        box_path = os.path.join(
-            os.path.dirname(world_base_path),
-            "anchorbox.xml"
-        )
-        rope_path = os.path.join(
-            os.path.dirname(world_base_path),
-            "dlorope1dkin.xml"
-        )
+        gen_paths = allocate_genrope_xml_paths("dlorope1dkin.xml")
+        rope_path = gen_paths.rope
+        box_path = gen_paths.anchorbox
 
         if (self.test_type == 'jointtest') or (self.test_type == 'lhb') or (self.test_type == 'speedtest2'):
             self.bothweld = True
@@ -253,16 +252,12 @@ class TestRopeXfrcEnv(gym.Env, utils.EzPickle):
         self.xml.merge_multiple(
             dlorope, ["worldbody"]
         )
-        asset_path = os.path.join(
-            os.path.dirname(os.path.dirname(__file__)),
-            "assets/overall.xml"
-        )
-
         xml_string = self.xml.get_xml_string()
 
         model = mujoco.MjModel.from_xml_string(xml_string)
-        mujoco.mj_saveLastXML(asset_path,model)
+        mujoco.mj_saveLastXML(gen_paths.overall("overall.xml"), model)
 
+        release_genrope_xml_paths(gen_paths)
         return xml_string, None
 
     def step(self, action=np.zeros(6)):

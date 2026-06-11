@@ -13,7 +13,7 @@ from time import time
 
 import adapteddlo_muj.utils.transform_utils as T
 from adapteddlo_muj.utils.mjc_utils import MjSimWrapper
-from adapteddlo_muj.utils.xml_utils import XMLWrapper
+from adapteddlo_muj.utils.xml_utils import XMLWrapper, genrope_xml_workspace
 import adapteddlo_muj.utils.mjc2_utils as mjc2
 
 from adapteddlo_muj.assets.genrope.gdv_O import GenKin_O
@@ -23,7 +23,8 @@ from adapteddlo_muj.controllers.ropekin_controller_xfrc import DLORopeXfrc
 from adapteddlo_muj.controllers.ropekin_controller_adapt import DLORopeAdapt
 from adapteddlo_muj.controllers.ropekin_controller_massspring import DLORopeMassSpring
 from adapteddlo_muj.controllers.ropekin_controller_cosserat import DLORopeCosserat
-from adapteddlo_muj.controllers.ropekin_controller_cosserat2 import DLORopeCosserat2
+from adapteddlo_muj.controllers.ropekin_controller_cosserat3 import DLORopeCosserat3
+from adapteddlo_muj.controllers.ropekin_controller_cosserat5 import DLORopeCosserat5
 from adapteddlo_muj.controllers.ropekin_controller_xpbd import DLORopeXpbd
 from adapteddlo_muj.controllers.ropekin_controller_geds import DLORopeGeds
 from adapteddlo_muj.utils.data_utils import compute_PCA, centralize_devdata
@@ -185,6 +186,7 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
                 model=self.model,
                 data=self.data,
                 n_link=self.r_pieces,
+                radius=self.r_thickness / 2.0,
                 alpha_bar=self.alpha_bar,
                 beta_bar=self.beta_bar,
                 overall_rot=self.overall_rot,
@@ -192,11 +194,10 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
                 bothweld=self.bothweld,
             )
             self.joint_qveladdr_full = self.dlo_sim.dlo_joint_qveladdr_full.copy()
-        elif self.storqtype in ('cosserat', 'cosserat2', 'xpbd', 'geds'):
+        elif self.storqtype in ('cosserat', 'xpbd', 'geds'):
             seg_len = self.r_len / float(self.r_pieces)
             controller_cls = {
                 'cosserat': DLORopeCosserat,
-                'cosserat2': DLORopeCosserat2,
                 'xpbd': DLORopeXpbd,
                 'geds': DLORopeGeds,
             }[self.storqtype]
@@ -213,8 +214,25 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
                 bothweld=self.bothweld,
             )
             self.joint_qveladdr_full = self.dlo_sim.dlo_joint_qveladdr_full.copy()
-        # if self.do_render:
-        #     self.viewer._paused = True
+        elif self.storqtype in ('cosserat3', 'cosserat5'):
+            controller_cls = {
+                'cosserat3': DLORopeCosserat3,
+                'cosserat5': DLORopeCosserat5,
+            }[self.storqtype]
+            self.dlo_sim = controller_cls(
+                model=self.model,
+                data=self.data,
+                n_link=self.r_pieces,
+                radius=self.r_thickness / 2.0,
+                alpha_bar=self.alpha_bar,
+                beta_bar=self.beta_bar,
+                overall_rot=self.overall_rot,
+                f_limit=self.f_limit,
+                bothweld=self.bothweld,
+            )
+            self.joint_qveladdr_full = self.dlo_sim.dlo_joint_qveladdr_full.copy()
+        if self.do_render:
+            self.viewer._paused = True
 
         if (self.test_type == 'lhb'): # or (self.test_type == 'speedtest2'):
             self.start_lhbtest(new_start)
@@ -303,107 +321,96 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
             os.path.dirname(os.path.dirname(__file__)),
             "assets/world_realexp.xml"
         )
-        box_path = os.path.join(
-            os.path.dirname(world_base_path),
-            "anchorbox.xml"
-        )
-        weldweight_path = os.path.join(
-            os.path.dirname(world_base_path),
-            "weldweight.xml"
-        )
-        rope_path = os.path.join(
-            os.path.dirname(world_base_path),
-            rope_xml_file
-        )
 
-        self.bothweld = False
-        if self.storqtype=='native':
-            GenKin_N(
-                r_len=self.r_len,
-                r_thickness=self.r_thickness,
-                r_pieces=self.r_pieces,
-                r_mass=self.r_mass,
-                stiff_vals=self.stiff_vals,
-                j_damp=0.01,
-                init_pos=self.rope_initpose[:3],
-                init_quat=self.rope_initpose[3:],
-                coll_on=True,
-                rope_type="capsule",
-                vis_subcyl=False,
-                obj_path=rope_path,
-                rgba_vals=self.rgba_vals
-            )
-        if self.storqtype=='xfrc':
-            GenKin_O_xfrc(
-                r_len=self.r_len,
-                r_thickness=self.r_thickness,
-                r_pieces=self.r_pieces,
-                r_mass=self.r_mass,
-                j_stiff=0.0,
-                j_damp=0.01,
-                init_pos=self.rope_initpose[:3],
-                init_quat=self.rope_initpose[3:],
-                coll_on=True,
-                d_small=0.,
-                rope_type="capsule",
-                vis_subcyl=False,
-                obj_path=rope_path,
-                rgba_vals=self.rgba_vals
-            )
-        if self.storqtype in ('adapt', 'massspring', 'cosserat', 'cosserat2', 'xpbd', 'geds'):
-            GenKin_O(
-                r_len=self.r_len,
-                r_thickness=self.r_thickness,
-                r_pieces=self.r_pieces,
-                r_mass=self.r_mass,
-                j_stiff=0.0,
-                j_damp=0.01,
-                init_pos=self.rope_initpose[:3],
-                init_quat=self.rope_initpose[3:],
-                coll_on=True,
-                d_small=0.,
-                rope_type="capsule",
-                vis_subcyl=False,
-                obj_path=rope_path,
-                rgba_vals=self.rgba_vals
-            )
+        with genrope_xml_workspace(rope_xml_file) as gen_paths:
+            rope_path = gen_paths.rope
+            box_path = gen_paths.anchorbox
+            weldweight_path = gen_paths.weldweight
 
-        self.xml = XMLWrapper(world_base_path)
-        dlorope = XMLWrapper(rope_path)
-        anchorbox = XMLWrapper(box_path)
-        weldweight = XMLWrapper(weldweight_path)
+            self.bothweld = False
+            if self.storqtype=='native':
+                GenKin_N(
+                    r_len=self.r_len,
+                    r_thickness=self.r_thickness,
+                    r_pieces=self.r_pieces,
+                    r_mass=self.r_mass,
+                    stiff_vals=self.stiff_vals,
+                    j_damp=0.01,
+                    init_pos=self.rope_initpose[:3],
+                    init_quat=self.rope_initpose[3:],
+                    coll_on=True,
+                    rope_type="capsule",
+                    vis_subcyl=False,
+                    obj_path=rope_path,
+                    rgba_vals=self.rgba_vals
+                )
+            if self.storqtype=='xfrc':
+                GenKin_O_xfrc(
+                    r_len=self.r_len,
+                    r_thickness=self.r_thickness,
+                    r_pieces=self.r_pieces,
+                    r_mass=self.r_mass,
+                    j_stiff=0.0,
+                    j_damp=0.01,
+                    init_pos=self.rope_initpose[:3],
+                    init_quat=self.rope_initpose[3:],
+                    coll_on=True,
+                    d_small=0.,
+                    rope_type="capsule",
+                    vis_subcyl=False,
+                    obj_path=rope_path,
+                    rgba_vals=self.rgba_vals
+                )
+            if self.storqtype in ('adapt', 'massspring', 'cosserat', 'cosserat3', 'cosserat5', 'xpbd', 'geds'):
+                GenKin_O(
+                    r_len=self.r_len,
+                    r_thickness=self.r_thickness,
+                    r_pieces=self.r_pieces,
+                    r_mass=self.r_mass,
+                    j_stiff=0.0,
+                    j_damp=0.01,
+                    init_pos=self.rope_initpose[:3],
+                    init_quat=self.rope_initpose[3:],
+                    coll_on=True,
+                    d_small=0.,
+                    rope_type="capsule",
+                    vis_subcyl=False,
+                    obj_path=rope_path,
+                    rgba_vals=self.rgba_vals
+                )
 
-        if self.test_type == 'mbi':
-            dlorope.merge(
-                weldweight,
-                element_name="body",
-                attrib_name="name",
-                attrib_value="B_last",
-                action="append",
-            )
+            self.xml = XMLWrapper(world_base_path)
+            dlorope = XMLWrapper(rope_path)
+            anchorbox = XMLWrapper(box_path)
+            weldweight = XMLWrapper(weldweight_path)
 
-        self.xml.merge_multiple(
-            anchorbox, ["worldbody", "equality", "contact"]
-        )
-        if self.storqtype == "native":
+            if self.test_type == 'mbi':
+                dlorope.merge(
+                    weldweight,
+                    element_name="body",
+                    attrib_name="name",
+                    attrib_value="B_last",
+                    action="append",
+                )
+
             self.xml.merge_multiple(
-                dlorope, ["worldbody","extension"]
+                anchorbox, ["worldbody", "equality", "contact"]
             )
-        else:
-            self.xml.merge_multiple(
-                dlorope, ["worldbody"]
-            )
-        asset_path = os.path.join(
-            os.path.dirname(os.path.dirname(__file__)),
-            "assets/" + overall_file
-        )
+            if self.storqtype == "native":
+                self.xml.merge_multiple(
+                    dlorope, ["worldbody","extension"]
+                )
+            else:
+                self.xml.merge_multiple(
+                    dlorope, ["worldbody"]
+                )
 
-        xml_string = self.xml.get_xml_string()
+            xml_string = self.xml.get_xml_string()
 
-        model = mujoco.MjModel.from_xml_string(xml_string)
-        mujoco.mj_saveLastXML(asset_path,model)
+            model = mujoco.MjModel.from_xml_string(xml_string)
+            mujoco.mj_saveLastXML(gen_paths.overall(overall_file), model)
 
-        return xml_string, None
+            return xml_string, None
 
     def step(self, action=np.zeros(6)):
         # t1 = time()
@@ -411,7 +418,7 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
         # print(f"self.beta_bar = {self.beta_bar}")
         if self.storqtype == 'xfrc':
             self.dlo_sim.update_force()
-        elif self.storqtype in ('adapt', 'massspring', 'cosserat', 'cosserat2', 'xpbd', 'geds'):
+        elif self.storqtype in ('adapt', 'massspring', 'cosserat', 'cosserat3', 'cosserat5', 'xpbd', 'geds'):
             self.dlo_sim.update_torque()
 
         # print(self.data.ncon)
@@ -765,9 +772,13 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
         self.stable_bool = True
         e_tol = 7.5 # 0.075
         circtest_picklename = 'mbitest1.pickle'
+        from adapteddlo_muj.envs.real2sim_paramiden.base import mbi_pickle_source
+
+        mbi_pickle_type = mbi_pickle_source(self.storqtype)
+        mbi_picklefolder = self.picklefolder.replace(self.storqtype, mbi_pickle_type)
         circtest_picklename = os.path.join(
             os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            "data/mbi/" + self.picklefolder + "/" + circtest_picklename
+            "data/mbi/" + mbi_picklefolder + "/" + circtest_picklename
         )
         if new_start:
             self.circle_oop = False

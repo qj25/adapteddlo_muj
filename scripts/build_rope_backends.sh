@@ -7,7 +7,7 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 CONTROLLERS_DIR="${REPO_ROOT}/adapteddlo_muj/controllers"
 
 # Backends in dependency-free build order (matches README).
-ALL_BACKENDS=(dlo_cpp massspring_cpp xpbd_cpp geds_cpp cosserat_cpp cosserat3_cpp)
+ALL_BACKENDS=(dlo_cpp massspring_cpp xpbd_cpp geds_cpp cosserat_cpp cosserat3_cpp cosserat5_cpp)
 
 usage() {
     cat <<'EOF'

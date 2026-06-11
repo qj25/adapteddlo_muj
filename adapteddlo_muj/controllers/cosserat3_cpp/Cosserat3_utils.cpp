@@ -47,7 +47,7 @@ const Eigen::Vector4d Cosserat3Utils::inverseQuat(const Eigen::Vector4d& quat)
 {
     Eigen::Vector4d quat_inv = -quat;
     quat_inv(0) = -quat_inv(0);
-    quat_inv = quat_inv / quat_inv.dot(quat);
+    quat_inv = quat_inv / quat_inv.dot(quat_inv);
     return quat_inv;
 }
 

@@ -1,9 +1,67 @@
 """Utils for manipulating xml files
 """
 import os
+import shutil
+import tempfile
+import threading
 import xml.etree.ElementTree as ET
 import io
+from contextlib import contextmanager
+from dataclasses import dataclass
+from typing import Iterator
+
 import numpy as np
+
+_GENROPE_TMP_ROOT = os.path.join(tempfile.gettempdir(), "adapteddlo_genrope")
+_GENROPE_COUNTER = 0
+_GENROPE_LOCK = threading.Lock()
+
+
+@dataclass(frozen=True)
+class GenropeXmlPaths:
+    workspace: str
+    rope: str
+    anchorbox: str
+    weldweight: str
+
+    def overall(self, filename: str) -> str:
+        return os.path.join(self.workspace, filename)
+
+
+def _make_genrope_workspace() -> str:
+    global _GENROPE_COUNTER
+    with _GENROPE_LOCK:
+        _GENROPE_COUNTER += 1
+        workspace_id = _GENROPE_COUNTER
+    workspace = os.path.join(
+        _GENROPE_TMP_ROOT,
+        f"{os.getpid()}_{threading.get_ident()}_{workspace_id}",
+    )
+    os.makedirs(workspace, exist_ok=True)
+    return workspace
+
+
+def allocate_genrope_xml_paths(rope_filename: str) -> GenropeXmlPaths:
+    workspace = _make_genrope_workspace()
+    return GenropeXmlPaths(
+        workspace=workspace,
+        rope=os.path.join(workspace, rope_filename),
+        anchorbox=os.path.join(workspace, "anchorbox.xml"),
+        weldweight=os.path.join(workspace, "weldweight.xml"),
+    )
+
+
+def release_genrope_xml_paths(paths: GenropeXmlPaths) -> None:
+    shutil.rmtree(paths.workspace, ignore_errors=True)
+
+
+@contextmanager
+def genrope_xml_workspace(rope_filename: str) -> Iterator[GenropeXmlPaths]:
+    paths = allocate_genrope_xml_paths(rope_filename)
+    try:
+        yield paths
+    finally:
+        release_genrope_xml_paths(paths)
 
 
 def array_to_string(array):

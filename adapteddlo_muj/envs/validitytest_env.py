@@ -13,7 +13,11 @@ from time import time
 
 import adapteddlo_muj.utils.transform_utils as T
 from adapteddlo_muj.utils.mjc_utils import MjSimWrapper
-from adapteddlo_muj.utils.xml_utils import XMLWrapper
+from adapteddlo_muj.utils.xml_utils import (
+    XMLWrapper,
+    allocate_genrope_xml_paths,
+    release_genrope_xml_paths,
+)
 import adapteddlo_muj.utils.mjc2_utils as mjc2
 from adapteddlo_muj.utils.mjc_utils import get_sensor_id, get_sensor_force2, fix_ftsensor_weld
 
@@ -216,14 +220,9 @@ class TestPluginEnv(gym.Env, utils.EzPickle):
             os.path.dirname(os.path.dirname(__file__)),
             f"assets/{world_filename}"
         )
-        box_path = os.path.join(
-            os.path.dirname(world_base_path),
-            "anchorbox.xml"
-        )
-        rope_path = os.path.join(
-            os.path.dirname(world_base_path),
-            "nativerope1dkin.xml"
-        )
+        gen_paths = allocate_genrope_xml_paths("nativerope1dkin.xml")
+        rope_path = gen_paths.rope
+        box_path = gen_paths.anchorbox
 
         if (self.test_type == 'lhb') or (self.test_type == 'speedtest2'):
             GenKin_N_weld2(
@@ -291,22 +290,18 @@ class TestPluginEnv(gym.Env, utils.EzPickle):
         self.xml.merge_multiple(
             dlorope, ["worldbody", "extension"]
         )
-        asset_path = os.path.join(
-            os.path.dirname(os.path.dirname(__file__)),
-            "assets/overall_native.xml"
-        )
-
         xml_string = self.xml.get_xml_string()
         # with open(asset_path, "w+") as f:
             # f.write(xml_string)
 
         model = mujoco.MjModel.from_xml_string(xml_string)
-        mujoco.mj_saveLastXML(asset_path,model)
+        mujoco.mj_saveLastXML(gen_paths.overall("overall_native.xml"), model)
         # model = mujoco.MjModel.to_xml_string(model)
         # xml_string = 
         # with open(asset_path, "w+") as f:
         #     f.write(xml_string)
 
+        release_genrope_xml_paths(gen_paths)
         return xml_string, None
     
     def step(self, action=np.zeros(6)):
