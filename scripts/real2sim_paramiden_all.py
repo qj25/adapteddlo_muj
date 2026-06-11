@@ -134,7 +134,10 @@ def main():
         else None
     )
     b_a_lim = (
-        parse_lim_arg(args.b_a_lim, search_limits(model_names[0])[1])
+        parse_lim_arg(
+            args.b_a_lim,
+            search_limits(model_names[0], wire_colors[0])[1],
+        )
         if args.b_a_lim is not None
         else None
     )

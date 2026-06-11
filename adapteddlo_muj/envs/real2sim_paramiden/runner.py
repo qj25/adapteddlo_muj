@@ -47,7 +47,7 @@ def run_bending(
     prompt: bool = True,
 ) -> Tuple[float, float]:
     if stiff_lim is None:
-        stiff_lim, _ = search_limits(model_name)
+        stiff_lim, _ = search_limits(model_name, wire_color)
     os.makedirs(os.path.dirname(stiff_path(wire_color, model_name)), exist_ok=True)
     massperlen, rgba_vals = wire_params(wire_color)
     bendstiff_picklename = bendstiff_path(wire_color, model_name, test_id)
@@ -61,6 +61,7 @@ def run_bending(
         rgba_vals=rgba_vals,
         real_pos=real_pos,
         massperlen=massperlen,
+        wire_color=wire_color,
         overall_rot=0.0,
         r_len=rope_len,
         do_render=do_render,
@@ -117,7 +118,7 @@ def run_twisting(
     prompt: bool = True,
 ) -> Tuple[float, float]:
     if b_a_lim is None:
-        _, b_a_lim = search_limits(model_name)
+        _, b_a_lim = search_limits(model_name, wire_color)
     os.makedirs(os.path.dirname(stiff_path(wire_color, model_name)), exist_ok=True)
     massperlen, rgba_vals = wire_params(wire_color)
     ord_glob, b_a_arr = twisting_params(wire_color)
@@ -150,6 +151,7 @@ def run_twisting(
         model_name=model_name,
         rgba_vals=rgba_vals,
         massperlen=massperlen,
+        wire_color=wire_color,
         overall_rot=ord_glob * deg2rad,
         r_len=rope_len,
         do_render=do_render,
@@ -200,7 +202,9 @@ def run_full_paramiden(
             model_stiff_lim = stiff_lim
             model_b_a_lim = b_a_lim
             if model_stiff_lim is None or model_b_a_lim is None:
-                default_stiff_lim, default_b_a_lim = search_limits(model_name)
+                default_stiff_lim, default_b_a_lim = search_limits(
+                    model_name, wire_color
+                )
                 if model_stiff_lim is None:
                     model_stiff_lim = default_stiff_lim
                 if model_b_a_lim is None:

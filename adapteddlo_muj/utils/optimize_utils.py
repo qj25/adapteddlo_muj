@@ -67,6 +67,7 @@ class mbi_stiff:
         do_render=False,
         new_start=False,
         stest_type=None,
+        wire_color=None,
     ):
         self.model_name = stest_type or model_name
         self.rgba_vals = rgba_vals
@@ -77,6 +78,7 @@ class mbi_stiff:
         self.grav_on = grav_on
         self.do_render = do_render
         self.new_start = new_start
+        self.wire_color = wire_color
         self.alpha_bar = None
         self.beta_bar = None
         self.env = None
@@ -90,6 +92,7 @@ class mbi_stiff:
             beta_bar=beta_bar,
             rgba_vals=self.rgba_vals,
             massperlen=self.massperlen,
+            wire_color=self.wire_color,
             overall_rot=self.overall_rot,
             rope_len=self.r_len,
             grav_on=self.grav_on,

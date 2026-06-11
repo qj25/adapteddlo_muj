@@ -50,7 +50,7 @@ new_start_g = bool(args.newstart)
 lfp_g = bool(args.loadresults)
 
 for model_name in model_names:
-    default_stiff_lim, default_b_a_lim = search_limits(model_name)
+    default_stiff_lim, default_b_a_lim = search_limits(model_name, wire_color)
     stiff_lim = parse_lim_arg(args.stiff_lim, default_stiff_lim)
     b_a_lim = parse_lim_arg(args.b_a_lim, default_b_a_lim)
     print(f"\n=== Parameter identification: {wire_color} / {model_name} ===")

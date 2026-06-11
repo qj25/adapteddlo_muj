@@ -20,7 +20,10 @@ R_THICKNESS = 0.01
 # Search bounds: stiff_scale = alpha * (2*pi)^3 for bending; beta/alpha for twisting.
 LEGACY_STIFF_LIM = np.array([0.0, 2.0])
 BACKEND_STIFF_LIM = np.array([0.0, 2.0])
-MASSSPRING_B_A_LIM = np.array([0.0, 2.0])
+WHITE_EXTENDED_B_A_LIM = np.array([0.0, 2.0])
+WHITE_EXTENDED_B_A_MODELS = frozenset({"massspring", "cosserat5"})
+DEFAULT_BALL_JOINT_DAMPING = 0.01
+WHITE_EXTENDED_BALL_JOINT_DAMPING = 0.01
 BACKEND_MODELS = frozenset({"massspring", "cosserat", "xpbd", "geds"})
 
 # Models backed by adapteddlo_muj/controllers/*_cpp (use manual_rot in MBI circle test).
@@ -54,16 +57,34 @@ def parse_lim_arg(lim_arg: Optional[str], default: np.ndarray) -> np.ndarray:
     return np.array([lo, hi])
 
 
-def search_limits(model_name: str) -> Tuple[np.ndarray, np.ndarray]:
+def search_limits(
+    model_name: str,
+    wire_color: Optional[str] = None,
+) -> Tuple[np.ndarray, np.ndarray]:
     if model_name in BACKEND_MODELS:
         stiff_lim = BACKEND_STIFF_LIM.copy()
     else:
         stiff_lim = LEGACY_STIFF_LIM.copy()
-    if model_name == "massspring":
-        b_a_lim = MASSSPRING_B_A_LIM.copy()
+    if (
+        wire_color == "white"
+        and model_name in WHITE_EXTENDED_B_A_MODELS
+    ):
+        b_a_lim = WHITE_EXTENDED_B_A_LIM.copy()
     else:
         b_a_lim = stiff_lim.copy()
     return stiff_lim, b_a_lim
+
+
+def ball_joint_damping(
+    model_name: str,
+    wire_color: Optional[str] = None,
+) -> float:
+    if (
+        wire_color == "white"
+        and model_name in WHITE_EXTENDED_B_A_MODELS
+    ):
+        return float(WHITE_EXTENDED_BALL_JOINT_DAMPING)
+    return float(DEFAULT_BALL_JOINT_DAMPING)
 
 
 def wire_params(wire_color: str) -> Tuple[float, np.ndarray]:
@@ -165,6 +186,7 @@ def create_mbi_env(
     beta_bar: float,
     rgba_vals: np.ndarray,
     massperlen: float,
+    wire_color: Optional[str] = None,
     overall_rot: float = 0.0,
     rope_len: float = ROPE_LEN,
     grav_on: bool = True,
@@ -207,6 +229,7 @@ def create_mbi_env(
             stifftorqtype=model_name,
             grav_on=grav_on,
             rgba_vals=rgba_vals,
+            j_damp=ball_joint_damping(model_name, wire_color),
         )
     if do_render:
         env.set_viewer_details(

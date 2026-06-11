@@ -47,7 +47,8 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
         limit_f=False,
         stifftorqtype='adapt',
         grav_on=True,
-        rgba_vals=None
+        rgba_vals=None,
+        j_damp=0.01,
     ):
         utils.EzPickle.__init__(self)
 
@@ -56,6 +57,7 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
         self.limit_f = limit_f
         self.storqtype = stifftorqtype
         self.rgba_vals = rgba_vals
+        self.j_damp = j_damp
         # if self.storqtype == 'lop':
         #     self.picklefolder = 'lop'
         # elif self.storqtype == 'adapt':
@@ -368,7 +370,7 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
                     r_pieces=self.r_pieces,
                     r_mass=self.r_mass,
                     j_stiff=0.0,
-                    j_damp=0.01,
+                    j_damp=self.j_damp,
                     init_pos=self.rope_initpose[:3],
                     init_quat=self.rope_initpose[3:],
                     coll_on=True,
@@ -809,7 +811,8 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
                 self.rot_x_rads2(x_rads=self.overall_rot)
                 self.reset_vel()
             else:
-                self.rot_x_rads(x_rads=self.overall_rot_tmp)
+                self.rot_x_rads2(x_rads=self.overall_rot_tmp)
+                self.reset_vel()
 
             # # get and apply force normal to the circle
             norm_force = self.get_rope_normal()
