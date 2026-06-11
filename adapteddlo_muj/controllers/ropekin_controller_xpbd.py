@@ -5,6 +5,7 @@ import adapteddlo_muj.utils.transform_utils as T
 import adapteddlo_muj.utils.mjc2_utils as mjc2
 import adapteddlo_muj.controllers.xpbd_cpp.RodXpbd as RodXpbd
 from adapteddlo_muj.utils.dlo_utils import force2torq
+from adapteddlo_muj.utils.rope_stiffness import material_scale_for, youngs_torsion_moduli
 
 
 class DLORopeXpbd:
@@ -80,14 +81,14 @@ class DLORopeXpbd:
         self._init_xpbd_cpp()
 
     def _material_from_alpha_beta(self):
-        r = self.radius
-        j1 = np.pi * r**4 / 2.0
-        ix = np.pi * r**4 / 4.0
-        dt = float(self.model.opt.timestep)
         # Softer moduli for shadow XPBD + MuJoCo co-integration (tune with k_force/k_torque).
-        stiff_scale = dt * dt * 1.0e2
-        self.youngs_modulus = (self.alpha_bar / ix) * stiff_scale
-        self.torsion_modulus = (self.beta_bar / j1) * stiff_scale
+        self.youngs_modulus, self.torsion_modulus = youngs_torsion_moduli(
+            self.alpha_bar,
+            self.beta_bar,
+            self.radius,
+            self.model.opt.timestep,
+            material_scale_for("xpbd"),
+        )
 
     def _init_sitebody(self):
         for i in range(self.nv + 2):

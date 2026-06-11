@@ -14,7 +14,7 @@ WIRE_COLORS = ["white", "black", "red"]
 
 def parse_wirecolors_arg(wirecolors_arg):
     if wirecolors_arg is None or wirecolors_arg.strip() == "":
-        return ["white"]
+        return WIRE_COLORS
     return [c.strip() for c in wirecolors_arg.split(",") if c.strip()]
 
 
@@ -47,13 +47,13 @@ def main():
         "--wirecolor",
         type=str,
         default=None,
-        help="Single wire color: white, black, or red. Default: white.",
+        help="Single wire color: white, black, or red. Default: all.",
     )
     parser.add_argument(
         "--wirecolors",
         type=str,
         default=None,
-        help="Comma-separated wire colors. Overrides --wirecolor when set.",
+        help="Comma-separated wire colors. Default: white,black,red. Overrides --wirecolor when set.",
     )
     parser.add_argument(
         "--testids",
@@ -119,7 +119,7 @@ def main():
     elif args.wirecolor is not None:
         wire_colors = [args.wirecolor]
     else:
-        wire_colors = ["white"]
+        wire_colors = WIRE_COLORS
 
     unknown_colors = [c for c in wire_colors if c not in WIRE_COLORS]
     if unknown_colors:

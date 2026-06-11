@@ -11,6 +11,7 @@ import mujoco
 import adapteddlo_muj.utils.transform_utils as T
 import adapteddlo_muj.controllers.cosserat3_cpp.RodCosserat3 as RodCosserat3
 import adapteddlo_muj.utils.mjc2_utils as mjc2
+from adapteddlo_muj.utils.rope_stiffness import material_scale_for, scale_material
 
 
 class DLORopeCosserat3:
@@ -124,18 +125,24 @@ class DLORopeCosserat3:
     def set_resetbody_vars(self):
         self._init_resetbody_vars()
 
+    def _scaled_alpha_beta(self):
+        return scale_material(
+            self.alpha_bar, self.beta_bar, material_scale_for("cosserat3")
+        )
+
     def _init_cosserat3_cpp(self):
         self._update_xvecs()
         self._init_resetbody_vars()
         self._x2e()
         self._init_bf()
+        alpha_cpp, beta_cpp = self._scaled_alpha_beta()
         self.dlo_math = RodCosserat3.RodCosserat3(
             self.x.flatten(),
             self.bf0_bar.flatten(),
             self.p_thetan,
             self.overall_rot,
-            self.alpha_bar,
-            self.beta_bar,
+            alpha_cpp,
+            beta_cpp,
             self.radius,
         )
         self._init_o2m()
@@ -182,7 +189,8 @@ class DLORopeCosserat3:
     def change_ropestiffness(self, alpha_bar, beta_bar):
         self.alpha_bar = alpha_bar
         self.beta_bar = beta_bar
-        self.dlo_math.changeAlphaBeta(self.alpha_bar, self.beta_bar)
+        alpha_cpp, beta_cpp = self._scaled_alpha_beta()
+        self.dlo_math.changeAlphaBeta(alpha_cpp, beta_cpp)
 
     def _x2e(self):
         self.e = np.zeros((self.nv + 1, 3))

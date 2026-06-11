@@ -15,12 +15,15 @@ from adapteddlo_muj.utils.mjc_utils import MjSimWrapper
 from adapteddlo_muj.utils.xml_utils import XMLWrapper
 import adapteddlo_muj.utils.mjc2_utils as mjc2
 from adapteddlo_muj.utils.ik_utils import ik_denso
+from adapteddlo_muj.utils.manipulation_config import init_env_manipulation_defaults
 from adapteddlo_muj.assets.genrope.gdv_N import GenKin_N
 from adapteddlo_muj.assets.genrope.gdv_O_xfrc import GenKin_O_xfrc
 from adapteddlo_muj.assets.genrope.gdv_O import GenKin_O
 
 from adapteddlo_muj.controllers.ropekin_controller_adapt import DLORopeAdapt
 from adapteddlo_muj.controllers.ropekin_controller_xfrc import DLORopeXfrc
+from adapteddlo_muj.utils.rope_stiffness import scale_joint_damping
+from adapteddlo_muj.utils.wire_plugin import rope_xml_paths
 # from adapteddlo_muj.utils.ik_ur5.Ikfast_ur5 import Uik
 # from adapteddlo_muj.controllers.joint_controller_ur5 import joint_sum
 
@@ -38,6 +41,8 @@ class ValidRnR3Env(gym.Env, utils.EzPickle):
         manual_rot=False,
         plugin_name="cable",
         rgba_vals=None,
+        config_model_name="jpqder",
+        extra_plugin_configs=None,
     ):
         utils.EzPickle.__init__(self)
 
@@ -64,7 +69,9 @@ class ValidRnR3Env(gym.Env, utils.EzPickle):
         self.r_pieces += 2
 
         self.plugin_name = plugin_name
+        self.config_model_name = config_model_name
         self.rgba_vals = rgba_vals
+        self.extra_plugin_configs = extra_plugin_configs
         self.velreset = False
         print(f"initial overall_rot = {overall_rot}")
         self.overall_rot = 0.0 # 27 * (2*np.pi) # 57 * (np.pi/180)
@@ -74,6 +81,10 @@ class ValidRnR3Env(gym.Env, utils.EzPickle):
         if manual_rot:
             self.overall_rot_tmp = overall_rot
         self.overall_rot_4mconst = overall_rot
+        if self.plugin_name != "cable":
+            self.twist_displace = self.overall_rot
+        else:
+            self.twist_displace = 0.0
 
         # init stiffnesses for capsule
         J1 = np.pi * (self.r_thickness/2)**4/2.
@@ -106,7 +117,7 @@ class ValidRnR3Env(gym.Env, utils.EzPickle):
 
         # misc class data
         self.dt = self.model.opt.timestep
-        self.max_action = 0.002
+        init_env_manipulation_defaults(self)
 
         # for i in range(26):
             # print(f"id={i}:  type={mujoco.mju_type2Str(i)}")
@@ -207,8 +218,6 @@ class ValidRnR3Env(gym.Env, utils.EzPickle):
             2.27995352e+00, -3.14159265e+00,
             1.35875935e+00,  3.14159265e+00
         ])
-        self.qpos_tol = 1e-4
-        
         self.init_qpos = np.array([
             7.40857786e-07,  6.38881793e-01,
             2.27269786e+00, -3.14160763e+00,
@@ -323,12 +332,9 @@ class ValidRnR3Env(gym.Env, utils.EzPickle):
         ]
 
     def _get_xmlstr(self):
-        if self.plugin_name == 'cable':
-            ropexml = "nativerope1dkin.xml"
-            overallxml = "overall_native.xml"
-        elif self.plugin_name in ['wire','wire_qst']:
-            ropexml = "dlorope1dkin.xml"
-            overallxml = "overall.xml"
+        ropexml, overallxml = rope_xml_paths(
+            self.plugin_name, self.extra_plugin_configs
+        )
 
         # load model
         # update rope model
@@ -352,7 +358,7 @@ class ValidRnR3Env(gym.Env, utils.EzPickle):
             os.path.dirname(world_base_path),
             ropexml
         )
-        j_damp = 0.01
+        j_damp = scale_joint_damping(0.01, self.config_model_name)
         self.bothweld = False
         GenKin_N(
             r_len=self.r_len,
@@ -368,12 +374,11 @@ class ValidRnR3Env(gym.Env, utils.EzPickle):
             vis_subcyl=False,
             obj_path=rope_path,
             plugin_name=self.plugin_name,
-            rgba_vals=self.rgba_vals
+            twist_displace=self.twist_displace,
+            rgba_vals=self.rgba_vals,
+            extra_plugin_configs=self.extra_plugin_configs,
         )
-        if self.plugin_name != 'cable':
-            ropexml = "dlorope1dkin.xml"
-            overallxml = "overall.xml"
-        
+
         self.xml = XMLWrapper(world_base_path)
         anchorbox = XMLWrapper(box_path)
         robotarm = XMLWrapper(robot_path)
@@ -445,8 +450,8 @@ class ValidRnR3Env(gym.Env, utils.EzPickle):
 
     def hold_step(self,targ_qpos):
         qpos_diff = 999
-        max_action = 0.0707
-        control_freq=40
+        max_action = self.manip_cfg["max_action_hold_step"]
+        control_freq = self.manip_cfg["control_freq_hz"]
         ctrl_ts = 1 / control_freq
         dyn_ts = self.model.opt.timestep
         interpolate_steps = np.ceil(
@@ -680,7 +685,7 @@ class ValidRnR3Env(gym.Env, utils.EzPickle):
         # qpos_stepsize=0.005
     ):
         qpos_diff = 999
-        control_freq=40
+        control_freq = self.manip_cfg["control_freq_hz"]
         ctrl_ts = 1 / control_freq
         dyn_ts = self.model.opt.timestep
         interpolate_steps = np.ceil(
@@ -740,8 +745,10 @@ class ValidRnR3Env(gym.Env, utils.EzPickle):
     def move_to_qpos(
         self,
         targ_qpos,
-        qpos_stepsize=0.005,
+        qpos_stepsize=None,
     ):
+        if qpos_stepsize is None:
+            qpos_stepsize = self.manip_cfg["qpos_stepsize"]
         rob_qpos = self.observations['qpos'].copy()
         qpos_diff = targ_qpos-rob_qpos
         # print(qpos_diff)
@@ -823,7 +830,7 @@ class ValidRnR3Env(gym.Env, utils.EzPickle):
         rot_quat = T.axisangle2quat(rot_arr)
         new_quat = T.quat_multiply(rot_quat, self.model.body_quat[self.ropeend_body_id])
         self.model.body_quat[self.ropeend_body_id] = new_quat
-        self.hold_pos(0.05)
+        self.hold_pos(self.manip_cfg["ropeend_rot_hold_time_s"])
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~|| End IK ||~~~~~~~~~~~~~~~~~~~~~~~~~~
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~|| Pickle Stuff ||~~~~~~~~~~~~~~~~~~~~~~~~~~

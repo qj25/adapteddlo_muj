@@ -1,6 +1,7 @@
 #include "RodCosserat3.h"
 
 #include <cmath>
+#include <iostream>
 #include "Eigen/Dense"
 #include "Eigen/Geometry"
 
@@ -26,7 +27,7 @@ RodCosserat3::RodCosserat3(
     radius_ = radius;
     updateStiffnessFromMaterial();
 
-    Eigen::MatrixXd dist1(nv + 2, 3);
+    Eigen::MatrixXd dist1 = Eigen::MatrixXd::Zero(nv + 2, 3);
     for (int i = 0; i < (nv + 1); i++) {
         edges.push_back(e1);
         nodes.push_back(x1);
@@ -343,11 +344,11 @@ void RodCosserat3::calculateCenterlineTorq(
         nodes[i].force << 0., 0., 0.;
         nodes[i].torq << 0., 0., 0.;
         nodes[i].quat << node_quat[4 * i], node_quat[4 * i + 1], node_quat[4 * i + 2], node_quat[4 * i + 3];
+        distmat[i].setZero();
         if (i > 0) {
             dist_diff = nodes[i].pos - nodes[i - 1].pos;
             distmat[i].row(i - 1) = dist_diff;
         }
-        distmat[i].row(i) << 0., 0., 0.;
     }
     for (int i = 2; i < (nv + 2); i++) {
         distmat[i].block(0, 0, i - 1, 3) =
@@ -371,6 +372,14 @@ void RodCosserat3::calculateCenterlineTorq(
 
 void RodCosserat3::calculateF2LocalTorq()
 {
+    // std::cout << "[RodCosserat3::calculateF2LocalTorq] node forces:\n";
+    // for (int i = 0; i < (nv + 2); i++) {
+    //     std::cout << "  node " << i << ": "
+    //               << nodes[i].force(0) << ", "
+    //               << nodes[i].force(1) << ", "
+    //               << nodes[i].force(2) << "\n";
+    // }
+
     Eigen::MatrixXd torqvec(nv + 2, 3);
     Eigen::MatrixXd torqvec_indiv(nv + 2, 3);
     for (int i = 0; i < (nv + 2); i++) {
@@ -381,12 +390,28 @@ void RodCosserat3::calculateF2LocalTorq()
         torqvec += torqvec_indiv;
     }
     torqvec /= 2.0;
+    // std::cout << "[RodCosserat3::calculateF2LocalTorq] torqvec (world frame):\n";
+    // for (int i = 0; i < (nv + 2); i++) {
+        // std::cout << "  node " << i << ": "
+                //   << torqvec(i, 0) << ", "
+                //   << torqvec(i, 1) << ", "
+                //   << torqvec(i, 2) << "\n";
+    // }
+
     for (int i = 0; i < (nv + 2); i++) {
         nodes[i].torq = Cosserat3Utils::rotVecQuat(
             torqvec.row(i),
             Cosserat3Utils::inverseQuat(nodes[i].quat)
         );
     }
+
+    // std::cout << "[RodCosserat3::calculateF2LocalTorq] nodes[i].torq (body frame):\n";
+    // for (int i = 0; i < (nv + 2); i++) {
+        // std::cout << "  node " << i << ": "
+                //   << nodes[i].torq(0) << ", "
+                //   << nodes[i].torq(1) << ", "
+                //   << nodes[i].torq(2) << "\n";
+    // }
 }
 
 double RodCosserat3::calculateBendingEnergy()

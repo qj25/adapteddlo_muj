@@ -5,6 +5,11 @@ import adapteddlo_muj.utils.transform_utils as T
 import adapteddlo_muj.utils.mjc2_utils as mjc2
 import adapteddlo_muj.controllers.cosserat2_cpp.RodCosserat2 as RodCosserat2
 from adapteddlo_muj.utils.dlo_utils import force2torq
+from adapteddlo_muj.utils.rope_stiffness import (
+    cosserat2_moduli,
+    material_scale_for,
+    scale_joint_damping,
+)
 
 
 class DLORopeCosserat2:
@@ -23,7 +28,7 @@ class DLORopeCosserat2:
         num_iterations=4,
         k_force=0.05,
         k_torque=0.05,
-        joint_damping=0.01,
+        joint_damping=scale_joint_damping(0.01, "cosserat2"),
     ):
         self.model = model
         self.data = data
@@ -88,13 +93,13 @@ class DLORopeCosserat2:
             self.model.dof_damping[dof] = self.joint_damping
 
     def _material_from_alpha_beta(self):
-        r = self.radius
-        ix = np.pi * r**4 / 4.0
-        dt = float(self.model.opt.timestep)
-        stiff_scale = dt * dt * 1.0e2
-        self.k_stretch = (self.alpha_bar / ix) * stiff_scale
-        self.k_bend = self.alpha_bar * stiff_scale
-        self.k_twist = self.beta_bar * stiff_scale
+        self.k_stretch, self.k_bend, self.k_twist = cosserat2_moduli(
+            self.alpha_bar,
+            self.beta_bar,
+            self.radius,
+            self.model.opt.timestep,
+            material_scale_for("cosserat2"),
+        )
 
     def _init_sitebody(self):
         for i in range(self.nv + 2):

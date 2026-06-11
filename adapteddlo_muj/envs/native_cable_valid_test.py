@@ -19,6 +19,7 @@ import adapteddlo_muj.utils.mjc2_utils as mjc2
 from adapteddlo_muj.assets.genrope.gdv_N import GenKin_N
 from adapteddlo_muj.assets.genrope.gdv_N_weld2 import GenKin_N_weld2
 from adapteddlo_muj.utils.data_utils import compute_PCA, centralize_devdata
+from adapteddlo_muj.utils.rope_stiffness import scale_joint_damping
 
 
 class TestCableEnv(gym.Env, utils.EzPickle):
@@ -189,13 +190,14 @@ class TestCableEnv(gym.Env, utils.EzPickle):
         )
 
         if (self.test_type == 'lhb') or (self.test_type == 'speedtest2'):
+            j_damp = scale_joint_damping(1.0, "native")
             GenKin_N_weld2(
                 r_len=self.r_len,
                 r_thickness=self.r_thickness,
                 r_pieces=self.r_pieces,
                 # r_mass=self.r_mass,
                 stiff_vals=self.stiff_vals,
-                j_damp=1.0,
+                j_damp=j_damp,
                 init_pos=self.rope_initpose[:3],
                 init_quat=self.rope_initpose[3:],
                 rope_type="capsule",
@@ -203,13 +205,14 @@ class TestCableEnv(gym.Env, utils.EzPickle):
                 obj_path=rope_path,
             )
         elif self.test_type == 'mbi':
+            j_damp = scale_joint_damping(0.5, "native")
             GenKin_N(
                 r_len=self.r_len,
                 r_thickness=self.r_thickness,
                 r_pieces=self.r_pieces,
                 # r_mass=self.r_mass,
                 stiff_vals=self.stiff_vals,
-                j_damp=0.5,
+                j_damp=j_damp,
                 init_pos=self.rope_initpose[:3],
                 init_quat=self.rope_initpose[3:],
                 coll_on=True,
@@ -219,7 +222,7 @@ class TestCableEnv(gym.Env, utils.EzPickle):
             )
         elif self.test_type == 'speedtest1':
             # j_damp = self.r_len / 9.29
-            j_damp = 0.5
+            j_damp = scale_joint_damping(0.5, "native")
             GenKin_N(
                 r_len=self.r_len,
                 r_thickness=self.r_thickness,

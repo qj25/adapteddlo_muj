@@ -1,9 +1,9 @@
 from adapteddlo_muj.envs.test_shape_w_arm.base import create_rnr2_env
 
 
-def create_env(wire_color: str, overall_rot, do_render: bool):
+def create_env(wire_color: str, overall_rot, do_render: bool, model_name: str = "massspring"):
     return create_rnr2_env(
-        wire_color, "massspring", overall_rot, do_render, stiff_key="massspring"
+        wire_color, "massspring", overall_rot, do_render, model_name=model_name
     )
 
 

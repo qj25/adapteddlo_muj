@@ -1,6 +1,6 @@
 from typing import Dict, List, Optional
 
-from adapteddlo_muj.envs.test_shape_w_arm import adapt, cosserat, cosserat2, cosserat3, geds, jpqder, massspring, native, xfrc, xpbd
+from adapteddlo_muj.envs.test_shape_w_arm import adapt, cosserat, cosserat2, cosserat3, cosserat4, geds, jpqder, massspring, native, xfrc, xpbd
 
 
 DEFAULT_MODELS = ["adapt", "native", "massspring"]
@@ -15,6 +15,7 @@ MODEL_REGISTRY = {
     "cosserat": cosserat.get_model_spec(),
     "cosserat2": cosserat2.get_model_spec(),
     "cosserat3": cosserat3.get_model_spec(),
+    "cosserat4": cosserat4.get_model_spec(),
     "xpbd": xpbd.get_model_spec(),
 }
 

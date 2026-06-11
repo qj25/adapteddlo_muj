@@ -19,8 +19,10 @@ R_THICKNESS = 0.01
 
 # Search bounds: stiff_scale = alpha * (2*pi)^3 for bending; beta/alpha for twisting.
 LEGACY_STIFF_LIM = np.array([0.0, 2.0])
-BACKEND_STIFF_LIM = np.array([0.0, 20.0])
-BACKEND_MODELS = frozenset({"massspring", "cosserat", "cosserat2", "xpbd", "geds"})
+BACKEND_STIFF_LIM = np.array([0.0, 2.0])
+BACKEND_MODELS = frozenset({"massspring", "cosserat2", "cosserat3", "xpbd", "geds"})
+# Wire-plugin models (jpqder-style init state) bootstrap MBI pickles from jpqder.
+WIRE_PLUGIN_MBI_MODELS = frozenset({"cosserat"})
 
 
 def parse_lim_arg(lim_arg: Optional[str], default: np.ndarray) -> np.ndarray:
@@ -103,16 +105,49 @@ def mbi_pickle_path(model_name: str, grav_on: bool = True) -> str:
     )
 
 
+def mbi_bootstrap_source(model_name: str) -> str:
+    if model_name in WIRE_PLUGIN_MBI_MODELS:
+        return "jpqder"
+    return "adapt"
+
+
+def jpqder_mbi_pickle_candidates(grav_on: bool = True) -> tuple[str, ...]:
+    """Paths where jpqder / wire-plugin MBI init pickles may live."""
+    return (
+        mbi_pickle_path("jpqder", grav_on=grav_on),
+        os.path.join(DATA_ROOT, "mbi", "adapt", "plgn", "wire", "mbitest1.pickle"),
+    )
+
+
+def mbi_bootstrap_candidates(model_name: str, grav_on: bool = True) -> tuple[str, ...]:
+    if model_name in WIRE_PLUGIN_MBI_MODELS:
+        # Deduplicate while preserving order.
+        seen = set()
+        ordered = []
+        for path in jpqder_mbi_pickle_candidates(grav_on=grav_on):
+            if path not in seen:
+                seen.add(path)
+                ordered.append(path)
+        return tuple(ordered)
+    return (mbi_pickle_path("adapt", grav_on=grav_on),)
+
+
 def ensure_mbi_pickle(model_name: str, grav_on: bool = True) -> str:
     picklename = mbi_pickle_path(model_name, grav_on=grav_on)
     if os.path.exists(picklename):
         return picklename
-    fallback = mbi_pickle_path("adapt", grav_on=grav_on)
-    if model_name != "adapt" and os.path.exists(fallback):
-        os.makedirs(os.path.dirname(picklename), exist_ok=True)
-        shutil.copy2(fallback, picklename)
-        print(f"Bootstrapped MBI pickle for {model_name} from adapt: {picklename}")
+    if model_name == "adapt":
         return picklename
+    bootstrap_from = mbi_bootstrap_source(model_name)
+    for fallback in mbi_bootstrap_candidates(model_name, grav_on=grav_on):
+        if os.path.exists(fallback):
+            os.makedirs(os.path.dirname(picklename), exist_ok=True)
+            shutil.copy2(fallback, picklename)
+            print(
+                f"Bootstrapped MBI pickle for {model_name} from {bootstrap_from} "
+                f"({fallback}): {picklename}"
+            )
+            return picklename
     return picklename
 
 

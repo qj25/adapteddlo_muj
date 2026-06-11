@@ -257,9 +257,9 @@ class TestPluginEnv(gym.Env, utils.EzPickle):
                 vis_subcyl=False,
                 obj_path=rope_path,
                 plugin_name=self.plugin_name,
-                twist_displace=self.twist_displace
+                twist_displace=self.twist_displace,
+                extra_plugin_configs=self.extra_plugin_configs,
             )
-            # Note: GenKin_N doesn't support extra_plugin_configs yet
         elif self.test_type == 'speedtest1':
             # j_damp = self.r_len / 9.29
             j_damp = 0.5
@@ -276,7 +276,8 @@ class TestPluginEnv(gym.Env, utils.EzPickle):
                 vis_subcyl=False,
                 obj_path=rope_path,
                 plugin_name=self.plugin_name,
-                twist_displace=self.twist_displace
+                twist_displace=self.twist_displace,
+                extra_plugin_configs=self.extra_plugin_configs,
             )
         else:
             input(f'Invalid test_type: {self.test_type}')

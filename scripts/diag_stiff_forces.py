@@ -7,6 +7,10 @@ import numpy as np
 
 import adapteddlo_muj.utils.transform_utils as T
 from adapteddlo_muj.envs.test_shape_w_arm.registry import get_model_specs
+from adapteddlo_muj.utils.manipulation_config import (
+    apply_move_settings,
+    load_manipulation_config,
+)
 
 WIRE_COLOR = "black"
 MOVE_ID = 7
@@ -147,7 +151,7 @@ def _install_monitors(env, stats, watchdog):
             move_dir = qpos_diff
             j0 = env._jd
             action = env.scale_action(move_dir, out_max=env.max_action)
-            ctrl_ts = 1 / 40
+            ctrl_ts = 1 / load_manipulation_config()["control_freq_hz"]
             dyn_ts = env.model.opt.timestep
             steps = 0
             print(f"error = {err}")
@@ -162,7 +166,7 @@ def _install_monitors(env, stats, watchdog):
 def run_with_monitor(model_name):
     spec = model_specs[model_name]
     env = spec["create_env"](WIRE_COLOR, None, do_render=False)
-    env.max_action = 0.02
+    apply_move_settings(env, "first_move_to_pose")
     watchdog = ProgressWatchdog(STALL_SEC)
 
     stats = {

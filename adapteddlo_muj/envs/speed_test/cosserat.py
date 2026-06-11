@@ -1,8 +1,9 @@
-from adapteddlo_muj.envs.our_rope_valid_test import TestRopeEnv
+from adapteddlo_muj.envs.validitytest_env import TestPluginEnv
+from adapteddlo_muj.utils.wire_plugin import COSSERAT_WIRE_PLUGIN_CONFIGS
 
 
 def _run(settings):
-    env = TestRopeEnv(
+    env = TestPluginEnv(
         overall_rot=0.0,
         do_render=False,
         r_pieces=settings["r_pieces"],
@@ -11,7 +12,8 @@ def _run(settings):
         test_type=settings["test_type"],
         alpha_bar=settings["alpha_val"],
         beta_bar=settings["beta_val"],
-        model_name="cosserat",
+        plugin_name="wire",
+        extra_plugin_configs=COSSERAT_WIRE_PLUGIN_CONFIGS,
     )
     if settings["test_type"] == "speedtest1":
         return env.run_speedtest1()

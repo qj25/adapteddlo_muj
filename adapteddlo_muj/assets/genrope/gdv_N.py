@@ -22,7 +22,8 @@ class GenKin_N:
         obj_path=None,
         rgba_vals=None,
         plugin_name="cable",
-        twist_displace=0.0
+        twist_displace=0.0,
+        extra_plugin_configs=None,
     ):
         """
         connected by kinematic chain
@@ -53,6 +54,7 @@ class GenKin_N:
         self.init_pos = init_pos
         self.init_quat = T.quat_multiply(init_quat,np.array([0., 0., 1., 0.]))
         self.twist_displace = twist_displace
+        self.extra_plugin_configs = extra_plugin_configs
         if coll_on:
             self.con_data = [1, 1]
         else:
@@ -180,13 +182,17 @@ class GenKin_N:
         f.write(self.curr_tab*self.t + '<config key="bend" value="{}"/>\n'.format(
             self.stiff_vals[1]
         ))
+        if self.plugin_name == "wire":
+            f.write(self.curr_tab*self.t + '<config key="pqsActive" value="false"/>\n')
+        if self.plugin_name != "cable":
+            f.write(self.curr_tab*self.t + '<config key="twist_displace" value="{}"/>\n'.format(
+                self.twist_displace
+            ))
         # Enable timing for speed tests
         f.write(self.curr_tab*self.t + '<config key="timingEnabled" value="true"/>\n')
-        # if self.plugin_name != "cable":
-        #     f.write(self.curr_tab*self.t + '<config key="twist_displace" value="{}"/>\n'.format(
-        #         self.twist_displace
-        #     ))
-        # f.write(self.curr_tab*self.t + '<config key="vmax" value="0.05"/>\n')
+        if self.extra_plugin_configs is not None:
+            for key, value in self.extra_plugin_configs.items():
+                f.write(self.curr_tab*self.t + '<config key="{}" value="{}"/>\n'.format(key, value))
         self.curr_tab -= 1
         f.write(self.curr_tab*self.t + '</plugin>\n')
         # joint

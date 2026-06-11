@@ -8,6 +8,7 @@ import adapteddlo_muj.utils.transform_utils as T
 # from adapteddlo_muj.envs.rnrvalid2 import ValidRnR2Env
 from adapteddlo_muj.envs.rnrvalid3_plugin import ValidRnR3Env
 from adapteddlo_muj.utils.argparse_utils import tswa_parse
+from adapteddlo_muj.utils.manipulation_config import apply_move_settings
 
 # from adapteddlo_muj.utils.transform_utils import IDENTITY_QUATERNION
 
@@ -244,11 +245,9 @@ for i in range(n_testtypes):
                 overall_rot=overall_rot,
             )
             env1.env.velreset = velreset
-            if getting_jointpos:
-                env1.env.max_action = 0.02
             desired_pos = env1.env.init_pos + move_pos[pos_id]
             desired_quat = T.quat_multiply(env1.env.init_quat,move_quat[pos_id])
-            env1.env.max_action = 0.02
+            apply_move_settings(env1.env, "first_move_to_pose")
             ## Move
             # env1.env.hold_pos(5.)
             env1.env.move_to_pose(
@@ -266,6 +265,7 @@ for i in range(n_testtypes):
                 # comment out when obtaining joint pos
                 # if stest_types[i] == 'native':
                 env1.env.rot_x_rads(z_rot[pos_id])
+                apply_move_settings(env1.env, "second_move_to_pose")
                 env1.env.move_to_pose(
                     desired_pos,
                     desired_quat

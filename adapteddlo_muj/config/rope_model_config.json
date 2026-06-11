@@ -1,0 +1,28 @@
+{
+  "material_scales": {
+    "adapt": 1.0,
+    "xfrc": 1.0,
+    "native": 1.0,
+    "massspring": 10.0,
+    "xpbd": 1.0,
+    "geds": 1.0,
+    "cosserat": 1.0,
+    "cosserat2": 1.0,
+    "cosserat3": 1.0,
+    "cosserat4": 1.0,
+    "jpqder": 1.0
+  },
+  "damping_scales": {
+    "adapt": 1.0,
+    "xfrc": 1.0,
+    "native": 1.0,
+    "massspring": 1.0,
+    "xpbd": 1.0,
+    "geds": 1.0,
+    "cosserat": 1.0,
+    "cosserat2": 1.0,
+    "cosserat3": 1.0,
+    "cosserat4": 1.0,
+    "jpqder": 1.0
+  }
+}

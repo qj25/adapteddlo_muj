@@ -15,6 +15,7 @@ from adapteddlo_muj.utils.mjc_utils import MjSimWrapper
 from adapteddlo_muj.utils.xml_utils import XMLWrapper
 import adapteddlo_muj.utils.mjc2_utils as mjc2
 from adapteddlo_muj.utils.ik_utils import ik_denso
+from adapteddlo_muj.utils.manipulation_config import init_env_manipulation_defaults
 from adapteddlo_muj.assets.genrope.gdv_N import GenKin_N
 from adapteddlo_muj.assets.genrope.gdv_O_xfrc import GenKin_O_xfrc
 from adapteddlo_muj.assets.genrope.gdv_O import GenKin_O
@@ -24,6 +25,9 @@ from adapteddlo_muj.controllers.ropekin_controller_massspring import DLORopeMass
 from adapteddlo_muj.controllers.ropekin_controller_geds import DLORopeGeds
 from adapteddlo_muj.controllers.ropekin_controller_cosserat import DLORopeCosserat
 from adapteddlo_muj.controllers.ropekin_controller_cosserat2 import DLORopeCosserat2
+from adapteddlo_muj.controllers.ropekin_controller_cosserat3 import DLORopeCosserat3
+from adapteddlo_muj.controllers.ropekin_controller_cosserat4 import DLORopeCosserat4
+from adapteddlo_muj.utils.rope_stiffness import scale_joint_damping
 from adapteddlo_muj.controllers.ropekin_controller_xpbd import DLORopeXpbd
 from adapteddlo_muj.controllers.ropekin_controller_xfrc import DLORopeXfrc
 # from adapteddlo_muj.utils.ik_ur5.Ikfast_ur5 import Uik
@@ -111,7 +115,7 @@ class ValidRnR2Env(gym.Env, utils.EzPickle):
 
         # misc class data
         self.dt = self.model.opt.timestep
-        self.max_action = 0.002
+        init_env_manipulation_defaults(self)
 
         # for i in range(26):
             # print(f"id={i}:  type={mujoco.mju_type2Str(i)}")
@@ -212,8 +216,6 @@ class ValidRnR2Env(gym.Env, utils.EzPickle):
             2.27995352e+00, -3.14159265e+00,
             1.35875935e+00,  3.14159265e+00
         ])
-        self.qpos_tol = 1e-4
-        
         self.init_qpos = np.array([
             7.40857786e-07,  6.38881793e-01,
             2.27269786e+00, -3.14160763e+00,
@@ -336,6 +338,29 @@ class ValidRnR2Env(gym.Env, utils.EzPickle):
                 f_limit=self.f_limit,
                 bothweld=self.bothweld,
             )
+        elif self.rope_type == 'cosserat3':
+            self.dlo_sim = DLORopeCosserat3(
+                model=self.model,
+                data=self.data,
+                n_link=self.r_pieces,
+                radius=self.r_thickness / 2.0,
+                alpha_bar=self.alpha_bar,
+                beta_bar=self.beta_bar,
+                overall_rot=self.overall_rot,
+                f_limit=self.f_limit,
+                bothweld=self.bothweld,
+            )
+        elif self.rope_type == 'cosserat4':
+            self.dlo_sim = DLORopeCosserat4(
+                model=self.model,
+                data=self.data,
+                n_link=self.r_pieces,
+                alpha_bar=self.alpha_bar,
+                beta_bar=self.beta_bar,
+                overall_rot=self.overall_rot,
+                f_limit=self.f_limit,
+                bothweld=self.bothweld,
+            )
         elif self.rope_type == 'xpbd':
             seg_len = self.r_len / float(self.r_pieces)
             self.dlo_sim = DLORopeXpbd(
@@ -439,6 +464,12 @@ class ValidRnR2Env(gym.Env, utils.EzPickle):
         elif self.rope_type == 'cosserat2':
             ropexml = "dlorope1dkin.xml"
             overallxml = "overall.xml"
+        elif self.rope_type == 'cosserat3':
+            ropexml = "dlorope1dkin.xml"
+            overallxml = "overall.xml"
+        elif self.rope_type == 'cosserat4':
+            ropexml = "dlorope1dkin.xml"
+            overallxml = "overall.xml"
         elif self.rope_type == 'xpbd':
             ropexml = "dlorope1dkin.xml"
             overallxml = "overall.xml"
@@ -465,7 +496,7 @@ class ValidRnR2Env(gym.Env, utils.EzPickle):
             os.path.dirname(world_base_path),
             ropexml
         )
-        j_damp = 0.01
+        j_damp = scale_joint_damping(0.01, self.rope_type)
         self.bothweld = False
         if self.rope_type == 'native':
             GenKin_N(
@@ -595,6 +626,44 @@ class ValidRnR2Env(gym.Env, utils.EzPickle):
                 obj_path=rope_path,
                 rgba_vals=self.rgba_vals
             )
+        elif self.rope_type == 'cosserat3':
+            ropexml = "dlorope1dkin.xml"
+            overallxml = "overall.xml"
+            GenKin_O(
+                r_len=self.r_len,
+                r_thickness=self.r_thickness,
+                r_pieces=self.r_pieces,
+                r_mass=self.r_mass,
+                j_stiff=0.0,
+                j_damp=j_damp,
+                init_pos=self.rope_initpose[:3],
+                init_quat=self.rope_initpose[3:],
+                coll_on=True,
+                d_small=0.,
+                rope_type="capsule",
+                vis_subcyl=False,
+                obj_path=rope_path,
+                rgba_vals=self.rgba_vals
+            )
+        elif self.rope_type == 'cosserat4':
+            ropexml = "dlorope1dkin.xml"
+            overallxml = "overall.xml"
+            GenKin_O(
+                r_len=self.r_len,
+                r_thickness=self.r_thickness,
+                r_pieces=self.r_pieces,
+                r_mass=self.r_mass,
+                j_stiff=0.0,
+                j_damp=j_damp,
+                init_pos=self.rope_initpose[:3],
+                init_quat=self.rope_initpose[3:],
+                coll_on=True,
+                d_small=0.,
+                rope_type="capsule",
+                vis_subcyl=False,
+                obj_path=rope_path,
+                rgba_vals=self.rgba_vals
+            )
         elif self.rope_type == 'xpbd':
             ropexml = "dlorope1dkin.xml"
             overallxml = "overall.xml"
@@ -671,7 +740,7 @@ class ValidRnR2Env(gym.Env, utils.EzPickle):
         # print(self.observations['eef_pos'])
         if self.rope_type == 'xfrc':
             self.dlo_sim.update_force()
-        elif self.rope_type in ('adapt', 'massspring', 'geds', 'cosserat', 'cosserat2', 'xpbd'):
+        elif self.rope_type in ('adapt', 'massspring', 'geds', 'cosserat', 'cosserat2', 'cosserat3', 'cosserat4', 'xpbd'):
             self.dlo_sim.update_torque()
 
         # if self.env_steps==1000:
@@ -698,8 +767,8 @@ class ValidRnR2Env(gym.Env, utils.EzPickle):
 
     def hold_step(self,targ_qpos):
         qpos_diff = 999
-        max_action = 0.0707
-        control_freq=40
+        max_action = self.manip_cfg["max_action_hold_step"]
+        control_freq = self.manip_cfg["control_freq_hz"]
         ctrl_ts = 1 / control_freq
         dyn_ts = self.model.opt.timestep
         interpolate_steps = np.ceil(
@@ -933,7 +1002,7 @@ class ValidRnR2Env(gym.Env, utils.EzPickle):
         # qpos_stepsize=0.005
     ):
         qpos_diff = 999
-        control_freq=40
+        control_freq = self.manip_cfg["control_freq_hz"]
         ctrl_ts = 1 / control_freq
         dyn_ts = self.model.opt.timestep
         interpolate_steps = np.ceil(
@@ -993,8 +1062,10 @@ class ValidRnR2Env(gym.Env, utils.EzPickle):
     def move_to_qpos(
         self,
         targ_qpos,
-        qpos_stepsize=0.005,
+        qpos_stepsize=None,
     ):
+        if qpos_stepsize is None:
+            qpos_stepsize = self.manip_cfg["qpos_stepsize"]
         rob_qpos = self.observations['qpos'].copy()
         qpos_diff = targ_qpos-rob_qpos
         # print(qpos_diff)
@@ -1076,7 +1147,7 @@ class ValidRnR2Env(gym.Env, utils.EzPickle):
         rot_quat = T.axisangle2quat(rot_arr)
         new_quat = T.quat_multiply(rot_quat, self.model.body_quat[self.ropeend_body_id])
         self.model.body_quat[self.ropeend_body_id] = new_quat
-        self.hold_pos(0.05)
+        self.hold_pos(self.manip_cfg["ropeend_rot_hold_time_s"])
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~|| End IK ||~~~~~~~~~~~~~~~~~~~~~~~~~~
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~|| Pickle Stuff ||~~~~~~~~~~~~~~~~~~~~~~~~~~

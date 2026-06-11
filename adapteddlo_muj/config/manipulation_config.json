@@ -1,0 +1,12 @@
+{
+  "qpos_tol": 1e-2,
+  "qpos_tol_first_move_to_pose": 1e-2,
+  "qpos_tol_second_move_to_pose": 1e-2,
+  "max_action_default": 0.002,
+  "max_action_move_to_pose": 0.02,
+  "max_action_hold_step": 0.0707,
+  "control_freq_hz": 40,
+  "qpos_stepsize": 0.005,
+  "hold_time_after_pose_s": 5.0,
+  "ropeend_rot_hold_time_s": 0.05
+}

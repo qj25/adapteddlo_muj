@@ -3,6 +3,7 @@ import mujoco
 
 import adapteddlo_muj.utils.mjc2_utils as mjc2
 import adapteddlo_muj.controllers.massspring_cpp.MassSpring as MassSpring
+from adapteddlo_muj.utils.rope_stiffness import material_scale_for, scale_material
 
 
 class DLORopeMassSpring:
@@ -59,9 +60,14 @@ class DLORopeMassSpring:
         self._init_massspring_cpp()
 
     def _stiffness_from_alpha_beta(self):
-        self.k_bend_x = self.alpha_bar
-        self.k_bend_y = self.alpha_bar
-        self.k_twist = self.beta_bar
+        alpha_s, beta_s = scale_material(
+            self.alpha_bar,
+            self.beta_bar,
+            material_scale_for("massspring"),
+        )
+        self.k_bend_x = alpha_s
+        self.k_bend_y = alpha_s
+        self.k_twist = beta_s
 
     def _init_sitebody(self):
         for i in range(self.nv + 2):

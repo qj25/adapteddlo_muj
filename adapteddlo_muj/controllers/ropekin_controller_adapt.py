@@ -31,6 +31,7 @@ import adapteddlo_muj.utils.transform_utils as T
 import adapteddlo_muj.controllers.dlo_cpp.Dlo_iso as Dlo_iso
 import adapteddlo_muj.utils.mjc2_utils as mjc2
 from adapteddlo_muj.utils.dlo_utils import force2torq
+from adapteddlo_muj.utils.rope_stiffness import material_scale_for, scale_material
 # from adapteddlo_muj.utils.filters import ButterLowPass
 
 class DLORopeAdapt:
@@ -194,19 +195,25 @@ class DLORopeAdapt:
     def set_resetbody_vars(self):
         self._init_resetbody_vars()
 
+    def _scaled_alpha_beta(self):
+        return scale_material(
+            self.alpha_bar, self.beta_bar, material_scale_for("adapt")
+        )
+
     def _init_dlo_cpp(self):
         self._update_xvecs()
         self._init_resetbody_vars()
         self._x2e()
         self._init_bf()
         # self._update_bishf()
+        alpha_cpp, beta_cpp = self._scaled_alpha_beta()
         self.dlo_math = Dlo_iso.DLO_iso(
             self.x.flatten(),
             self.bf0_bar.flatten(),
             self.p_thetan,
             self.overall_rot,
-            self.alpha_bar,
-            self.beta_bar
+            alpha_cpp,
+            beta_cpp,
         )
         self._init_o2m()
 
@@ -276,7 +283,8 @@ class DLORopeAdapt:
     def change_ropestiffness(self, alpha_bar, beta_bar):
         self.alpha_bar = alpha_bar  # bending modulus
         self.beta_bar = beta_bar    # twisting modulus
-        self.dlo_math.changeAlphaBeta(self.alpha_bar, self.beta_bar)
+        alpha_cpp, beta_cpp = self._scaled_alpha_beta()
+        self.dlo_math.changeAlphaBeta(alpha_cpp, beta_cpp)
 
     # ~~~~~~~~~~~~~~~~~~~~~~|formula functions|~~~~~~~~~~~~~~~~~~~~~~
 

@@ -13,6 +13,7 @@ from adapteddlo_muj.envs.test_shape_w_arm.registry import (
     parse_models_arg,
 )
 from adapteddlo_muj.utils.argparse_utils import parse_moveids_arg, tswa_parse
+from adapteddlo_muj.utils.manipulation_config import apply_move_settings
 
 # from adapteddlo_muj.utils.transform_utils import IDENTITY_QUATERNION
 
@@ -131,7 +132,7 @@ for i, model_name in enumerate(model_names):
             )
             env.velreset = velreset
             if getting_jointpos:
-                env.max_action = 0.02
+                apply_move_settings(env, "first_move_to_pose")
 
             joint_pos, nodes_pos = run_manipulation(
                 env,
@@ -157,3 +158,13 @@ for i, model_name in enumerate(model_names):
             print(f"Saved: {out_path}")
 
 print("sim test data saved!")
+
+np.set_printoptions(precision=6, suppress=True)
+for i, model_name in enumerate(model_names):
+    for j, wire_color in enumerate(wire_colors):
+        for pos_id in range(n_pos):
+            i_move = move_ids[pos_id] if move_ids is not None else pos_id
+            nodes_pos = node_pos_arr[i, j, pos_id]
+            print(f"\nWire node positions ({wire_color}{i_move}_{model_name}):")
+            for node_id, pos in enumerate(nodes_pos):
+                print(f"  node {node_id}: {pos}")

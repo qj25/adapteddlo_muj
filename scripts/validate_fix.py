@@ -50,7 +50,9 @@ def run_with_monitor(model_name, patch_fn=None, label=None):
     label = label or model_name
     print(f"\n=== {label} ===")
     env = get_model_specs([model_name])[model_name]["create_env"]("white", None, False)
-    env.max_action = 0.02
+    from adapteddlo_muj.utils.manipulation_config import apply_move_settings
+
+    apply_move_settings(env, "first_move_to_pose")
     if patch_fn:
         patch_fn(env)
     fail_step = None

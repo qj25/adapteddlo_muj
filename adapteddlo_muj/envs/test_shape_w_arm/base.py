@@ -8,8 +8,14 @@ from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 
 import adapteddlo_muj.utils.transform_utils as T
+from adapteddlo_muj.utils.manipulation_config import (
+    apply_move_settings,
+    load_manipulation_config,
+)
+from adapteddlo_muj.envs.real2sim_paramiden.base import stiff_path
 from adapteddlo_muj.envs.rnrvalid2 import ValidRnR2Env
 from adapteddlo_muj.envs.rnrvalid3_plugin import ValidRnR3Env
+from adapteddlo_muj.utils.wire_plugin import COSSERAT_WIRE_PLUGIN_CONFIGS
 
 PIECE_MULTI = 5
 R_LEN = 0.40
@@ -32,21 +38,29 @@ SIMDATA_PICKLE_RE = re.compile(
 )
 
 
-def stiff_pickle_path(wire_color: str, stiff_key: str) -> str:
-    return os.path.join(DATA_ROOT, "dlo_muj_real", "stiff_vals", f"{wire_color}_{stiff_key}_stiff.pickle")
-
-
-def load_stiffness(wire_color: str, stiff_key: str) -> Tuple[float, float]:
-    picklename = stiff_pickle_path(wire_color, stiff_key)
-    if not os.path.exists(picklename) and stiff_key != "adapt":
-        adapt_picklename = stiff_pickle_path(wire_color, "adapt")
-        if os.path.exists(adapt_picklename):
-            picklename = adapt_picklename
+def load_stiffness(wire_color: str, model_name: str) -> Tuple[float, float]:
+    picklename = stiff_path(wire_color, model_name)
+    if not os.path.exists(picklename):
+        if model_name != "adapt":
+            adapt_picklename = stiff_path(wire_color, "adapt")
+            if os.path.exists(adapt_picklename):
+                print(
+                    f"[{wire_color}/{model_name}] stiffness not found at {picklename}, "
+                    f"using adapt: {adapt_picklename}"
+                )
+                picklename = adapt_picklename
+            else:
+                raise FileNotFoundError(
+                    f"Stiffness file not found for {model_name} or adapt: "
+                    f"{picklename}, {adapt_picklename}"
+                )
+        else:
+            raise FileNotFoundError(f"Stiffness file not found: {picklename}")
     with open(picklename, "rb") as f:
         alpha_glob, b_a_glob = pickle.load(f)
     beta_glob = b_a_glob * alpha_glob
-    print(f"alpha_glob = {alpha_glob}")
-    print(f"beta_glob = {beta_glob}")
+    print(f"[{wire_color}/{model_name}] alpha_glob = {alpha_glob}")
+    print(f"[{wire_color}/{model_name}] beta_glob = {beta_glob}")
     return alpha_glob, beta_glob
 
 
@@ -70,10 +84,10 @@ def create_rnr2_env(
     rope_type: str,
     overall_rot,
     do_render: bool,
-    stiff_key: Optional[str] = None,
+    model_name: Optional[str] = None,
 ) -> ValidRnR2Env:
-    stiff_key = stiff_key or rope_type
-    alpha_glob, beta_glob = load_stiffness(wire_color, stiff_key)
+    model_name = model_name or rope_type
+    alpha_glob, beta_glob = load_stiffness(wire_color, model_name)
     massperlen, rgba_vals = wire_params(wire_color)
     return ValidRnR2Env(
         alpha_bar=alpha_glob,
@@ -89,8 +103,14 @@ def create_rnr2_env(
     )
 
 
-def create_jpqder_env(wire_color: str, overall_rot, do_render: bool) -> ValidRnR3Env:
-    alpha_glob, beta_glob = load_stiffness(wire_color, "adapt")
+def create_wire_plugin_env(
+    wire_color: str,
+    overall_rot,
+    do_render: bool,
+    model_name: str,
+    extra_plugin_configs: Optional[Dict[str, str]] = None,
+) -> ValidRnR3Env:
+    alpha_glob, beta_glob = load_stiffness(wire_color, model_name)
     massperlen, rgba_vals = wire_params(wire_color)
     return ValidRnR3Env(
         alpha_bar=alpha_glob,
@@ -101,8 +121,38 @@ def create_jpqder_env(wire_color: str, overall_rot, do_render: bool) -> ValidRnR
         r_pieces=R_PIECES,
         overall_rot=overall_rot,
         plugin_name="wire",
+        config_model_name=model_name,
         rgba_vals=rgba_vals,
         do_render=do_render,
+        extra_plugin_configs=extra_plugin_configs,
+    )
+
+
+def create_jpqder_env(
+    wire_color: str,
+    overall_rot,
+    do_render: bool,
+    model_name: Optional[str] = None,
+) -> ValidRnR3Env:
+    model_name = model_name or "jpqder"
+    return create_wire_plugin_env(
+        wire_color, overall_rot, do_render, model_name=model_name
+    )
+
+
+def create_cosserat_env(
+    wire_color: str,
+    overall_rot,
+    do_render: bool,
+    model_name: Optional[str] = None,
+) -> ValidRnR3Env:
+    model_name = model_name or "cosserat"
+    return create_wire_plugin_env(
+        wire_color,
+        overall_rot,
+        do_render,
+        model_name=model_name,
+        extra_plugin_configs=COSSERAT_WIRE_PLUGIN_CONFIGS,
     )
 
 
@@ -116,13 +166,14 @@ def run_manipulation(
 ) -> Tuple[np.ndarray, np.ndarray]:
     desired_pos = env.init_pos + move_pos[pos_id]
     desired_quat = T.quat_multiply(env.init_quat, move_quat[pos_id])
-    env.max_action = 0.02
+    apply_move_settings(env, "first_move_to_pose")
     env.move_to_pose(desired_pos, desired_quat)
     if not getting_jointpos:
         env.rot_x_rads(z_rot[pos_id])
+        apply_move_settings(env, "second_move_to_pose")
         env.move_to_pose(desired_pos, desired_quat)
         print("holding_pos")
-        env.hold_pos(5.0)
+        env.hold_pos(load_manipulation_config()["hold_time_after_pose_s"])
         print("held_pos")
     joint_pos = env._jd.copy()
     nodes_pos = env.observations["rope_pose"]

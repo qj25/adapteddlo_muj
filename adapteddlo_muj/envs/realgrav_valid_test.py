@@ -22,11 +22,19 @@ from adapteddlo_muj.assets.genrope.gdv_N import GenKin_N
 from adapteddlo_muj.controllers.ropekin_controller_xfrc import DLORopeXfrc
 from adapteddlo_muj.controllers.ropekin_controller_adapt import DLORopeAdapt
 from adapteddlo_muj.controllers.ropekin_controller_massspring import DLORopeMassSpring
-from adapteddlo_muj.controllers.ropekin_controller_cosserat import DLORopeCosserat
 from adapteddlo_muj.controllers.ropekin_controller_cosserat2 import DLORopeCosserat2
 from adapteddlo_muj.controllers.ropekin_controller_xpbd import DLORopeXpbd
 from adapteddlo_muj.controllers.ropekin_controller_geds import DLORopeGeds
+from adapteddlo_muj.controllers.ropekin_controller_cosserat3 import DLORopeCosserat3
 from adapteddlo_muj.utils.data_utils import compute_PCA, centralize_devdata
+from adapteddlo_muj.utils.rope_stiffness import scale_joint_damping
+from adapteddlo_muj.utils.wire_plugin import (
+    COSSERAT_WIRE_PLUGIN_CONFIGS,
+    NATIVE_OVERALL_XML,
+    NATIVE_ROPE_XML,
+    DLO_OVERALL_XML,
+    DLO_ROPE_XML,
+)
 
 
 class TestRopeEnv(gym.Env, utils.EzPickle):
@@ -192,10 +200,11 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
                 bothweld=self.bothweld,
             )
             self.joint_qveladdr_full = self.dlo_sim.dlo_joint_qveladdr_full.copy()
-        elif self.storqtype in ('cosserat', 'cosserat2', 'xpbd', 'geds'):
+        elif self.storqtype == 'cosserat':
+            self.dlo_sim = None
+        elif self.storqtype in ('cosserat2', 'xpbd', 'geds'):
             seg_len = self.r_len / float(self.r_pieces)
             controller_cls = {
-                'cosserat': DLORopeCosserat,
                 'cosserat2': DLORopeCosserat2,
                 'xpbd': DLORopeXpbd,
                 'geds': DLORopeGeds,
@@ -205,6 +214,19 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
                 data=self.data,
                 n_link=self.r_pieces,
                 segment_length=seg_len,
+                radius=self.r_thickness / 2.0,
+                alpha_bar=self.alpha_bar,
+                beta_bar=self.beta_bar,
+                overall_rot=self.overall_rot,
+                f_limit=self.f_limit,
+                bothweld=self.bothweld,
+            )
+            self.joint_qveladdr_full = self.dlo_sim.dlo_joint_qveladdr_full.copy()
+        elif self.storqtype == 'cosserat3':
+            self.dlo_sim = DLORopeCosserat3(
+                model=self.model,
+                data=self.data,
+                n_link=self.r_pieces,
                 radius=self.r_thickness / 2.0,
                 alpha_bar=self.alpha_bar,
                 beta_bar=self.beta_bar,
@@ -261,7 +283,7 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
             'S_last'
         )
         self.ropeend_body_id = mjc2.obj_name2id(self.model,"body","stiffrope")
-        if self.storqtype == 'native':
+        if self.storqtype in ('native', 'cosserat'):
             self.ropeend_getstate_bodyid = mjc2.obj_name2id(self.model,"body","stiffrope")
     
             self.joint_ids = []
@@ -293,12 +315,12 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
     def _get_xmlstr(self):
         # load model
         # update rope model
-        if self.storqtype == 'native':
-            rope_xml_file = "nativerope1dkin.xml"
-            overall_file = "overall_native.xml"
+        if self.storqtype in ('native', 'cosserat'):
+            rope_xml_file = NATIVE_ROPE_XML
+            overall_file = NATIVE_OVERALL_XML
         else:
-            rope_xml_file = "dlorope1dkin.xml"
-            overall_file = "overall.xml"
+            rope_xml_file = DLO_ROPE_XML
+            overall_file = DLO_OVERALL_XML
         world_base_path = os.path.join(
             os.path.dirname(os.path.dirname(__file__)),
             "assets/world_realexp.xml"
@@ -350,7 +372,29 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
                 obj_path=rope_path,
                 rgba_vals=self.rgba_vals
             )
-        if self.storqtype in ('adapt', 'massspring', 'cosserat', 'cosserat2', 'xpbd', 'geds'):
+        if self.storqtype == 'cosserat':
+            j_damp = scale_joint_damping(0.01, 'cosserat')
+            GenKin_N(
+                r_len=self.r_len,
+                r_thickness=self.r_thickness,
+                r_pieces=self.r_pieces,
+                r_mass=self.r_mass,
+                stiff_vals=self.stiff_vals,
+                j_damp=j_damp,
+                init_pos=self.rope_initpose[:3],
+                init_quat=self.rope_initpose[3:],
+                coll_on=True,
+                rope_type="capsule",
+                vis_subcyl=False,
+                obj_path=rope_path,
+                plugin_name="wire",
+                twist_displace=self.overall_rot,
+                rgba_vals=self.rgba_vals,
+                extra_plugin_configs=COSSERAT_WIRE_PLUGIN_CONFIGS,
+            )
+        elif self.storqtype in (
+            'adapt', 'massspring', 'cosserat2', 'cosserat3', 'xpbd', 'geds'
+        ):
             GenKin_O(
                 r_len=self.r_len,
                 r_thickness=self.r_thickness,
@@ -385,7 +429,7 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
         self.xml.merge_multiple(
             anchorbox, ["worldbody", "equality", "contact"]
         )
-        if self.storqtype == "native":
+        if self.storqtype in ("native", "cosserat"):
             self.xml.merge_multiple(
                 dlorope, ["worldbody","extension"]
             )
@@ -411,7 +455,9 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
         # print(f"self.beta_bar = {self.beta_bar}")
         if self.storqtype == 'xfrc':
             self.dlo_sim.update_force()
-        elif self.storqtype in ('adapt', 'massspring', 'cosserat', 'cosserat2', 'xpbd', 'geds'):
+        elif self.storqtype in (
+            'adapt', 'massspring', 'cosserat2', 'cosserat3', 'xpbd', 'geds'
+        ):
             self.dlo_sim.update_torque()
 
         # print(self.data.ncon)
@@ -472,7 +518,7 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
                 self.viewer.close()
                 self.viewer = None
 
-        if self.storqtype == 'native':
+        if self.storqtype in ('native', 'cosserat'):
             self.sim.forward()
         else:
             self.dlo_sim.reset_body()
@@ -534,7 +580,7 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
         self.hold_pos(10.)
 
         ## create pickle
-        if self.storqtype == 'native':
+        if self.storqtype in ('native', 'cosserat'):
             self.init_pickle = self.get_state2()
         else:
             self.init_pickle = self.get_state()
@@ -547,7 +593,7 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
     def _load_initpickle(self):
         with open(self.ocvt_picklepath, 'rb') as f:
             self.init_pickle = pickle.load(f)
-        if self.storqtype == 'native':
+        if self.storqtype in ('native', 'cosserat'):
             self.set_state2(self.init_pickle)
         else:
             self.set_state(self.init_pickle)
@@ -772,7 +818,7 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
         if new_start:
             self.circle_oop = False
             self.circle_init()
-            if self.storqtype == 'native':
+            if self.storqtype in ('native', 'cosserat'):
                 self.init_pickle = self.get_state2()
             else:
                 self.init_pickle = self.get_state()
@@ -783,7 +829,7 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
             with open(circtest_picklename, 'rb') as f:
                 self.init_pickle = pickle.load(f)
 
-            if self.storqtype == 'native':
+            if self.storqtype in ('native', 'cosserat'):
                 self.set_state2(self.init_pickle)
             else:
                 # set overall rot
@@ -794,7 +840,7 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
                 self.init_pickle[0][10] = self.p_thetan
                 self.set_state(self.init_pickle)
 
-            if self.storqtype == 'native':
+            if self.storqtype in ('native', 'cosserat'):
                 self.rot_x_rads2(x_rads=self.overall_rot)
                 self.reset_vel()
             else:

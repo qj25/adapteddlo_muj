@@ -3,6 +3,11 @@ import mujoco
 
 import adapteddlo_muj.utils.mjc2_utils as mjc2
 import adapteddlo_muj.controllers.cosserat_cpp.RodCosserat as RodCosserat
+from adapteddlo_muj.utils.rope_stiffness import (
+    cointegration_stiff_scale,
+    material_scale_for,
+    scale_joint_damping,
+)
 
 # Bisect instability: flip one key to False per test round (order matters).
 # 1. angular_damping      — body-frame -k_d*omega on child torques
@@ -42,8 +47,10 @@ class DLORopeCosserat:
         k_torque=0.01,
         k_stretch=None,
         k_angular_damp=0.2,
-        joint_damping=0.01,
-        material_scale=0.2 if COSSERAT_FIXES["material_scale"] else 1.0,
+        joint_damping=scale_joint_damping(0.01, "cosserat"),
+        material_scale=material_scale_for("cosserat")
+        if COSSERAT_FIXES["material_scale"]
+        else 1.0,
     ):
         self.model = model
         self.data = data
@@ -105,8 +112,7 @@ class DLORopeCosserat:
 
     def _material_from_alpha_beta(self, k_stretch=None):
         s = self.material_scale
-        dt = float(self.model.opt.timestep)
-        stiff_scale = dt * dt * 1.0e2
+        stiff_scale = cointegration_stiff_scale(self.model.opt.timestep)
         self.k_bend = s * self.alpha_bar
         self.k_twist = s * self.beta_bar
         if k_stretch is None:
