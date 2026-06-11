@@ -20,9 +20,26 @@ R_THICKNESS = 0.01
 # Search bounds: stiff_scale = alpha * (2*pi)^3 for bending; beta/alpha for twisting.
 LEGACY_STIFF_LIM = np.array([0.0, 2.0])
 BACKEND_STIFF_LIM = np.array([0.0, 2.0])
-BACKEND_MODELS = frozenset({"massspring", "cosserat2", "cosserat3", "xpbd", "geds"})
-# Wire-plugin models (jpqder-style init state) bootstrap MBI pickles from jpqder.
-WIRE_PLUGIN_MBI_MODELS = frozenset({"cosserat"})
+MASSSPRING_B_A_LIM = np.array([0.0, 2.0])
+BACKEND_MODELS = frozenset({"massspring", "cosserat", "xpbd", "geds"})
+
+# Models backed by adapteddlo_muj/controllers/*_cpp (use manual_rot in MBI circle test).
+CPP_BACKEND_MODELS = frozenset({
+    "adapt",
+    "xfrc",
+    "massspring",
+    "cosserat",
+    "cosserat3",
+    "cosserat5",
+    "xpbd",
+    "geds",
+})
+
+# Models that reuse another model's real/grav MBI pickle (TestRopeEnv only).
+REALGRAV_MBI_PICKLE_ALIASES = {}
+
+# Plugin-based models use adapt/plgn/<plugin>/mbitest1.pickle (TestPluginEnv).
+PLUGIN_MBI_MODELS = frozenset({"jpqder"})
 
 
 def parse_lim_arg(lim_arg: Optional[str], default: np.ndarray) -> np.ndarray:
@@ -39,10 +56,14 @@ def parse_lim_arg(lim_arg: Optional[str], default: np.ndarray) -> np.ndarray:
 
 def search_limits(model_name: str) -> Tuple[np.ndarray, np.ndarray]:
     if model_name in BACKEND_MODELS:
-        lim = BACKEND_STIFF_LIM.copy()
+        stiff_lim = BACKEND_STIFF_LIM.copy()
     else:
-        lim = LEGACY_STIFF_LIM.copy()
-    return lim, lim.copy()
+        stiff_lim = LEGACY_STIFF_LIM.copy()
+    if model_name == "massspring":
+        b_a_lim = MASSSPRING_B_A_LIM.copy()
+    else:
+        b_a_lim = stiff_lim.copy()
+    return stiff_lim, b_a_lim
 
 
 def wire_params(wire_color: str) -> Tuple[float, np.ndarray]:
@@ -94,60 +115,46 @@ def effective_rope_len(rope_len: float = ROPE_LEN, r_pieces: int = R_PIECES) -> 
     return rope_len * r_pieces / (r_pieces - 2)
 
 
+def mbi_pickle_source(model_name: str) -> str:
+    return REALGRAV_MBI_PICKLE_ALIASES.get(model_name, model_name)
+
+
 def mbi_pickle_path(model_name: str, grav_on: bool = True) -> str:
+    if model_name in PLUGIN_MBI_MODELS:
+        return os.path.join(
+            DATA_ROOT,
+            "mbi",
+            "adapt",
+            "plgn",
+            "wire",
+            "mbitest1.pickle",
+        )
+    source = mbi_pickle_source(model_name)
     grav_folder = "real/grav" if grav_on else "real/nograv"
     return os.path.join(
         DATA_ROOT,
         "mbi",
         grav_folder,
-        model_name,
+        source,
         "mbitest1.pickle",
     )
-
-
-def mbi_bootstrap_source(model_name: str) -> str:
-    if model_name in WIRE_PLUGIN_MBI_MODELS:
-        return "jpqder"
-    return "adapt"
-
-
-def jpqder_mbi_pickle_candidates(grav_on: bool = True) -> tuple[str, ...]:
-    """Paths where jpqder / wire-plugin MBI init pickles may live."""
-    return (
-        mbi_pickle_path("jpqder", grav_on=grav_on),
-        os.path.join(DATA_ROOT, "mbi", "adapt", "plgn", "wire", "mbitest1.pickle"),
-    )
-
-
-def mbi_bootstrap_candidates(model_name: str, grav_on: bool = True) -> tuple[str, ...]:
-    if model_name in WIRE_PLUGIN_MBI_MODELS:
-        # Deduplicate while preserving order.
-        seen = set()
-        ordered = []
-        for path in jpqder_mbi_pickle_candidates(grav_on=grav_on):
-            if path not in seen:
-                seen.add(path)
-                ordered.append(path)
-        return tuple(ordered)
-    return (mbi_pickle_path("adapt", grav_on=grav_on),)
 
 
 def ensure_mbi_pickle(model_name: str, grav_on: bool = True) -> str:
     picklename = mbi_pickle_path(model_name, grav_on=grav_on)
     if os.path.exists(picklename):
         return picklename
-    if model_name == "adapt":
+    if model_name in PLUGIN_MBI_MODELS:
         return picklename
-    bootstrap_from = mbi_bootstrap_source(model_name)
-    for fallback in mbi_bootstrap_candidates(model_name, grav_on=grav_on):
-        if os.path.exists(fallback):
-            os.makedirs(os.path.dirname(picklename), exist_ok=True)
-            shutil.copy2(fallback, picklename)
-            print(
-                f"Bootstrapped MBI pickle for {model_name} from {bootstrap_from} "
-                f"({fallback}): {picklename}"
-            )
-            return picklename
+    fallback = mbi_pickle_path("adapt", grav_on=grav_on)
+    if mbi_pickle_source(model_name) != "adapt" and os.path.exists(fallback):
+        os.makedirs(os.path.dirname(picklename), exist_ok=True)
+        shutil.copy2(fallback, picklename)
+        print(
+            f"Bootstrapped MBI pickle for {mbi_pickle_source(model_name)} "
+            f"from adapt: {picklename}"
+        )
+        return picklename
     return picklename
 
 
@@ -168,21 +175,39 @@ def create_mbi_env(
         ensure_mbi_pickle(model_name, grav_on=grav_on)
     r_len = effective_rope_len(rope_len)
     r_mass = massperlen * r_len
-    env = TestRopeEnv(
-        overall_rot=overall_rot,
-        do_render=do_render,
-        r_pieces=R_PIECES,
-        r_len=r_len,
-        r_thickness=R_THICKNESS,
-        test_type="mbi",
-        alpha_bar=alpha_bar,
-        beta_bar=beta_bar,
-        r_mass=r_mass,
-        new_start=new_start,
-        stifftorqtype=model_name,
-        grav_on=grav_on,
-        rgba_vals=rgba_vals,
-    )
+    if model_name == "jpqder":
+        from adapteddlo_muj.envs.validitytest_env import TestPluginEnv
+
+        env = TestPluginEnv(
+            overall_rot=overall_rot,
+            do_render=do_render,
+            r_pieces=R_PIECES,
+            r_len=r_len,
+            r_thickness=R_THICKNESS,
+            test_type="mbi",
+            alpha_bar=alpha_bar,
+            beta_bar=beta_bar,
+            r_mass=r_mass,
+            new_start=new_start,
+            plugin_name="wire",
+        )
+    else:
+        env = TestRopeEnv(
+            overall_rot=overall_rot,
+            manual_rot=model_name in CPP_BACKEND_MODELS,
+            do_render=do_render,
+            r_pieces=R_PIECES,
+            r_len=r_len,
+            r_thickness=R_THICKNESS,
+            test_type="mbi",
+            alpha_bar=alpha_bar,
+            beta_bar=beta_bar,
+            r_mass=r_mass,
+            new_start=new_start,
+            stifftorqtype=model_name,
+            grav_on=grav_on,
+            rgba_vals=rgba_vals,
+        )
     if do_render:
         env.set_viewer_details(
             dist=1.5,

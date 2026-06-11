@@ -32,8 +32,14 @@ def _cr_pos(p0, p1, p2, p3, t):
 def _make_free_rope_env(r_pieces=15, r_len=0.6, r_thickness=0.02):
     assets = os.path.join(ROOT, "adapteddlo_muj/assets")
     world_path = os.path.join(assets, "world_test.xml")
-    rope_path = os.path.join(assets, "dlorope1dkin.xml")
-    box_path = os.path.join(assets, "anchorbox.xml")
+    from adapteddlo_muj.utils.xml_utils import (
+        allocate_genrope_xml_paths,
+        release_genrope_xml_paths,
+    )
+
+    gen_paths = allocate_genrope_xml_paths("dlorope1dkin.xml")
+    rope_path = gen_paths.rope
+    box_path = gen_paths.anchorbox
     init_pos = np.array([r_len / 2.0, 0.0, 0.5])
     init_quat = np.array([1.0, 0.0, 0.0, 0.0])
     GenKin_O(
@@ -70,6 +76,7 @@ def _make_free_rope_env(r_pieces=15, r_len=0.6, r_thickness=0.02):
         beta_bar=0.789 / 10,
         bothweld=False,
     )
+    release_genrope_xml_paths(gen_paths)
     return model, data, ctrl
 
 

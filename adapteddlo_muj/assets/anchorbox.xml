@@ -11,8 +11,10 @@
     <exclude body1="B_first" body2="B_last"/>
     <exclude body1="B_1" body2="B_last"/>
     <exclude body1="B_first" body2="B_50"/>
+    <exclude body1="B_first" body2="B_50"/>
     <exclude body1="eef_body" body2="B_first"/>
     <exclude body1="eef_body" body2="B_last"/>
+    <exclude body1="eef_body" body2="B_50"/>
     <exclude body1="eef_body" body2="B_50"/>
   </contact>
 </mujoco>

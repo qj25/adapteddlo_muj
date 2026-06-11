@@ -21,6 +21,7 @@ g++ -c RodXpbd.cpp RodXpbd_wrap.cpp \
   -I"${PBD_VENDOR}" \
   -I"${PBD_POS}" \
   -I"${EIGEN_INCLUDE}" \
+  -I/usr/include/eigen3 \
   -I"${NUMPY_INCLUDE_PATH}" \
   -I"${PYTHON_INCLUDE_PATH}" \
   -fPIC -std=c++14 -O2

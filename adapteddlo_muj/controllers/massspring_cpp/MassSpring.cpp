@@ -17,13 +17,11 @@ MassSpring::MassSpring(
     int dim_nq,
     double* neutral_quat,
     double k_bend_x,
-    double k_bend_y,
-    double k_twist
+    double k_bend_y
 ) : n_nodes_(dim_nq / 4),
     neutral_quat_(new Eigen::Vector4d[n_nodes_]),
     k_bend_x_(k_bend_x),
-    k_bend_y_(k_bend_y),
-    k_twist_(k_twist) {
+    k_bend_y_(k_bend_y) {
     setNeutralQuat(dim_nq, neutral_quat);
 }
 
@@ -48,10 +46,9 @@ void MassSpring::setNeutralQuat(int dim_nq, double* neutral_quat) {
     }
 }
 
-void MassSpring::setStiffness(double k_bend_x, double k_bend_y, double k_twist) {
+void MassSpring::setStiffness(double k_bend_x, double k_bend_y) {
     k_bend_x_ = k_bend_x;
     k_bend_y_ = k_bend_y;
-    k_twist_ = k_twist;
 }
 
 void MassSpring::computeTorque(
@@ -92,8 +89,10 @@ void MassSpring::computeTorque(
     const double k_bend = 0.5 * (k_bend_x_ + k_bend_y_);
 
     // Joint spring: deviation of relative rotation from neutral relative rotation.
-    // Bend/twist split uses the segment tangent; torque is on the child in child frame.
-    for (int i = 1; i < n; ++i) {
+    // Bend-only: twist component removed via segment tangent; twist applied in Python.
+    // Nodes 0..n-1 are bodies with ball joints on indices 1..n-2; the tip site body
+    // at index n-1 (B_last2) is rigidly fixed to its parent and has no joint DOF.
+    for (int i = 1; i < n - 1; ++i) {
         const Eigen::Vector4d q_prev = readQuat(i - 1, current_quat);
         const Eigen::Vector4d q_cur = readQuat(i, current_quat);
         const Eigen::Vector4d q_rel = multiplyQuat(invertQuat(q_prev), q_cur);
@@ -101,15 +100,15 @@ void MassSpring::computeTorque(
         const Eigen::Vector4d q_dev = multiplyQuat(invertQuat(q_rel0), q_rel);
         const Eigen::Vector3d dev = quatToRotvec(q_dev);
 
+        // Segment direction and bend deviation in the parent body frame so twist
+        // removal matches the joint torque frame (see massspring_validate.py).
+        const Eigen::Vector3d seg_world = readPos(i, current_x) - readPos(i - 1, current_x);
         const Eigen::Vector3d tangent = safeNormalize(
-            readPos(i, current_x) - readPos(i - 1, current_x),
+            rotVecQuat(seg_world, invertQuat(q_prev)),
             fallback_tangent
         );
-        const double twist_scalar = dev.dot(tangent);
-        const Eigen::Vector3d twist_vec = twist_scalar * tangent;
-        const Eigen::Vector3d bend_vec = dev - twist_vec;
-        const Eigen::Vector3d weighted = k_bend * bend_vec + k_twist_ * twist_vec;
-        const Eigen::Vector3d tau_parent = -weighted;
+        const Eigen::Vector3d bend_vec = dev - dev.dot(tangent) * tangent;
+        const Eigen::Vector3d tau_parent = -k_bend * bend_vec;
 
         const Eigen::Vector3d tau_child = rotVecQuat(tau_parent, invertQuat(q_rel));
         node_torque[i * 3 + 0] = tau_child(0);
@@ -131,8 +130,9 @@ Eigen::Vector4d MassSpring::normalizeQuat(const Eigen::Vector4d& q) const {
 }
 
 Eigen::Vector4d MassSpring::invertQuat(const Eigen::Vector4d& q) const {
-    Eigen::Vector4d qi;
-    qi << q(0), -q(1), -q(2), -q(3);
+    Eigen::Vector4d qi = -q;
+    qi(0) = -qi(0);
+    qi = qi / qi.dot(qi);
     return qi;
 }
 
