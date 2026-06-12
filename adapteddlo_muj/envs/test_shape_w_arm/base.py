@@ -224,6 +224,24 @@ def save_sim_case_json(
     return out_path
 
 
+def load_sim_case_json(
+    wire_color: str,
+    move_id: int,
+    model_name: str,
+) -> Tuple[np.ndarray, float, np.ndarray, np.ndarray]:
+    json_path = simdata_json_path(wire_color, move_id, model_name)
+    if not os.path.exists(json_path):
+        raise FileNotFoundError(f"Missing sim case JSON: {json_path}")
+    with open(json_path, "r", encoding="utf-8") as f:
+        payload = json.load(f)
+    return (
+        np.asarray(payload["init_qpos"], dtype=float),
+        float(payload["z_rot_rad"]),
+        np.asarray(payload["nodes_pos"], dtype=float),
+        np.asarray(payload["joint_pos"], dtype=float),
+    )
+
+
 def canonical_model_name(legacy_model: str) -> str:
     return LEGACY_MODEL_ALIASES.get(legacy_model, legacy_model)
 

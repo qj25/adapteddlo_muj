@@ -94,7 +94,6 @@ class DLORopeCosserat5:
         self.n_cable = self.nv + 1
         self.cable_omega0 = np.zeros((self.n_cable, 3), dtype=np.float64)
         self.cable_stiffness = np.zeros((self.n_cable, 4), dtype=np.float64)
-        self.k_twist = self._cable_twist_stiffness(self.beta_bar)
         self.k_twist = beta_bar
         self._init_cosserat5_cpp()
 
@@ -235,7 +234,6 @@ class DLORopeCosserat5:
 
             if np.linalg.norm(lfrc) < 1e-12:
                 continue
-            
             mujoco.mju_rotVecQuat(xfrc, lfrc, self.data.xquat[i])
             mujoco.mj_applyFT(
                 self.model,
@@ -284,20 +282,24 @@ class DLORopeCosserat5:
         ropestart_quat = self.model.body_quat[self.ropestart_bodyid, :].copy()
         return ropestart_pos, ropestart_quat, self.overall_rot, self.p_thetan
 
+    def recapture_rest(self):
+        """Capture Kirchhoff rest curvature and flat cable rest (omega0=0)."""
+        mujoco.mj_forward(self.model, self.data)
+        self._update_xvecs()
+        self.dlo_math.captureRestCurvature()
+        self._cable_rest_seg_len = self._capture_cable_seg_lens()
+        self._capture_cable_twist_rest()
+
     def set_dlosim(self, ropestart_pos, ropestart_quat, overall_rot, p_thetan):
-        self.model.body_pos[self.ropestart_bodyid, :] = ropestart_pos
-        self.model.body_quat[self.ropestart_bodyid, :] = ropestart_quat
         self.overall_rot = overall_rot
         self.p_thetan = p_thetan
         self.dlo_math.resetTheta(self.p_thetan, self.overall_rot)
-        mujoco.mj_forward(self.model, self.data)
-        self._capture_cable_twist_rest()
 
     def reset_body(self):
         self.model.body_pos[self.vec_bodyid[:], :] = self.xpos_reset.copy()
         self.model.body_quat[self.vec_bodyid[:], :] = self.xquat_reset.copy()
         self._reset_vel()
-        mujoco.mj_forward(self.model, self.data)
+        self.recapture_rest()
 
     def reset_sim(self):
         self.overall_rot = self.reset_rot
@@ -305,13 +307,11 @@ class DLORopeCosserat5:
         if self.p_thetan > np.pi:
             self.p_thetan -= 2 * np.pi
         self.dlo_math.resetTheta(self.p_thetan, self.overall_rot)
-        self.dlo_math.captureRestCurvature()
-        self._capture_cable_twist_rest()
+        self.recapture_rest()
 
     def change_ropestiffness(self, alpha_bar, beta_bar):
         self.alpha_bar = alpha_bar
         self.beta_bar = beta_bar
-        self.k_twist = self._cable_twist_stiffness(self.beta_bar)
         self.k_twist = beta_bar
         self.dlo_math.changeAlphaBeta(self.alpha_bar, self.beta_bar)
         self._capture_cable_twist_rest()

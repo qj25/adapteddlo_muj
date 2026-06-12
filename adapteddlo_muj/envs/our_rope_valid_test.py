@@ -31,6 +31,8 @@ from adapteddlo_muj.controllers.ropekin_controller_cosserat3 import DLORopeCosse
 from adapteddlo_muj.controllers.ropekin_controller_cosserat5 import DLORopeCosserat5
 from adapteddlo_muj.utils.data_utils import compute_PCA, centralize_devdata
 
+MBI_STIFFNESS_WARMUP_STEPS = 0
+
 
 class TestRopeEnv(gym.Env, utils.EzPickle):
     def __init__(
@@ -352,7 +354,8 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
 
     def step(self, action=np.zeros(6)):
         # t1 = time()
-        self.dlo_sim.update_torque()
+        if self.test_type != "mbi" or self.env_steps >= MBI_STIFFNESS_WARMUP_STEPS:
+            self.dlo_sim.update_torque()
 
         # self.dlo_sim.reset_qvel_rotx()
         # t2 = time()
@@ -532,12 +535,10 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
         self.model.body_pos[:] = p_state[2][0]
         self.model.body_quat[:] = p_state[2][1]
 
-        # self.dlo_sim.overall_rot = 27. * (2.*np.pi)
-        # self.dlo_sim.dlo_math.resetTheta(
-        #     self.dlo_sim.p_thetan, self.dlo_sim.overall_rot
-        # )
-
-        # self.sim.forward()
+        self.sim.forward()
+        recapture_rest = getattr(self.dlo_sim, "recapture_rest", None)
+        if recapture_rest is not None:
+            recapture_rest()
         self.step()
         self._get_observations()
         self.dlo_sim._update_xvecs()
@@ -632,6 +633,12 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
         #         fphi_center = fphi.copy()
         return s_ss_center, fphi_center, max_devi
 
+    def _lhb_big_l_bar(self) -> float:
+        dlo_math = getattr(self.dlo_sim, "dlo_math", None)
+        if dlo_math is not None and hasattr(dlo_math, "bigL_bar"):
+            return float(dlo_math.bigL_bar)
+        return self.r_len * ((self.r_pieces - 1) / self.r_pieces)
+
     def lhb_var_compute(self):
         joint_site_pos = np.array(
             self.data.site_xpos[self.joint_site_idx[:]]
@@ -650,7 +657,7 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
         max_devi = np.max(devi_set)
         max_devi2 = max_devi
         # max_devi2 = 0.919
-        m_const = self.overall_rot/self.dlo_sim.dlo_math.bigL_bar
+        m_const = self.overall_rot / self._lhb_big_l_bar()
         # print(m_const)
         # input(self.overall_rot)
         s_ss = (

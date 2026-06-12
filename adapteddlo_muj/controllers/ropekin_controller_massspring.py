@@ -61,7 +61,6 @@ class DLORopeMassSpring:
         self.n_cable = self.nv + 1
         self.cable_omega0 = np.zeros((self.n_cable, 3), dtype=np.float64)
         self.cable_stiffness = np.zeros((self.n_cable, 4), dtype=np.float64)
-        self.k_twist = self._cable_twist_stiffness(self.beta_bar)
         self.k_twist = beta_bar
         self._init_resetbody_vars()
         self._init_massspring_cpp()
@@ -228,36 +227,32 @@ class DLORopeMassSpring:
         ropestart_quat = self.model.body_quat[self.ropestart_bodyid, :].copy()
         return ropestart_pos, ropestart_quat, self.overall_rot, self.p_thetan
 
-    def set_dlosim(self, ropestart_pos, ropestart_quat, overall_rot, p_thetan):
-        self.model.body_pos[self.ropestart_bodyid, :] = ropestart_pos
-        self.model.body_quat[self.ropestart_bodyid, :] = ropestart_quat
-        self.overall_rot = overall_rot
-        self.p_thetan = p_thetan
+    def recapture_rest(self):
+        """Capture bend neutral pose and flat cable rest (omega0=0) for current state."""
         mujoco.mj_forward(self.model, self.data)
         self.reset_neutral()
         self._cable_rest_seg_len = self._capture_cable_seg_lens()
         self._capture_cable_twist_rest()
+
+    def set_dlosim(self, ropestart_pos, ropestart_quat, overall_rot, p_thetan):
+        self.overall_rot = overall_rot
+        self.p_thetan = p_thetan
 
     def reset_body(self):
         self.model.body_pos[self.vec_bodyid[:], :] = self.xpos_reset.copy()
         self.model.body_quat[self.vec_bodyid[:], :] = self.xquat_reset.copy()
         self._reset_vel()
-        mujoco.mj_forward(self.model, self.data)
-        self.reset_neutral()
-        self._cable_rest_seg_len = self._capture_cable_seg_lens()
-        self._capture_cable_twist_rest()
+        self.recapture_rest()
 
     def reset_sim(self):
         self.overall_rot = self.reset_rot
         self.p_thetan = 0.0
-        self.reset_neutral()
-        self._capture_cable_twist_rest()
+        self.recapture_rest()
 
     def change_ropestiffness(self, alpha_bar, beta_bar):
         self.alpha_bar = alpha_bar
         self.beta_bar = beta_bar
         self._stiffness_from_alpha_beta()
-        self.k_twist = self._cable_twist_stiffness(self.beta_bar)
         self.k_twist = beta_bar
         self.massspring_math.setStiffness(self.k_bend_x, self.k_bend_y)
         self._capture_cable_twist_rest()

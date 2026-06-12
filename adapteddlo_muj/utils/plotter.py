@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.patches import Patch
 from mpl_toolkits.mplot3d import Axes3D
 
 plt.rcParams.update({'pdf.fonttype': 42})   # to prevent type 3 fonts in pdflatex
@@ -284,6 +285,156 @@ def plot_bars_more(error, model_types, add_markers=False):
     plt.tight_layout()
     plt.savefig(img_path + "plgn/valid_bars_more.pdf",bbox_inches='tight')
     plt.show()
+
+
+def plot_bars_pose_panels(
+    error,
+    model_names,
+    pose_pairs=None,
+    add_markers=False,
+    save_name="valid_bars2.pdf",
+):
+    """Bar charts with 2 poses per panel, 5 models per pose group.
+
+    error: shape (n_models, n_wirecolors, n_poses)
+    pose_pairs: list of (pose_idx_a, pose_idx_b), default [(0,1),(2,3),(4,5),(6,7)]
+    """
+    if pose_pairs is None:
+        pose_pairs = [(0, 1), (2, 3), (4, 5), (6, 7)]
+
+    n_models = len(model_names)
+    wire_names = ['white wire', 'black wire', 'red wire']
+    wire_colors = ['grey', 'black', 'red']
+    model_hatch = [None, '//', 'xx', '..', '\\\\']
+    if n_models > len(model_hatch):
+        model_hatch = model_hatch + [None] * (n_models - len(model_hatch))
+
+    bar_width = 0.055
+    midbarsep = 0.012
+    n_poses_panel = 2
+    index = np.arange(n_poses_panel) + 1
+
+    fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+    axes = axes.flatten()
+
+    def draw_marker(ax, x0, x1, marker_lw=2, cmark='lightgrey', marker_alpha=1.0, y_base=None):
+        offset = 0.001
+        if y_base is None:
+            y_base = -offset
+        marker_height = 0.001
+        ax.plot([x0, x0], [y_base, y_base + marker_height], color=cmark, lw=marker_lw, zorder=20, alpha=marker_alpha)
+        ax.plot([x1, x1], [y_base, y_base + marker_height], color=cmark, lw=marker_lw, zorder=20, alpha=marker_alpha)
+        ax.plot([x0, x1], [y_base, y_base], color=cmark, lw=marker_lw, zorder=20, alpha=marker_alpha)
+
+    for panel_idx, (pose_a, pose_b) in enumerate(pose_pairs):
+        ax = axes[panel_idx]
+        panel_error = error[:, :, [pose_a, pose_b]]
+        pose_labels = [pose_a + 1, pose_b + 1]
+        bar_models = [[] for _ in range(n_models)]
+
+        for i, _rope in enumerate(wire_colors):
+            for j in range(n_models):
+                x_offset = index + (n_models * (i - 1) * (bar_width + midbarsep)) + (j - (n_models - 1) / 2.0) * bar_width
+                heights = np.ma.masked_invalid(panel_error[j, i, :])
+                bar_models[j].append(
+                    ax.bar(
+                        x_offset,
+                        heights,
+                        bar_width - 0.01,
+                        color=wire_colors[i],
+                        capsize=5,
+                        alpha=0.7,
+                        hatch=model_hatch[j],
+                        edgecolor='none',
+                    )
+                )
+        for j in bar_models:
+            for bars, color in zip(j, wire_colors):
+                if color == 'black':
+                    for bar in bars:
+                        bar.set_edgecolor('white')
+                        bar.set_linewidth(1.5)
+
+        ax.set_xlabel('Robot Pose', fontsize=12, labelpad=4)
+        ax.tick_params(axis='x', pad=4)
+        if panel_idx % 2 == 0:
+            ax.set_ylabel('Normalized Position Error', fontsize=12)
+        ax.set_title(f'Poses {pose_labels[0]} & {pose_labels[1]}', fontsize=12)
+        ax.set_xticks(index)
+        ax.set_xticklabels(pose_labels)
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.set_axisbelow(True)
+        ax.yaxis.grid(color='gray', linestyle='dashed')
+        ax.set_ylim(-0.004, 0.16)
+        ax.set_yticks(np.arange(0, 0.18, 0.02))
+        ax.spines['bottom'].set_position('zero')
+        if panel_idx == 2:
+            wire_handles = [
+                Patch(
+                    facecolor=wire_colors[i],
+                    edgecolor='none',
+                    alpha=0.7,
+                )
+                for i in range(len(wire_colors))
+            ]
+            model_handles = [
+                Patch(
+                    facecolor='white',
+                    edgecolor='black',
+                    alpha=0.7,
+                    hatch=model_hatch[j],
+                )
+                for j in range(n_models)
+            ]
+            legend_wires = ax.legend(
+                wire_handles,
+                wire_names,
+                loc='upper center',
+                bbox_to_anchor=(0.30, 0.9),
+                ncol=1,
+                fontsize=14,
+            )
+            ax.add_artist(legend_wires)
+            ax.legend(
+                model_handles,
+                model_names,
+                loc='upper center',
+                bbox_to_anchor=(0.70, 0.9),
+                ncol=1,
+                fontsize=14,
+            )
+
+        disp_marker = 0.30
+        base_loc0 = 1 + (-n_models * (bar_width + midbarsep)) / 2.0
+        base_loc1 = 1 + (n_models * (bar_width + midbarsep)) / 2.0
+        for i in range(n_poses_panel):
+            draw_marker(
+                ax,
+                i + base_loc0 - disp_marker,
+                i + base_loc1 + disp_marker,
+                cmark='black',
+                marker_lw=4,
+                marker_alpha=1.0,
+            )
+
+        # if add_markers and panel_idx == 0:
+        #     ybase_addmark = -0.002
+        #     draw_marker(
+        #         ax,
+        #         1 + base_loc0 - disp_marker,
+        #         1 + base_loc1 + disp_marker,
+        #         y_base=ybase_addmark,
+        #         cmark='#444444',
+        #         marker_lw=4,
+        #         marker_alpha=1.0,
+        #     )
+
+    plt.tick_params(axis='both', which='major', labelsize=11)
+    plt.tight_layout()
+    plt.savefig(img_path + save_name, bbox_inches='tight')
+    plt.show()
+
 
 def plot_computetime(pieces_list, data_list):
     plt.style.use('seaborn-v0_8')

@@ -614,12 +614,10 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
         self.model.body_pos[:] = p_state[2][0]
         self.model.body_quat[:] = p_state[2][1]
 
-        # self.dlo_sim.overall_rot = 27. * (2.*np.pi)
-        # self.dlo_sim.dlo_math.resetTheta(
-        #     self.dlo_sim.p_thetan, self.dlo_sim.overall_rot
-        # )
-
-        # self.sim.forward()
+        self.sim.forward()
+        recapture_rest = getattr(self.dlo_sim, "recapture_rest", None)
+        if recapture_rest is not None:
+            recapture_rest()
         self.step()
         self._get_observations()
         self.dlo_sim._update_xvecs()

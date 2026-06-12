@@ -33,13 +33,35 @@ cd ../geds_cpp
 bash swigbuild.sh
 cd ../../..
 ```
-3. To obtain validation results:
+3. To obtain validation results (modular model runners):
 ```
 cd scripts
-python dlo_testdata.py --stiff [stiff_type] --test [test_type]
+python dlo_testdata_models.py --test [test_type] --models [model_list]
 ```
-where [stiff_type] = 'native' - native MuJoCo stiffness model, or 'adapt' - adapted DLO model,
-and [test_type] = 'lhb' - localized helical buckling test, or 'mbi' - Michell's buckling instability test.
+where [test_type] = `lhb` (localized helical buckling) or `mbi` (Michell's buckling instability).
+
+**Default models**: `adapt`, `native`, `massspring`. **Available models** (registered in `adapteddlo_muj/envs/validation_test/registry.py`): `adapt`, `native`, `massspring`, `xfrc`, `geds`, `jpqder`, `cosserat`, `cosserat3`, `cosserat5`, `xpbd`.
+
+**Examples**:
+```
+python dlo_testdata_models.py --test lhb
+python dlo_testdata_models.py --test mbi --models cosserat5,massspring
+python dlo_testdata_models.py --test lhb --models adapt --parallel 3
+python dlo_testdata_models.py --test mbi --plot-only
+```
+
+**Flags**:
+- `--models` — comma-separated model list (`--stiff` is a legacy alias for a single model)
+- `--parallel N` — run one model per worker when `N > 1` (render is disabled)
+- `--plot-only` / `--loadresults 1` — skip simulation; load saved results and plot
+- `--newstart`, `--render` — same as the legacy script
+
+Unstable or failed sub-tests are skipped automatically (MBI: per `b_a` point; LHB: per piece count).
+
+**Outputs** (one file per model):
+`adapteddlo_muj/data/validation_test_results/<test_type>/<model>.pickle`
+
+Legacy env outputs may still appear under `adapteddlo_muj/data/mbi/` and `adapteddlo_muj/data/lhb/` and are used as a plotting fallback.
 4. For MBI overall results:
 ```
 python plot_mbicombined.py
@@ -162,40 +184,50 @@ python test_shape_w_arm.py --models native --wirecolor red --moveid 2
 python test_shape_w_arm.py --models adapt --wirecolor white --moveid 0 --render 1
 ```
 
-Model implementations live under `adapteddlo_muj/envs/test_shape_w_arm/` (one module per model). To compare sim shapes against real data afterward, run step 10 (`simvreal_dlomuj.py`) with the same model names; plugin sim pickles for `jpqder` are expected under `adapteddlo_muj/data/simdata/plugin/` as `simdata_{color}{moveid}_jpqder.pickle` (legacy `*_adapt2.pickle` is also accepted).
+Model implementations live under `adapteddlo_muj/envs/test_shape_w_arm/` (one module per model). Sim cases are written as JSON by `test_shape_w_arm.py` to `adapteddlo_muj/data/test_shape_w_arm/sim_{color}{moveid}_{model}.json`. Legacy plugin pickles under `adapteddlo_muj/data/simdata/plugin/` (`simdata_{color}{moveid}_{model}.pickle`) are also accepted.
 
 # Compare:
-10. To compare sim and real DLO poses (modular model runners):
+10. To compare sim and real DLO poses across 8 move poses (modular model runners):
 ```
-python simvreal_dlomuj.py
+python simvreal_dlomuj2.py
 ```
-Optional model selection:
+Compares sim shapes from step 9 against reference data in `pts_all.pickle` (poses 0–3) and `pts_all2.pickle` (poses 4–7). Missing sim cases are warned and omitted from the error bars (NaN).
+
+**Default models**: `adapt`, `jpqder`, `native`, `massspring`, `cosserat5`. Use any model registered in `adapteddlo_muj/envs/test_shape_w_arm/registry.py`.
+
+**Prerequisite for poses 4–7** (if JSON sim cases are missing):
 ```
-python simvreal_dlomuj.py --models adapt,native,massspring,jpqder,xpbd,geds
+python scripts/tmp/gen_missing_all_svr2.py
 ```
-Optional filtering by wire color and move id:
+
+**Examples**:
 ```
-python simvreal_dlomuj.py --models adapt --wirecolor white --moveid 1
+python simvreal_dlomuj2.py --models adapt,native,massspring,cosserat5,jpqder
+python simvreal_dlomuj2.py --models adapt --wirecolor white --moveid 1
 ```
+
 Outputs are written per model to:
-`adapteddlo_muj/data/simvreal_test/simvreal_<model>.json`
+`adapteddlo_muj/data/simvreal_test/simvreal2_<model>.json`
+
+When multiple models are run, bar charts are shown automatically via `plot_bars_pose_panels`.
 
 ## Adding a new model to modular runners
 1. Add a new model module:
    - speed test: `adapteddlo_muj/envs/speed_test/<new_model>.py`
-   - simvreal test: `adapteddlo_muj/envs/simvreal_test/<new_model>.py`
+   - validation test (MBI/LHB): wire through `adapteddlo_muj/envs/validation_test/factory.py`
    - shape test: `adapteddlo_muj/envs/test_shape_w_arm/<new_model>.py`
    - parameter identification: `adapteddlo_muj/envs/real2sim_paramiden/<new_model>.py`
 2. Register it:
    - update `adapteddlo_muj/envs/speed_test/registry.py` and/or
-   - update `adapteddlo_muj/envs/simvreal_test/registry.py` and/or
+   - update `adapteddlo_muj/envs/validation_test/registry.py` and/or
    - update `adapteddlo_muj/envs/test_shape_w_arm/registry.py` and/or
    - update `adapteddlo_muj/envs/real2sim_paramiden/registry.py`
 3. Run with explicit model selection:
 ```
 python speed_test.py --newstart 1 --models <new_model>
-python simvreal_dlomuj.py --models <new_model>
+python dlo_testdata_models.py --test lhb --models <new_model>
 python test_shape_w_arm.py --models <new_model>
+python simvreal_dlomuj2.py --models <new_model>
 python real2sim_paramiden_all.py --models <new_model> --wirecolor white
 ```
 4. (Optional) Add it to `DEFAULT_MODELS` in each registry if you want it included by default.
