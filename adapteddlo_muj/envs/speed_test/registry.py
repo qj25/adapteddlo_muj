@@ -3,7 +3,7 @@ from typing import Dict, List, Optional
 from adapteddlo_muj.envs.speed_test import adapt, cosserat, cosserat3, cosserat5, geds, jpqder, massspring, native, plain, xfrc, xpbd
 
 
-DEFAULT_MODELS = ["plain", "native", "xfrc", "adapt", "massspring", "jpqder"]
+DEFAULT_MODELS = ["plain", "cosserat5", "massspring", "native", "adapt", "xfrc", "jpqder"]
 
 MODEL_REGISTRY = {
     "plain": plain.get_model_spec(),

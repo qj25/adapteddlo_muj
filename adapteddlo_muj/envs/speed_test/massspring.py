@@ -1,10 +1,15 @@
-from adapteddlo_muj.envs.our_rope_valid_test import TestRopeEnv
+from adapteddlo_muj.envs.our_rope_manrot_valid_test import TestRopeManRotEnv
+from adapteddlo_muj.envs.speed_test.base import (
+    do_render_from_settings,
+    run_env_speed_test,
+    use_adapt_pickle_from_settings,
+)
 
 
 def _run(settings):
-    env = TestRopeEnv(
+    env = TestRopeManRotEnv(
         overall_rot=0.0,
-        do_render=False,
+        do_render=do_render_from_settings(settings),
         r_pieces=settings["r_pieces"],
         r_len=settings["r_len"],
         r_thickness=settings["r_thickness"],
@@ -12,10 +17,9 @@ def _run(settings):
         alpha_bar=settings["alpha_val"],
         beta_bar=settings["beta_val"],
         model_name="massspring",
+        use_adapt_pickle=use_adapt_pickle_from_settings(settings),
     )
-    if settings["test_type"] == "speedtest1":
-        return env.run_speedtest1()
-    return env.run_speedtest2()
+    return run_env_speed_test(env, settings)
 
 
 def get_model_spec():

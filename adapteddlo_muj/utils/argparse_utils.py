@@ -69,4 +69,11 @@ def spdt_parse():
     parser = argparse.ArgumentParser(description="speed_test for obtaining computation speed.")
     # Add arguments with default values
     parser.add_argument('--newstart', type=int, default=1, help='Option to re_init pickle of env: 0 or 1 [off]')
+    parser.add_argument('--render', type=int, default=0, help='Render mode: 0 (off) or 1 (on) [default: off]')
+    parser.add_argument(
+        '--adapt-pickle',
+        type=int,
+        default=0,
+        help='For massspring/cosserat5: use adapt LHB init pickle instead of model-specific pickle',
+    )
     return parser

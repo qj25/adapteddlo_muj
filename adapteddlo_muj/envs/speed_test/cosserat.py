@@ -1,11 +1,12 @@
 from adapteddlo_muj.envs.validitytest_env import TestPluginEnv
+from adapteddlo_muj.envs.speed_test.base import do_render_from_settings, run_env_speed_test
 from adapteddlo_muj.utils.wire_plugin import COSSERAT_WIRE_PLUGIN_CONFIGS
 
 
 def _run(settings):
     env = TestPluginEnv(
         overall_rot=0.0,
-        do_render=False,
+        do_render=do_render_from_settings(settings),
         r_pieces=settings["r_pieces"],
         r_len=settings["r_len"],
         r_thickness=settings["r_thickness"],
@@ -15,9 +16,7 @@ def _run(settings):
         plugin_name="wire",
         extra_plugin_configs=COSSERAT_WIRE_PLUGIN_CONFIGS,
     )
-    if settings["test_type"] == "speedtest1":
-        return env.run_speedtest1()
-    return env.run_speedtest2()
+    return run_env_speed_test(env, settings)
 
 
 def get_model_spec():

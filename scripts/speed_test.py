@@ -11,7 +11,7 @@ from adapteddlo_muj.envs.speed_test.registry import (
     parse_models_arg,
 )
 from adapteddlo_muj.utils.argparse_utils import spdt_parse
-from adapteddlo_muj.utils.plotter import plot_computetime
+from adapteddlo_muj.utils.plotter import plot_computetime_all
 
 #======================| Settings |======================
 parser = spdt_parse()
@@ -26,6 +26,8 @@ parser.add_argument(
 args = parser.parse_args()
 
 new_start = bool(args.newstart)
+do_render = bool(args.render)
+use_adapt_pickle = bool(args.adapt_pickle)
 model_names = parse_models_arg(args.models, DEFAULT_MODELS)
 model_specs = get_model_specs(model_names)
 
@@ -47,6 +49,8 @@ data_dir = os.path.join(
     "adapteddlo_muj/data/speed_test"
 )
 os.makedirs(data_dir, exist_ok=True)
+PLOT_EXCLUDED_MODELS = frozenset({"jpqder"})
+PLOT_LABEL_ALIASES = {"adapt": "adapted", "cosserat5": "cosserat"}
 
 
 def output_path(model_name):
@@ -60,6 +64,8 @@ if new_start:
         "r_thickness": r_thickness,
         "alpha_val": alpha_val,
         "beta_val": beta_val,
+        "do_render": do_render,
+        "use_adapt_pickle": use_adapt_pickle,
     }
     for model_name, model_spec in model_specs.items():
         t_list = np.zeros((len(r_pieces_list),))
@@ -83,6 +89,7 @@ if new_start:
 
 else:
     series = []
+    loaded_model_names = []
     for model_name in model_names:
         model_path = output_path(model_name)
         with open(model_path, "r", encoding="utf-8") as f:
@@ -90,5 +97,12 @@ else:
         if not series:
             r_pieces_list = payload["r_pieces_list"]
         series.append(np.array(payload["times"], dtype=float))
+        loaded_model_names.append(model_name)
         print(f"Loaded: {model_path}")
-    plot_computetime(r_pieces_list, series)
+    plot_models = [m for m in loaded_model_names if m not in PLOT_EXCLUDED_MODELS]
+    plot_series = [
+        s for m, s in zip(loaded_model_names, series) if m not in PLOT_EXCLUDED_MODELS
+    ]
+    if plot_series:
+        plot_labels = [PLOT_LABEL_ALIASES.get(m, m) for m in plot_models]
+        plot_computetime_all(r_pieces_list, plot_series, plot_labels=plot_labels)

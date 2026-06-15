@@ -32,6 +32,7 @@ from adapteddlo_muj.controllers.ropekin_controller_cosserat5 import DLORopeCosse
 from adapteddlo_muj.utils.data_utils import compute_PCA, centralize_devdata
 
 MBI_STIFFNESS_WARMUP_STEPS = 0
+OWN_LHB_PICKLE_MODELS = frozenset({"massspring", "cosserat5"})
 
 
 class TestRopeEnv(gym.Env, utils.EzPickle):
@@ -49,6 +50,7 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
         new_start=False,
         limit_f=False,
         model_name="adapt",
+        use_adapt_pickle=False,
     ):
         utils.EzPickle.__init__(self)
 
@@ -57,6 +59,7 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
         self.limit_f = limit_f
         self.model_name = model_name
         self.picklefolder = self.model_name
+        self.use_adapt_pickle = use_adapt_pickle
 
         # rope init
         self.r_len = r_len
@@ -961,11 +964,21 @@ class TestRopeEnv(gym.Env, utils.EzPickle):
             os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
             "data/lhb/" + self.picklefolder + "/" + lhb_picklename
         )
-        if not os.path.exists(lhb_picklename) and self.model_name in ("massspring", "xpbd", "geds", "cosserat", "cosserat3", "cosserat5"):
-            lhb_picklename = os.path.join(
-                os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                "data/lhb/adapt/" + 'lhbtest{}.pickle'.format(self.r_pieces)
-            )
+        adapt_lhb_picklename = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            "data/lhb/adapt/" + 'lhbtest{}.pickle'.format(self.r_pieces)
+        )
+        if self.model_name in OWN_LHB_PICKLE_MODELS and self.use_adapt_pickle:
+            print(f"[{self.model_name}] Using adapt LHB init pickle: {adapt_lhb_picklename}")
+            lhb_picklename = adapt_lhb_picklename
+        elif not os.path.exists(lhb_picklename):
+            if self.model_name in OWN_LHB_PICKLE_MODELS:
+                raise FileNotFoundError(
+                    f"Missing LHB init state for {self.model_name}: {lhb_picklename}. "
+                    "Run the LHB validation test for this model first, or pass --adapt-pickle 1."
+                )
+            if self.model_name in ("xpbd", "geds", "cosserat", "cosserat3"):
+                lhb_picklename = adapt_lhb_picklename
         with open(lhb_picklename, 'rb') as f:
             self.init_pickle = pickle.load(f)
         self.set_state(self.init_pickle)

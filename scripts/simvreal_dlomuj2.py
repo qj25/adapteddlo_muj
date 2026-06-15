@@ -25,6 +25,8 @@ from adapteddlo_muj.utils.argparse_utils import svr_parse
 from adapteddlo_muj.utils.plotter import plot_bars_pose_panels
 
 DEFAULT_MODELS = ["adapt", "jpqder", "native", "massspring", "cosserat5"]
+PLOT_EXCLUDED_MODELS = frozenset({"jpqder"})
+PLOT_LABEL_ALIASES = {"adapt": "adapted", "cosserat5": "cosserat"}
 
 parser = svr_parse()
 _MODELS_HELP = ",".join(MODEL_REGISTRY.keys())
@@ -220,5 +222,9 @@ for model_name in model_names:
     all_errors.append(run_single_model(model_name))
 
 if len(all_errors) > 1:
-    plot_input = np.array(all_errors)[:, [2, 0, 1], :]
-    plot_bars_pose_panels(plot_input, model_names=model_names, add_markers=True)
+    plot_models = [m for m in model_names if m not in PLOT_EXCLUDED_MODELS]
+    plot_errors = [err for m, err in zip(model_names, all_errors) if m not in PLOT_EXCLUDED_MODELS]
+    if len(plot_errors) > 1:
+        plot_input = np.array(plot_errors)[:, [2, 0, 1], :]
+        plot_labels = [PLOT_LABEL_ALIASES.get(m, m) for m in plot_models]
+        plot_bars_pose_panels(plot_input, model_names=plot_labels, add_markers=True)

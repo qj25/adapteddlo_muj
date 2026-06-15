@@ -699,8 +699,8 @@ def plot_computetime_all(pieces_list, data_list, plot_labels=None):
     ax.set_ylim(0, 50)
     ax.set_xlim(40, 180)
     if plot_percent:
-        twin1.set_ylim(-5, 20)
-        twin1.set_yticks(np.linspace(-5, 20., 6))
+        twin1.set_ylim(-5, 60)
+        twin1.set_yticks(np.linspace(-5, 60., 6))
         twin1.set_ylabel("Percentage Increase from plain", fontsize=14)
     else:
         twin1.spines['right'].set_visible(False)
